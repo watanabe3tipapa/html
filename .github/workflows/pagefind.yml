@@ -1,0 +1,52 @@
+# ═══════════════════════════════════════════════════
+#  Pagefind Configuration
+#  Static Search Indexing for Local HTML Files
+# ═══════════════════════════════════════════════════
+
+# Indexing target: current directory (where index.html lives)
+site: "./lp"
+
+# File discovery pattern: all HTML files under the site root
+glob: "**/*.html"
+
+# ── Output Settings ──
+# Directory to emit the search bundle (relative to site root)
+output_subdir: "pagefind"
+
+# Keep index.html in result URLs (useful for flat file hosting)
+keep_index_url: false
+
+# ── Content Filtering ──
+# Exclude navigation, footer, and decorative elements from indexing.
+# All child elements under these selectors are also ignored automatically.
+exclude_selectors:
+  - "nav"
+  - "footer"
+  - "header"
+  - ".sidebar"
+  - ".no-search"
+  - "[data-pagefind-ignore]"
+
+# Root element for indexing (default: html)
+# If your main content is wrapped in <main>, consider:
+# root_selector: "main"
+
+# ── Language & Text ──
+# Force a single language index (ISO 639-1 code)
+# Useful for Japanese sites when auto-detection is unstable.
+# force_language: "ja"
+
+# Preserve specific characters during indexing (e.g. code symbols)
+# include_characters: "<>$#@"
+
+# ── Development & Debugging ──
+# Write the interactive playground to /pagefind/playground/
+# write_playground: true
+
+# Logging verbosity (choose one)
+# verbose: true
+# quiet: true
+# silent: true
+
+# Optional logfile for CI/CD pipelines
+# logfile: "pagefind.log"

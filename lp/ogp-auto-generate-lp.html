@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OGP画像を自動生成 — GitHub Actions ワークフロー集</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0d1117;
+  --surface: #161b22;
+  --surface-2: #1c2128;
+  --surface-3: #22282e;
+  --ink: #c9d1d9;
+  --ink-dim: #8b949e;
+  --accent: #58a6ff;
+  --accent-2: #a371f7;
+  --accent-3: #56d364;
+  --success: #3fb950;
+  --warning: #d29922;
+  --danger: #f85149;
+  --line: #30363d;
+  --line-subtle: #21262d;
+  --step--1: clamp(0.78rem, 0.75rem + 0.15vw, 0.88rem);
+  --step-0: clamp(0.9rem, 0.85rem + 0.25vw, 1rem);
+  --step-1: clamp(1.05rem, 0.95rem + 0.5vw, 1.25rem);
+  --step-2: clamp(1.3rem, 1.1rem + 1vw, 1.75rem);
+  --step-3: clamp(1.7rem, 1.3rem + 2vw, 2.5rem);
+  --step-4: clamp(2.4rem, 1.8rem + 3vw, 4.2rem);
+  --space: clamp(1rem, 0.7rem + 1.5vw, 2rem);
+  --radius: 14px;
+  --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 10px 30px -10px rgba(0,0,0,0.5);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: "Inter", "Hiragino Sans", "Yu Gothic", "Noto Sans JP", sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  font-size: var(--step-0);
+  line-height: 1.8;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Hero */
+.hero {
+  position: relative;
+  padding: calc(var(--space) * 4) var(--space) calc(var(--space) * 3);
+  max-width: 76rem;
+  margin: 0 auto;
+  overflow: hidden;
+  text-align: center;
+}
+
+.hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 60% 45% at 50% 20%, rgba(88,166,255,0.10), transparent),
+    radial-gradient(ellipse 40% 35% at 80% 60%, rgba(163,113,247,0.07), transparent),
+    radial-gradient(ellipse 35% 25% at 20% 70%, rgba(86,211,100,0.05), transparent);
+  pointer-events: none;
+}
+
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent);
+  border: 1px solid var(--line);
+  background: var(--surface);
+  padding: 0.45rem 1rem;
+  border-radius: 999px;
+  margin-bottom: 1.6rem;
+}
+
+.hero-badge .dot {
+  width: 7px; height: 7px;
+  background: var(--accent);
+  border-radius: 50%;
+  box-shadow: 0 0 10px var(--accent);
+  animation: pulse 2.2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
+}
+
+.hero h1 {
+  font-size: var(--step-4);
+  font-weight: 900;
+  line-height: 1.08;
+  letter-spacing: -0.04em;
+  margin-bottom: 1.2rem;
+  position: relative;
+}
+
+.hero h1 span {
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.hero > p {
+  color: var(--ink-dim);
+  font-size: var(--step-1);
+  max-width: 56ch;
+  margin: 0 auto 2rem;
+  line-height: 1.7;
+}
+
+.hero-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.95rem;
+  padding: 0.85rem 1.8rem;
+  border-radius: 999px;
+  text-decoration: none;
+  box-shadow: 0 4px 20px rgba(88,166,255,0.25);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.hero-cta:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 28px rgba(88,166,255,0.35);
+}
+
+.hero-meta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1.2rem;
+  color: var(--ink-dim);
+  font-size: 0.8rem;
+  margin-top: 2rem;
+}
+
+.hero-meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+/* Layout */
+.container {
+  max-width: 76rem;
+  margin: 0 auto;
+  padding: 0 var(--space) calc(var(--space) * 3);
+}
+
+/* Section headers */
+.section-header {
+  text-align: center;
+  margin-bottom: calc(var(--space) * 1.4);
+}
+
+.section-header h2 {
+  font-size: var(--step-3);
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  margin-bottom: 0.6rem;
+}
+
+.section-header p {
+  color: var(--ink-dim);
+  max-width: 52ch;
+  margin: 0 auto;
+}
+
+/* Feature cards */
+.features {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+  gap: 1rem;
+  margin-bottom: calc(var(--space) * 2.5);
+}
+
+.feature {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 1.6rem 1.4rem;
+  box-shadow: var(--shadow);
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+.feature:hover {
+  transform: translateY(-3px);
+  border-color: var(--accent);
+}
+
+.feature-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  margin-bottom: 1rem;
+  background: rgba(88,166,255,0.12);
+  border: 1px solid rgba(88,166,255,0.25);
+}
+
+.feature h3 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin-bottom: 0.4rem;
+}
+
+.feature p {
+  color: var(--ink-dim);
+  font-size: 0.88rem;
+  line-height: 1.7;
+}
+
+/* Workflow cards */
+.workflow {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: calc(var(--space) * 1.1);
+  margin-bottom: 1.2rem;
+  box-shadow: var(--shadow);
+}
+
+.workflow-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.workflow h3 {
+  font-size: var(--step-2);
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.workflow-desc {
+  color: var(--ink-dim);
+  font-size: 0.92rem;
+  margin-bottom: 1rem;
+  max-width: 66ch;
+}
+
+/* Labels */
+.label {
+  display: inline-block;
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  padding: 0.22rem 0.6rem;
+  border-radius: 4px;
+}
+
+.label-green {
+  color: var(--success);
+  background: rgba(63,185,80,0.12);
+  border: 1px solid rgba(63,185,80,0.25);
+}
+
+.label-purple {
+  color: var(--accent-2);
+  background: rgba(163,113,247,0.12);
+  border: 1px solid rgba(163,113,247,0.25);
+}
+
+.label-blue {
+  color: var(--accent);
+  background: rgba(88,166,255,0.12);
+  border: 1px solid rgba(88,166,255,0.25);
+}
+
+.label-amber {
+  color: var(--warning);
+  background: rgba(210,153,34,0.12);
+  border: 1px solid rgba(210,153,34,0.25);
+}
+
+/* Code blocks */
+pre {
+  background: var(--surface-2);
+  border: 1px solid var(--line-subtle);
+  border-radius: 10px;
+  padding: 1.15rem 1.3rem;
+  overflow-x: auto;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.78rem;
+  line-height: 1.65;
+  color: var(--ink);
+  margin: 0.8rem 0 0.3rem;
+}
+
+code {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.84em;
+  background: var(--surface-2);
+  padding: 0.15em 0.4em;
+  border-radius: 4px;
+  color: var(--accent);
+}
+
+pre code {
+  background: none;
+  padding: 0;
+  color: inherit;
+}
+
+pre .k  { color: #ff7b72; }
+pre .s  { color: #a5d6ff; }
+pre .c  { color: #8b949e; font-style: italic; }
+pre .n  { color: #d2a8ff; }
+pre .v  { color: #79c0ff; }
+pre .p  { color: #c9d1d9; }
+pre .d  { color: #ffa657; }
+
+/* Collapsible code */
+.collapsible {
+  border: 1px solid var(--line-subtle);
+  border-radius: 10px;
+  overflow: hidden;
+  margin: 0.6rem 0 0.3rem;
+}
+
+.collapsible summary {
+  background: var(--surface-2);
+  padding: 0.75rem 1.1rem;
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--ink);
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  user-select: none;
+}
+
+.collapsible summary::before {
+  content: "▸";
+  color: var(--accent);
+  font-size: 0.75rem;
+  transition: transform 0.15s ease;
+}
+
+.collapsible[open] summary::before {
+  transform: rotate(90deg);
+}
+
+.collapsible pre {
+  border-radius: 0;
+  border: none;
+  border-top: 1px solid var(--line-subtle);
+  margin: 0;
+}
+
+/* Grid */
+.grid-2 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 28rem), 1fr));
+  gap: 1rem;
+}
+
+/* Table */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.8rem 0;
+  font-size: 0.84rem;
+}
+
+th, td {
+  text-align: left;
+  padding: 0.65rem 0.8rem;
+  border-bottom: 1px solid var(--line);
+}
+
+th {
+  color: var(--accent);
+  font-weight: 600;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  background: var(--surface-2);
+}
+
+td {
+  color: var(--ink-dim);
+}
+
+tr:hover td {
+  background: var(--surface-2);
+}
+
+/* Alert */
+.alert {
+  border-left: 3px solid var(--accent);
+  background: var(--surface-2);
+  padding: 0.9rem 1.1rem;
+  border-radius: 0 8px 8px 0;
+  margin: 0.8rem 0;
+  font-size: 0.87rem;
+  color: var(--ink-dim);
+}
+
+.alert-warning {
+  border-left-color: var(--warning);
+  background: rgba(210,153,34,0.08);
+}
+
+.alert-success {
+  border-left-color: var(--success);
+  background: rgba(63,185,80,0.08);
+}
+
+/* Steps */
+.steps {
+  counter-reset: step;
+  list-style: none;
+  padding: 0;
+  margin: 0.8rem 0;
+}
+
+.steps li {
+  position: relative;
+  padding-left: 2.4rem;
+  margin-bottom: 1rem;
+  color: var(--ink-dim);
+  font-size: 0.9rem;
+}
+
+.steps li::before {
+  counter-increment: step;
+  content: counter(step);
+  position: absolute;
+  left: 0;
+  top: 0.1rem;
+  width: 1.6rem;
+  height: 1.6rem;
+  background: var(--surface-3);
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  color: var(--accent);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.7rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* CTA section */
+.cta-section {
+  text-align: center;
+  padding: calc(var(--space) * 2.5) var(--space);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  margin: calc(var(--space) * 2) 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.cta-section::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 60% 50% at 50% 50%, rgba(88,166,255,0.07), transparent);
+  pointer-events: none;
+}
+
+.cta-section h2 {
+  font-size: var(--step-3);
+  font-weight: 800;
+  margin-bottom: 0.8rem;
+  position: relative;
+}
+
+.cta-section p {
+  color: var(--ink-dim);
+  max-width: 48ch;
+  margin: 0 auto 1.5rem;
+  position: relative;
+}
+
+/* Footer */
+footer {
+  text-align: center;
+  color: var(--ink-dim);
+  font-size: 0.78rem;
+  padding: calc(var(--space) * 1.5) var(--space);
+  border-top: 1px solid var(--line);
+}
+
+/* HR */
+hr {
+  border: none;
+  height: 1px;
+  background: var(--line);
+  margin: calc(var(--space) * 2) 0;
+}
+
+/* Print */
+@media print {
+  body { background: #fff; color: #111; }
+  .hero::before, .cta-section::before { display: none; }
+  .workflow, .feature, .card, pre { break-inside: avoid; }
+}
+@page { size: A4; margin: 14mm; }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .hero-badge .dot { animation: none; }
+}
+
+@media (max-width: 480px) {
+  .hero { padding-top: calc(var(--space) * 2.5); }
+  pre { padding: 0.8rem 1rem; font-size: 0.72rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- Hero -->
+<header class="hero">
+  <div class="hero-badge"><span class="dot"></span> GitHub Actions</div>
+  <h1>OGP画像を<br><span>自動生成</span>する</h1>
+  <p>ブログ記事やドキュメントのOGP画像を、pushのたびにGitHub Actionsで自動生成。Satori、Pillow、統合パターンまで、コピペで使えるワークフローをまとめました。</p>
+  <a href="#workflows" class="hero-cta">ワークフローを見る →</a>
+  <div class="hero-meta">
+    <span>3 パターン</span>
+    <span>·</span>
+    <span>日本語対応</span>
+    <span>·</span>
+    <span>コピペ対応</span>
+  </div>
+</header>
+
+<main class="container">
+
+<!-- Features -->
+<section>
+  <div class="section-header">
+    <h2>なぜ Actions で生成する？</h2>
+    <p>手動でOGP画像を作る手間をなくし、記事追加のたびに自動で最新の画像を生成できます。</p>
+  </div>
+  <div class="features">
+    <div class="feature">
+      <div class="feature-icon">⚡</div>
+      <h3>自動化</h3>
+      <p>記事を push するだけでOGP画像が自動生成・コミットされます。手作業はゼロ。</p>
+    </div>
+    <div class="feature">
+      <div class="feature-icon" style="background:rgba(163,113,247,0.12);border-color:rgba(163,113,247,0.25);">🎨</div>
+      <h3>デザイン統一</h3>
+      <p>全記事で同じテンプレート・フォント・配色を使えます。ブランド感を保てます。</p>
+    </div>
+    <div class="feature">
+      <div class="feature-icon" style="background:rgba(63,185,80,0.12);border-color:rgba(63,185,80,0.25);">🇯🇵</div>
+      <h3>日本語対応</h3>
+      <p>Noto Sans JP などのフォントを Actions 上で自動ダウンロード・埋め込み。</p>
+    </div>
+    <div class="feature">
+      <div class="feature-icon" style="background:rgba(210,153,34,0.12);border-color:rgba(210,153,34,0.25);">📦</div>
+      <h3>Pages と統合</h3>
+      <p>サイトビルド前にOGP生成を挟むだけ。1つのワークフローで完結します。</p>
+    </div>
+  </div>
+</section>
+
+<hr>
+
+<!-- Workflows -->
+<section id="workflows">
+  <div class="section-header">
+    <h2>ワークフロー集</h2>
+    <p>用途に合わせて選べる3パターン。YAMLをコピーしてそのまま使えます。</p>
+  </div>
+
+  <!-- Pattern 1: Satori -->
+  <div class="workflow">
+    <div class="workflow-header">
+      <h3><span style="font-size:1.5rem;">01</span> Satori + Resvg <span class="label label-green">推奨</span></h3>
+    </div>
+    <p class="workflow-desc">SVGテンプレートから高速にPNGを生成。Puppeteerより軽量で、CSSライクなレイアウトが可能です。Node.jsプロジェクトに最適です。</p>
+
+    <span class="label label-blue">.github/workflows/generate-ogp.yml</span>
+<pre><code><span class="k">name:</span> <span class="s">Generate OGP Images</span>
+
+<span class="k">on:</span>
+  <span class="k">push:</span>
+    <span class="k">branches:</span> [<span class="s">"main"</span>]
+    <span class="k">paths:</span>
+      <span class="k">-</span> <span class="s">"content/**"</span>
+      <span class="k">-</span> <span class="s">"scripts/ogp/**"</span>
+  <span class="k">workflow_dispatch:</span>
+
+<span class="k">jobs:</span>
+  <span class="k">ogp:</span>
+    <span class="k">runs-on:</span> <span class="s">ubuntu-latest</span>
+    <span class="k">steps:</span>
+      <span class="k">- uses:</span> <span class="s">actions/checkout@v4</span>
+
+      <span class="k">- uses:</span> <span class="s">actions/setup-node@v4</span>
+        <span class="k">with:</span>
+          <span class="k">node-version:</span> <span class="s">20</span>
+          <span class="k">cache:</span> <span class="s">npm</span>
+
+      <span class="k">- run:</span> <span class="s">npm ci</span>
+
+      <span class="k">- name:</span> <span class="s">Download Japanese font</span>
+        <span class="k">run:</span> <span class="p">|</span>
+          <span class="s">mkdir -p scripts/ogp/fonts</span>
+          <span class="s">curl -sL -o scripts/ogp/fonts/NotoSansJP-Bold.otf \</span>
+            <span class="s">"https://github.com/googlefonts/noto-cjk/raw/main/Sans/OTF/Japanese/NotoSansJP-Bold.otf"</span>
+
+      <span class="k">- name:</span> <span class="s">Generate OGP images</span>
+        <span class="k">run:</span> <span class="s">node scripts/ogp/generate.js</span>
+
+      <span class="k">- name:</span> <span class="s">Commit generated images</span>
+        <span class="k">run:</span> <span class="p">|</span>
+          <span class="s">git config user.name "github-actions[bot]"</span>
+          <span class="s">git config user.email "github-actions[bot]@users.noreply.github.com"</span>
+          <span class="s">git add public/ogp/</span>
+          <span class="k">if</span> <span class="s">git diff --cached --quiet; then</span>
+            <span class="s">echo "No changes"</span>
+            <span class="s">exit 0</span>
+          <span class="s">fi</span>
+          <span class="s">git commit -m "chore: update ogp images [skip ci]"</span>
+          <span class="s">git push</span></code></pre>
+
+    <details class="collapsible">
+      <summary>scripts/ogp/generate.js の例</summary>
+<pre><code><span class="k">const</span> <span class="v">fs</span> <span class="p">=</span> <span class="d">require</span>(<span class="s">'fs'</span>);
+<span class="k">const</span> <span class="v">path</span> <span class="p">=</span> <span class="d">require</span>(<span class="s">'path'</span>);
+<span class="k">const</span> <span class="v">satori</span> <span class="p">=</span> <span class="d">require</span>(<span class="s">'satori'</span>).<span class="v">default</span>;
+<span class="k">const</span> { <span class="v">Resvg</span> } <span class="p">=</span> <span class="d">require</span>(<span class="s">'@resvg/resvg-js'</span>);
+
+<span class="k">const</span> <span class="v">fontData</span> <span class="p">=</span> <span class="v">fs</span>.<span class="d">readFileSync</span>(<span class="v">path</span>.<span class="d">join</span>(<span class="v">__dirname</span>, <span class="s">'fonts/NotoSansJP-Bold.otf'</span>));
+
+<span class="k">const</span> <span class="v">posts</span> <span class="p">=</span> [
+  { <span class="v">slug</span><span class="p">:</span> <span class="s">'hello-world'</span>, <span class="v">title</span><span class="p">:</span> <span class="s">'GitHub Actions で OGP 画像を自動生成する'</span>, <span class="v">date</span><span class="p">:</span> <span class="s">'2026-08-25'</span> },
+];
+
+<span class="k">async function</span> <span class="d">generate</span>() {
+  <span class="k">const</span> <span class="v">outDir</span> <span class="p">=</span> <span class="v">path</span>.<span class="d">join</span>(<span class="v">process</span>.<span class="d">cwd</span>(), <span class="s">'public/ogp'</span>);
+  <span class="v">fs</span>.<span class="d">mkdirSync</span>(<span class="v">outDir</span>, { <span class="v">recursive</span><span class="p">:</span> <span class="k">true</span> });
+
+  <span class="k">for</span> (<span class="k">const</span> <span class="v">post</span> <span class="k">of</span> <span class="v">posts</span>) {
+    <span class="k">const</span> <span class="v">svg</span> <span class="p">=</span> <span class="k">await</span> <span class="d">satori</span>(
+      {
+        <span class="v">type</span><span class="p">:</span> <span class="s">'div'</span>,
+        <span class="v">props</span><span class="p">:</span> {
+          <span class="v">style</span><span class="p">:</span> {
+            <span class="v">width</span><span class="p">:</span> <span class="s">1200</span>, <span class="v">height</span><span class="p">:</span> <span class="s">630</span>,
+            <span class="v">background</span><span class="p">:</span> <span class="s">'linear-gradient(135deg, #0d1117, #161b22)'</span>,
+            <span class="v">color</span><span class="p">:</span> <span class="s">'#c9d1d9'</span>, <span class="v">fontFamily</span><span class="p">:</span> <span class="s">'Noto Sans JP'</span>,
+            <span class="v">padding</span><span class="p">:</span> <span class="s">60</span>, <span class="v">display</span><span class="p">:</span> <span class="s">'flex'</span>,
+            <span class="v">flexDirection</span><span class="p">:</span> <span class="s">'column'</span>, <span class="v">justifyContent</span><span class="p">:</span> <span class="s">'center'</span>,
+          },
+          <span class="v">children</span><span class="p">:</span> [
+            {
+              <span class="v">type</span><span class="p">:</span> <span class="s">'div'</span>,
+              <span class="v">props</span><span class="p">:</span> {
+                <span class="v">style</span><span class="p">:</span> { <span class="v">fontSize</span><span class="p">:</span> <span class="s">56</span>, <span class="v">fontWeight</span><span class="p">:</span> <span class="s">700</span>, <span class="v">lineHeight</span><span class="p">:</span> <span class="s">1.4</span>, <span class="v">color</span><span class="p">:</span> <span class="s">'#58a6ff'</span> },
+                <span class="v">children</span><span class="p">:</span> <span class="v">post</span>.<span class="v">title</span>,
+              },
+            },
+            {
+              <span class="v">type</span><span class="p">:</span> <span class="s">'div'</span>,
+              <span class="v">props</span><span class="p">:</span> {
+                <span class="v">style</span><span class="p">:</span> { <span class="v">marginTop</span><span class="p">:</span> <span class="s">40</span>, <span class="v">fontSize</span><span class="p">:</span> <span class="s">28</span>, <span class="v">color</span><span class="p">:</span> <span class="s">'#8b949e'</span> },
+                <span class="v">children</span><span class="p">:</span> <span class="v">post</span>.<span class="v">date</span>,
+              },
+            },
+          ],
+        },
+      },
+      {
+        <span class="v">width</span><span class="p">:</span> <span class="s">1200</span>, <span class="v">height</span><span class="p">:</span> <span class="s">630</span>,
+        <span class="v">fonts</span><span class="p">:</span> [{ <span class="v">name</span><span class="p">:</span> <span class="s">'Noto Sans JP'</span>, <span class="v">data</span><span class="p">:</span> <span class="v">fontData</span>, <span class="v">weight</span><span class="p">:</span> <span class="s">700</span> }],
+      }
+    );
+
+    <span class="k">const</span> <span class="v">resvg</span> <span class="p">=</span> <span class="k">new</span> <span class="d">Resvg</span>(<span class="v">svg</span>, { <span class="v">fitTo</span><span class="p">:</span> { <span class="v">mode</span><span class="p">:</span> <span class="s">'original'</span>, <span class="v">original</span><span class="p">:</span> <span class="s">1</span> } });
+    <span class="k">const</span> <span class="v">pngData</span> <span class="p">=</span> <span class="v">resvg</span>.<span class="d">render</span>();
+    <span class="v">fs</span>.<span class="d">writeFileSync</span>(<span class="v">path</span>.<span class="d">join</span>(<span class="v">outDir</span>, <span class="s">`${post.slug}.png`</span>), <span class="v">pngData</span>.<span class="d">asPng</span>());
+  }
+}
+
+<span class="d">generate</span>().<span class="d">catch</span>(<span class="v">console</span>.<span class="v">error</span>);</code></pre>
+    </details>
+
+    <details class="collapsible">
+      <summary>package.json に追加する依存</summary>
+<pre><code>{
+  <span class="s">"devDependencies"</span>: {
+    <span class="s">"satori"</span>: <span class="s">"^0.12.0"</span>,
+    <span class="s">"@resvg/resvg-js"</span>: <span class="s">"^2.6.2"</span>
+  }
+}</code></pre>
+    </details>
+
+    <div class="alert alert-success">
+      <strong>ポイント：</strong><code>paths</code> フィルタで content ディレクトリ変更時のみ実行し、無駄なビルドを防ぎます。<code>[skip ci]</code> を入れて無限ループを回避しています。
+    </div>
+  </div>
+
+  <!-- Pattern 2: Pillow -->
+  <div class="workflow">
+    <div class="workflow-header">
+      <h3><span style="font-size:1.5rem;">02</span> Pillow <span class="label label-purple">シンプル</span></h3>
+    </div>
+    <p class="workflow-desc">Node.js を使わず、Pythonだけで完結したい場合。依存が少なく、軽量に動作します。</p>
+
+    <span class="label label-blue">.github/workflows/generate-ogp-pillow.yml</span>
+<pre><code><span class="k">name:</span> <span class="s">Generate OGP with Pillow</span>
+
+<span class="k">on:</span>
+  <span class="k">push:</span>
+    <span class="k">branches:</span> [<span class="s">"main"</span>]
+    <span class="k">paths:</span>
+      <span class="k">-</span> <span class="s">"content/**"</span>
+      <span class="k">-</span> <span class="s">"scripts/generate_ogp.py"</span>
+  <span class="k">workflow_dispatch:</span>
+
+<span class="k">jobs:</span>
+  <span class="k">ogp:</span>
+    <span class="k">runs-on:</span> <span class="s">ubuntu-latest</span>
+    <span class="k">steps:</span>
+      <span class="k">- uses:</span> <span class="s">actions/checkout@v4</span>
+
+      <span class="k">- uses:</span> <span class="s">actions/setup-python@v5</span>
+        <span class="k">with:</span>
+          <span class="k">python-version:</span> <span class="s">"3.11"</span>
+
+      <span class="k">- run:</span> <span class="s">pip install pillow</span>
+
+      <span class="k">- name:</span> <span class="s">Download font</span>
+        <span class="k">run:</span> <span class="p">|</span>
+          <span class="s">mkdir -p fonts</span>
+          <span class="s">curl -sL -o fonts/NotoSansJP-Bold.otf \</span>
+            <span class="s">"https://github.com/googlefonts/noto-cjk/raw/main/Sans/OTF/Japanese/NotoSansJP-Bold.otf"</span>
+
+      <span class="k">- run:</span> <span class="s">python scripts/generate_ogp.py</span>
+
+      <span class="k">- name:</span> <span class="s">Commit</span>
+        <span class="k">run:</span> <span class="p">|</span>
+          <span class="s">git config user.name "github-actions[bot]"</span>
+          <span class="s">git config user.email "github-actions[bot]@users.noreply.github.com"</span>
+          <span class="s">git add public/ogp/</span>
+          <span class="k">if</span> <span class="s">git diff --cached --quiet; then exit 0; fi</span>
+          <span class="s">git commit -m "chore: update ogp images [skip ci]"</span>
+          <span class="s">git push</span></code></pre>
+
+    <details class="collapsible">
+      <summary>scripts/generate_ogp.py の例</summary>
+<pre><code><span class="k">from</span> <span class="v">PIL</span> <span class="k">import</span> <span class="n">Image</span>, <span class="n">ImageDraw</span>, <span class="n">ImageFont</span>
+<span class="k">import</span> <span class="v">os</span>
+
+<span class="v">os</span>.<span class="d">makedirs</span>(<span class="s">"public/ogp"</span>, <span class="v">exist_ok</span><span class="p">=</span><span class="k">True</span>)
+
+<span class="v">posts</span> <span class="p">=</span> [
+    {<span class="s">"slug"</span>: <span class="s">"hello-world"</span>, <span class="s">"title"</span>: <span class="s">"GitHub Actions で OGP 画像を自動生成する"</span>},
+]
+
+<span class="v">W</span>, <span class="v">H</span> <span class="p">=</span> <span class="s">1200</span>, <span class="s">630</span>
+<span class="v">title_font</span> <span class="p">=</span> <span class="n">ImageFont</span>.<span class="d">truetype</span>(<span class="s">"fonts/NotoSansJP-Bold.otf"</span>, <span class="s">56</span>)
+<span class="v">meta_font</span>  <span class="p">=</span> <span class="n">ImageFont</span>.<span class="d">truetype</span>(<span class="s">"fonts/NotoSansJP-Bold.otf"</span>, <span class="s">28</span>)
+
+<span class="k">for</span> <span class="v">post</span> <span class="k">in</span> <span class="v">posts</span>:
+    <span class="v">img</span> <span class="p">=</span> <span class="n">Image</span>.<span class="d">new</span>(<span class="s">"RGB"</span>, (<span class="v">W</span>, <span class="v">H</span>), <span class="s">"#0d1117"</span>)
+    <span class="v">draw</span> <span class="p">=</span> <span class="n">ImageDraw</span>.<span class="d">Draw</span>(<span class="v">img</span>)
+    <span class="v">draw</span>.<span class="d">text</span>((<span class="s">60</span>, <span class="s">200</span>), <span class="v">post</span>[<span class="s">"title"</span>], <span class="v">fill</span><span class="p">=</span><span class="s">"#58a6ff"</span>, <span class="v">font</span><span class="p">=</span><span class="v">title_font</span>)
+    <span class="v">draw</span>.<span class="d">text</span>((<span class="s">60</span>, <span class="s">500</span>), <span class="s">"2026-08-25"</span>, <span class="v">fill</span><span class="p">=</span><span class="s">"#8b949e"</span>, <span class="v">font</span><span class="p">=</span><span class="v">meta_font</span>)
+    <span class="v">img</span>.<span class="d">save</span>(<span class="s">f"public/ogp/{post['slug']}.png"</span>)</code></pre>
+    </details>
+  </div>
+
+  <!-- Pattern 3: Integrated -->
+  <div class="workflow">
+    <div class="workflow-header">
+      <h3><span style="font-size:1.5rem;">03</span> Pages デプロイ前に統合 <span class="label label-amber">統合</span></h3>
+    </div>
+    <p class="workflow-desc">OGP生成とサイトビルド・Pagesデプイを1つのワークフローにまとめます。成果物管理がシンプルになります。</p>
+
+    <span class="label label-blue">.github/workflows/pages.yml</span>
+<pre><code><span class="k">name:</span> <span class="s">Build, Generate OGP, and Deploy</span>
+
+<span class="k">on:</span>
+  <span class="k">push:</span>
+    <span class="k">branches:</span> [<span class="s">"main"</span>]
+
+<span class="k">permissions:</span>
+  <span class="k">contents:</span> <span class="s">read</span>
+  <span class="k">pages:</span> <span class="s">write</span>
+  <span class="k">id-token:</span> <span class="s">write</span>
+
+<span class="k">concurrency:</span>
+  <span class="k">group:</span> <span class="s">"pages"</span>
+  <span class="k">cancel-in-progress:</span> <span class="k">true</span>
+
+<span class="k">jobs:</span>
+  <span class="k">build:</span>
+    <span class="k">runs-on:</span> <span class="s">ubuntu-latest</span>
+    <span class="k">steps:</span>
+      <span class="k">- uses:</span> <span class="s">actions/checkout@v4</span>
+
+      <span class="c"># --- OGP生成 ---</span>
+      <span class="k">- uses:</span> <span class="s">actions/setup-node@v4</span>
+        <span class="k">with:</span>
+          <span class="k">node-version:</span> <span class="s">20</span>
+          <span class="k">cache:</span> <span class="s">npm</span>
+      <span class="k">- run:</span> <span class="s">npm ci</span>
+
+      <span class="k">- name:</span> <span class="s">Download font</span>
+        <span class="k">run:</span> <span class="p">|</span>
+          <span class="s">mkdir -p scripts/ogp/fonts</span>
+          <span class="s">curl -sL -o scripts/ogp/fonts/NotoSansJP-Bold.otf \</span>
+            <span class="s">"https://github.com/googlefonts/noto-cjk/raw/main/Sans/OTF/Japanese/NotoSansJP-Bold.otf"</span>
+
+      <span class="k">- run:</span> <span class="s">node scripts/ogp/generate.js</span>
+
+      <span class="c"># --- サイトビルド ---</span>
+      <span class="k">- run:</span> <span class="s">npm run build</span>   <span class="c"># Vite / Astro / Next.js など</span>
+
+      <span class="c"># OGP画像を成果物にコピー</span>
+      <span class="k">- run:</span> <span class="s">mkdir -p dist/ogp && cp -r public/ogp/* dist/ogp/ || true</span>
+
+      <span class="k">- uses:</span> <span class="s">actions/configure-pages@v5</span>
+      <span class="k">- uses:</span> <span class="s">actions/upload-pages-artifact@v3</span>
+        <span class="k">with:</span>
+          <span class="k">path:</span> <span class="s">./dist</span>
+
+  <span class="k">deploy:</span>
+    <span class="k">needs:</span> <span class="s">build</span>
+    <span class="k">runs-on:</span> <span class="s">ubuntu-latest</span>
+    <span class="k">environment:</span>
+      <span class="k">name:</span> <span class="s">github-pages</span>
+      <span class="k">url:</span> <span class="v">${{ steps.deployment.outputs.page_url }}</span>
+    <span class="k">steps:</span>
+      <span class="k">- uses:</span> <span class="s">actions/deploy-pages@v4</span>
+        <span class="k">id:</span> <span class="s">deployment</span></code></pre>
+  </div>
+</section>
+
+<hr>
+
+<!-- Points -->
+<section>
+  <div class="section-header">
+    <h2>ポイントまとめ</h2>
+  </div>
+  <div class="grid-2">
+    <div class="workflow" style="margin-bottom:0;">
+      <h3>比較表</h3>
+      <table>
+        <tr><th>方式</th><th>速度</th><th>表現力</th><th>向き</th></tr>
+        <tr><td>Satori + Resvg</td><td>速い</td><td>高い（CSSライク）</td><td>Node.js プロジェクト</td></tr>
+        <tr><td>Pillow</td><td>速い</td><td>低〜中</td><td>Python / 軽量志向</td></tr>
+        <tr><td>Puppeteer</td><td>遅い</td><td>最高（HTML/CSS）</td><td>複雑なレイアウト</td></tr>
+      </table>
+    </div>
+    <div class="workflow" style="margin-bottom:0;">
+      <h3>よくある注意点</h3>
+      <ul class="steps">
+        <li>OGP推奨サイズは <strong>1200 x 630 px</strong></li>
+        <li>日本語フォントは Actions runner に入っていないので必ずダウンロードまたはリポジトリに含める</li>
+        <li>コミットメッセージに <code>[skip ci]</code> を入れて無限ループを防ぐ</li>
+        <li><code>paths</code> フィルタで content 変更時のみ実行すると無駄なビルドを減らせる</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+  <h2>さっそく試してみる</h2>
+  <p>上のYAMLをコピーして <code>.github/workflows/</code> に貼り付けるだけで始められます。</p>
+  <a href="#workflows" class="hero-cta">ワークフローを選ぶ →</a>
+</section>
+
+</main>
+
+<footer>
+  OGP画像自動生成ワークフロー集 · ブラウザで開いて 印刷 → PDF保存 も可能です
+</footer>
+
+</body>
+</html>
