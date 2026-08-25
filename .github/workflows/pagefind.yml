@@ -4,7 +4,7 @@
 # ═══════════════════════════════════════════════════
 
 # Indexing target: current directory (where index.html lives)
-site: "./lp"
+site: "lp"
 
 # File discovery pattern: all HTML files under the site root
 glob: "**/*.html"

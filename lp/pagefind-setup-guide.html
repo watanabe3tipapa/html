@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pagefind で GitHub Pages に検索機能を追加する</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0f172a;
+      --surface: #1e293b;
+      --surface-raised: #334155;
+      --ink: #f1f5f9;
+      --muted: #94a3b8;
+      --accent: #f59e0b;
+      --accent-dim: color-mix(in oklab, var(--accent) 25%, var(--bg));
+      --accent-glow: color-mix(in oklab, var(--accent) 15%, transparent);
+      --line: color-mix(in oklab, var(--ink) 10%, transparent);
+      --code-bg: #0b1221;
+      --comment: #64748b;
+      --string: #a5d6ff;
+      --keyword: #c792ea;
+      --key: #82aaff;
+      --number: #f78c6c;
+      --bool: #ffcb6b;
+
+      --step--1: clamp(0.85rem, 0.82rem + 0.15vw, 0.95rem);
+      --step-0: clamp(1rem, 0.95rem + 0.25vw, 1.125rem);
+      --step-1: clamp(1.25rem, 1.1rem + 0.75vw, 1.75rem);
+      --step-2: clamp(1.75rem, 1.4rem + 1.75vw, 3rem);
+      --step-3: clamp(2.5rem, 1.8rem + 3.5vw, 4.5rem);
+
+      --space: clamp(1.5rem, 1.2rem + 1.5vw, 3rem);
+      --radius: 16px;
+      --shadow: 0 1px 2px rgba(0,0,0,0.2), 0 12px 32px -8px rgba(0,0,0,0.4);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: "Noto Sans JP", "Hiragino Sans", "Yu Gothic", sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.85;
+      font-size: var(--step-0);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Hero ── */
+    .hero {
+      position: relative;
+      padding: calc(var(--space) * 2.5) var(--space);
+      text-align: center;
+      overflow: hidden;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .hero::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 60% 50% at 50% 0%, var(--accent-glow), transparent 70%),
+        radial-gradient(ellipse 40% 40% at 80% 20%, color-mix(in oklab, var(--keyword) 8%, transparent), transparent 60%);
+      pointer-events: none;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5em;
+      font-size: var(--step--1);
+      color: var(--accent);
+      border: 1px solid color-mix(in oklab, var(--accent) 30%, transparent);
+      padding: 0.35em 1em;
+      border-radius: 999px;
+      margin-bottom: 1.5rem;
+      letter-spacing: 0.05em;
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero-badge::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      background: var(--accent);
+      border-radius: 50%;
+      box-shadow: 0 0 8px var(--accent);
+    }
+
+    .hero h1 {
+      font-size: var(--step-3);
+      font-weight: 700;
+      line-height: 1.15;
+      letter-spacing: -0.02em;
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero h1 em {
+      color: var(--accent);
+      font-style: normal;
+    }
+
+    .hero p {
+      color: var(--muted);
+      font-size: var(--step-1);
+      margin-top: 1rem;
+      max-width: 52ch;
+      margin-inline: auto;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ── Layout ── */
+    .container {
+      max-width: 800px;
+      margin-inline: auto;
+      padding: var(--space);
+    }
+
+    section {
+      margin-bottom: calc(var(--space) * 2);
+    }
+
+    section h2 {
+      font-size: var(--step-2);
+      font-weight: 700;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.6em;
+      letter-spacing: -0.01em;
+    }
+
+    .section-num {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 0.55em;
+      font-weight: 600;
+      color: var(--accent);
+      border: 1.5px solid color-mix(in oklab, var(--accent) 40%, transparent);
+      width: 2.2em;
+      height: 2.2em;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      flex-shrink: 0;
+    }
+
+    section p {
+      color: var(--muted);
+      margin-bottom: 1.2rem;
+    }
+
+    /* ── Code blocks ── */
+    .code-block {
+      background: var(--code-bg);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin: 1.5rem 0;
+      box-shadow: var(--shadow);
+      position: relative;
+    }
+
+    .code-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.75rem 1.25rem;
+      background: color-mix(in oklab, var(--surface) 50%, var(--code-bg));
+      border-bottom: 1px solid var(--line);
+      font-family: "JetBrains Mono", monospace;
+      font-size: var(--step--1);
+    }
+
+    .code-filename {
+      color: var(--ink);
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 0.5em;
+    }
+
+    .code-filename::before {
+      content: "";
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 6px var(--accent);
+    }
+
+    .code-lang {
+      color: var(--comment);
+      font-size: 0.85em;
+    }
+
+    .code-block pre {
+      padding: 1.25rem;
+      overflow-x: auto;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 0.88rem;
+      line-height: 1.7;
+    }
+
+    .code-block pre code {
+      background: transparent;
+      padding: 0;
+      font-size: inherit;
+    }
+
+    /* ── Syntax coloring ── */
+    .c { color: var(--comment); font-style: italic; }
+    .k { color: var(--keyword); }
+    .s { color: var(--string); }
+    .ky { color: var(--key); }
+    .n { color: var(--number); }
+    .b { color: var(--bool); }
+    .p { color: var(--muted); }
+
+    /* ── Inline code ── */
+    code {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 0.88em;
+      background: var(--surface);
+      color: var(--accent);
+      padding: 0.15em 0.5em;
+      border-radius: 6px;
+      border: 1px solid var(--line);
+    }
+
+    /* ── Steps / list ── */
+    .steps {
+      list-style: none;
+      counter-reset: step;
+      margin: 1.5rem 0;
+    }
+
+    .steps li {
+      position: relative;
+      padding-left: 3rem;
+      padding-bottom: 2rem;
+      border-left: 2px solid var(--line);
+      margin-left: 0.6rem;
+    }
+
+    .steps li:last-child {
+      border-left: 2px solid transparent;
+      padding-bottom: 0;
+    }
+
+    .steps li::before {
+      counter-increment: step;
+      content: counter(step);
+      position: absolute;
+      left: -0.85rem;
+      top: 0;
+      width: 1.7rem;
+      height: 1.7rem;
+      background: var(--surface);
+      border: 2px solid var(--accent);
+      color: var(--accent);
+      border-radius: 50%;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 0.75rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .steps li strong {
+      color: var(--ink);
+      display: block;
+      margin-bottom: 0.3rem;
+    }
+
+    .steps li p {
+      margin-bottom: 0;
+    }
+
+    /* ── Note box ── */
+    .note {
+      background: var(--accent-dim);
+      border: 1px solid color-mix(in oklab, var(--accent) 25%, transparent);
+      border-left: 4px solid var(--accent);
+      border-radius: 12px;
+      padding: 1.25rem 1.5rem;
+      margin: 1.5rem 0;
+    }
+
+    .note-title {
+      color: var(--accent);
+      font-weight: 700;
+      font-size: var(--step--1);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 0.5rem;
+    }
+
+    .note p {
+      color: var(--muted);
+      margin: 0;
+    }
+
+    /* ── Table ── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1.5rem 0;
+      font-size: var(--step--1);
+    }
+
+    th, td {
+      padding: 0.85rem 1rem;
+      text-align: left;
+      border-bottom: 1px solid var(--line);
+    }
+
+    th {
+      color: var(--accent);
+      font-weight: 600;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      background: var(--surface);
+    }
+
+    td code {
+      font-size: 0.85em;
+    }
+
+    tr:hover td {
+      background: color-mix(in oklab, var(--surface) 30%, transparent);
+    }
+
+    /* ── Footer ── */
+    footer {
+      text-align: center;
+      padding: calc(var(--space) * 1.5) var(--space);
+      border-top: 1px solid var(--line);
+      color: var(--comment);
+      font-size: var(--step--1);
+    }
+
+    /* ── Scrollbar ── */
+    pre::-webkit-scrollbar {
+      height: 8px;
+    }
+    pre::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    pre::-webkit-scrollbar-thumb {
+      background: var(--surface-raised);
+      border-radius: 4px;
+    }
+
+    /* ── Reduced motion ── */
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+    }
+
+    /* ── Print ── */
+    @media print {
+      body {
+        background: #fff;
+        color: #1a1a1a;
+      }
+      .hero::before, .code-block { display: none; }
+      .code-block pre { background: #f5f5f5; color: #1a1a1a; }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="hero">
+    <div class="hero-badge">Static Search</div>
+    <h1>Pagefind で <em>GitHub Pages</em><br>に検索機能を追加する</h1>
+    <p>README から生成した HTML を Pagefind でインデックス化し、GitHub Pages 上で高速な全文検索を実現する手順をまとめました。</p>
+  </header>
+
+  <main class="container">
+
+    <!-- Section 1 -->
+    <section>
+      <h2><span class="section-num">1</span>Pagefind 設定ファイル</h2>
+      <p>リポジトリのルートに <code>pagefind.yml</code> を配置します。<code>index.html</code> と同じフォルダ内の HTML ファルを対象にインデックスを生成します。</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-filename">pagefind.yml</span>
+          <span class="code-lang">YAML</span>
+        </div>
+        <pre><code><span class="c"># ═══════════════════════════════════════════════════════════════</span>
+<span class="c">#  Pagefind Configuration for GitHub Pages</span>
+<span class="c"># ═══════════════════════════════════════════════════════════════</span>
+
+<span class="c"># ビルド済みHTMLの出力ディレクトリ（GitHub Pagesの公開フォルダ）</span>
+<span class="ky">site</span><span class="p">:</span> <span class="s">"."</span>
+
+<span class="c"># インデックス対象ファイル</span>
+<span class="ky">glob</span><span class="p">:</span> <span class="s">"**/*.html"</span>
+
+<span class="c"># 検索バンドルの出力先</span>
+<span class="ky">output_subdir</span><span class="p">:</span> <span class="s">"pagefind"</span>
+
+<span class="c"># ナビゲーション・フッター等を除外</span>
+<span class="ky">exclude_selectors</span><span class="p">:</span>
+  <span class="p">-</span> <span class="s">"nav"</span>
+  <span class="p">-</span> <span class="s">"footer"</span>
+  <span class="p">-</span> <span class="s">"header"</span>
+  <span class="p">-</span> <span class="s">".sidebar"</span>
+  <span class="p">-</span> <span class="s">"[data-pagefind-ignore]"</span>
+
+<span class="c"># GitHub Pagesでは /path/ 形式のURLが基本なので index.html を省略</span>
+<span class="ky">keep_index_url</span><span class="p">:</span> <span class="b">false</span>
+
+<span class="c"># 日本語サイトの場合は以下を有効化</span>
+<span class="c"># force_language: "ja"</span></code></pre>
+      </div>
+
+      <div class="note">
+        <div class="note-title">Tip</div>
+        <p>GitHub Pages の公開フォルダが <code>docs/</code> の場合は、<code>site: "docs"</code> に変更してください。</p>
+      </div>
+    </section>
+
+    <!-- Section 2 -->
+    <section>
+      <h2><span class="section-num">2</span>GitHub Actions ワークフロー</h2>
+      <p>プッシュ時に自動で Pagefind インデックスを生成し、GitHub Pages にデプロイするワークフローです。</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-filename">.github/workflows/pagefind.yml</span>
+          <span class="code-lang">YAML</span>
+        </div>
+        <pre><code><span class="ky">name</span><span class="p">:</span> <span class="s">Build and Deploy Pagefind Index</span>
+
+<span class="ky">on</span><span class="p">:</span>
+  <span class="ky">push</span><span class="p">:</span>
+    <span class="ky">branches</span><span class="p">:</span> <span class="p">[</span><span class="s">main</span><span class="p">,</span> <span class="s">master</span><span class="p">]</span>
+  <span class="ky">workflow_dispatch</span><span class="p">:</span>
+
+<span class="ky">permissions</span><span class="p">:</span>
+  <span class="ky">contents</span><span class="p">:</span> <span class="s">read</span>
+  <span class="ky">pages</span><span class="p">:</span> <span class="s">write</span>
+  <span class="ky">id-token</span><span class="p">:</span> <span class="s">write</span>
+
+<span class="ky">concurrency</span><span class="p">:</span>
+  <span class="ky">group</span><span class="p">:</span> <span class="s">"pages"</span>
+  <span class="ky">cancel-in-progress</span><span class="p">:</span> <span class="b">false</span>
+
+<span class="ky">jobs</span><span class="p">:</span>
+  <span class="ky">build</span><span class="p">:</span>
+    <span class="ky">runs-on</span><span class="p">:</span> <span class="s">ubuntu-latest</span>
+    <span class="ky">steps</span><span class="p">:</span>
+      <span class="p">-</span> <span class="ky">name</span><span class="p">:</span> <span class="s">Checkout</span>
+        <span class="ky">uses</span><span class="p">:</span> <span class="s">actions/checkout@v4</span>
+
+      <span class="p">-</span> <span class="ky">name</span><span class="p">:</span> <span class="s">Setup Node.js</span>
+        <span class="ky">uses</span><span class="p">:</span> <span class="s">actions/setup-node@v4</span>
+        <span class="ky">with</span><span class="p">:</span>
+          <span class="ky">node-version</span><span class="p">:</span> <span class="s">"20"</span>
+
+      <span class="p">-</span> <span class="ky">name</span><span class="p">:</span> <span class="s">Install Pagefind</span>
+        <span class="ky">run</span><span class="p">:</span> <span class="s">npm install -g pagefind</span>
+
+      <span class="p">-</span> <span class="ky">name</span><span class="p">:</span> <span class="s">Generate Pagefind Index</span>
+        <span class="ky">run</span><span class="p">:</span> <span class="s">pagefind --site "." --output-subdir "pagefind"</span>
+
+      <span class="p">-</span> <span class="ky">name</span><span class="p">:</span> <span class="s">Setup Pages</span>
+        <span class="ky">uses</span><span class="p">:</span> <span class="s">actions/configure-pages@v5</span>
+
+      <span class="p">-</span> <span class="ky">name</span><span class="p">:</span> <span class="s">Upload artifact</span>
+        <span class="ky">uses</span><span class="p">:</span> <span class="s">actions/upload-pages-artifact@v3</span>
+        <span class="ky">with</span><span class="p">:</span>
+          <span class="ky">path</span><span class="p">:</span> <span class="s">"."</span>
+
+  <span class="ky">deploy</span><span class="p">:</span>
+    <span class="ky">environment</span><span class="p">:</span>
+      <span class="ky">name</span><span class="p">:</span> <span class="s">github-pages</span>
+      <span class="ky">url</span><span class="p">:</span> <span class="s">${{ steps.deployment.outputs.page_url }}</span>
+    <span class="ky">runs-on</span><span class="p">:</span> <span class="s">ubuntu-latest</span>
+    <span class="ky">needs</span><span class="p">:</span> <span class="s">build</span>
+    <span class="ky">steps</span><span class="p">:</span>
+      <span class="p">-</span> <span class="ky">name</span><span class="p">:</span> <span class="s">Deploy to GitHub Pages</span>
+        <span class="ky">id</span><span class="p">:</span> <span class="s">deployment</span>
+        <span class="ky">uses</span><span class="p">:</span> <span class="s">actions/deploy-pages@v4</span></code></pre>
+      </div>
+    </section>
+
+    <!-- Section 3 -->
+    <section>
+      <h2><span class="section-num">3</span>検索UIを埋め込む HTML</h2>
+      <p><code>index.html</code> に Pagefind の検索UIを組み込むコードです。CSS と JavaScript を読み込むだけで、検索モーダルが自動的に表示されます。</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-filename">index.html</span>
+          <span class="code-lang">HTML</span>
+        </div>
+        <pre><code><span class="p">&lt;!</span><span class="k">DOCTYPE</span> <span class="n">html</span><span class="p">&gt;</span>
+<span class="p">&lt;</span><span class="k">html</span> <span class="ky">lang</span><span class="p">=</span><span class="s">"ja"</span><span class="p">&gt;</span>
+<span class="p">&lt;</span><span class="k">head</span><span class="p">&gt;</span>
+  <span class="p">&lt;</span><span class="k">meta</span> <span class="ky">charset</span><span class="p">=</span><span class="s">"UTF-8"</span><span class="p">&gt;</span>
+  <span class="p">&lt;</span><span class="k">title</span><span class="p">&gt;</span>Document Search<span class="p">&lt;/</span><span class="k">title</span><span class="p">&gt;</span>
+  <span class="p">&lt;</span><span class="k">link</span> <span class="ky">href</span><span class="p">=</span><span class="s">"/pagefind/pagefind-ui.css"</span> <span class="ky">rel</span><span class="p">=</span><span class="s">"stylesheet"</span><span class="p">&gt;</span>
+<span class="p">&lt;/</span><span class="k">head</span><span class="p">&gt;</span>
+<span class="p">&lt;</span><span class="k">body</span><span class="p">&gt;</span>
+  <span class="p">&lt;</span><span class="k">h1</span><span class="p">&gt;</span>README Search<span class="p">&lt;/</span><span class="k">h1</span><span class="p">&gt;</span>
+  <span class="p">&lt;</span><span class="k">div</span> <span class="ky">id</span><span class="p">=</span><span class="s">"search"</span><span class="p">&gt;&lt;/</span><span class="k">div</span><span class="p">&gt;</span>
+
+  <span class="p">&lt;</span><span class="k">script</span> <span class="ky">src</span><span class="p">=</span><span class="s">"/pagefind/pagefind-ui.js"</span><span class="p">&gt;&lt;/</span><span class="k">script</span><span class="p">&gt;</span>
+  <span class="p">&lt;</span><span class="k">script</span><span class="p">&gt;</span>
+    <span class="k">new</span> <span class="n">PagefindUI</span><span class="p">({</span>
+      <span class="ky">element</span><span class="p">:</span> <span class="s">"#search"</span><span class="p">,</span>
+      <span class="ky">showImages</span><span class="p">:</span> <span class="b">false</span>
+    <span class="p">});</span>
+  <span class="p">&lt;/</span><span class="k">script</span><span class="p">&gt;</span>
+<span class="p">&lt;/</span><span class="k">body</span><span class="p">&gt;</span>
+<span class="p">&lt;/</span><span class="k">html</span><span class="p">&gt;</span></code></pre>
+      </div>
+    </section>
+
+    <!-- Section 4 -->
+    <section>
+      <h2><span class="section-num">4</span>設定オプション一覧</h2>
+      <p>よく使う <code>pagefind.yml</code> の設定項目をまとめました。</p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>設定項目</th>
+            <th>型</th>
+            <th>説明</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>site</code></td>
+            <td>string</td>
+            <td>ビルド済みHTMLのルートディレクトリ</td>
+          </tr>
+          <tr>
+            <td><code>glob</code></td>
+            <td>string</td>
+            <td>インデックス対象ファイルのパターン</td>
+          </tr>
+          <tr>
+            <td><code>output_subdir</code></td>
+            <td>string</td>
+            <td>検索バンドルの出力先（デフォルト: <code>pagefind</code>）</td>
+          </tr>
+          <tr>
+            <td><code>exclude_selectors</code></td>
+            <td>array</td>
+            <td>インデックスから除外するCSSセレクタ</td>
+          </tr>
+          <tr>
+            <td><code>root_selector</code></td>
+            <td>string</td>
+            <td>インデックスの起点要素（デフォルト: <code>html</code>）</td>
+          </tr>
+          <tr>
+            <td><code>force_language</code></td>
+            <td>string</td>
+            <td>言語を強制指定（例: <code>ja</code>, <code>en</code>）</td>
+          </tr>
+          <tr>
+            <td><code>keep_index_url</code></td>
+            <td>boolean</td>
+            <td>URL に <code>index.html</code> を保持する</td>
+          </tr>
+          <tr>
+            <td><code>write_playground</code></td>
+            <td>boolean</td>
+            <td>Playground を検索バンドルに含める</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- Section 5 -->
+    <section>
+      <h2><span class="section-num">5</span>導入手順</h2>
+      <ol class="steps">
+        <li>
+          <strong>pagefind.yml を作成</strong>
+          <p>リポジトリのルートに配置し、<code>site</code> の値を公開フォルダに合わせて調整します。</p>
+        </li>
+        <li>
+          <strong>GitHub Actions ワークフローを作成</strong>
+          <p><code>.github/workflows/pagefind.yml</code> にワークフローを配置します。GitHub Pages のデプロイ設定も有効化してください。</p>
+        </li>
+        <li>
+          <strong>index.html に検索UIを埋め込む</strong>
+          <p>CSS と JS を読み込み、<code>&lt;div id="search"&gt;</code> を配置します。</p>
+        </li>
+        <li>
+          <strong>コミットしてプッシュ</strong>
+          <p>GitHub Actions が自動実行され、Pagefind インデックスが生成・デプロイされます。</p>
+        </li>
+      </ol>
+    </section>
+
+  </main>
+
+  <footer>
+    <p>Pagefind Documentation: pagefind.app/docs</p>
+  </footer>
+
+</body>
+</html>
