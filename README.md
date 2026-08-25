@@ -10,6 +10,7 @@
 .
 ├── README.md
 └── lp
+    ├── architecture.html
     ├── github-pages-actions-complete-guide.html
     ├── github-pages-actions-guide.html
     ├── index-html-auto-generate-lp.html
@@ -21,7 +22,7 @@
     └── pppt-machinery-lp.html
 ```
 
-*12 items indexed*
+*13 items indexed*
 
 <!-- STRUCTURE:END -->
 
