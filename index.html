@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Search</title>
+  <link href="/pagefind/pagefind-ui.css" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0b0f19;
+      --surface: #151b2b;
+      --ink: #e2e8f0;
+      --muted: #8896ab;
+      --accent: #f59e0b;
+      --line: rgba(226,232,240,0.1);
+      --radius: 16px;
+      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 16px 48px -12px rgba(0,0,0,0.5);
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: "Noto Sans JP", "Hiragino Sans", "Yu Gothic", sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 10vh 1.5rem 4rem;
+      -webkit-font-smoothing: antialiased;
+    }
+    body::before {
+      content: "";
+      position: fixed;
+      top: -20vh; left: 50%;
+      transform: translateX(-50%);
+      width: 60vw; height: 50vh;
+      background: radial-gradient(ellipse, rgba(245,158,11,0.08), transparent 70%);
+      pointer-events: none; z-index: 0;
+    }
+    .brand {
+      display: flex; align-items: center; gap: 0.6rem;
+      margin-bottom: 3rem; z-index: 1;
+    }
+    .brand-icon {
+      width: 36px; height: 36px;
+      background: var(--accent);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 0 20px rgba(245,158,11,0.3);
+    }
+    .brand-icon svg {
+      width: 20px; height: 20px;
+      stroke: var(--bg); fill: none;
+      stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round;
+    }
+    .brand-text { font-size: 1.25rem; font-weight: 700; letter-spacing: -0.02em; }
+    h1 {
+      font-size: clamp(1.75rem, 5vw, 2.75rem);
+      font-weight: 700; text-align: center;
+      margin-bottom: 0.75rem; z-index: 1;
+      letter-spacing: -0.02em; line-height: 1.2;
+    }
+    h1 em { color: var(--accent); font-style: normal; }
+    .subtitle {
+      color: var(--muted); font-size: clamp(0.9rem, 2vw, 1.05rem);
+      text-align: center; margin-bottom: 2.5rem; z-index: 1;
+      max-width: 420px; line-height: 1.7;
+    }
+    .search-wrapper { width: 100%; max-width: 680px; z-index: 1; }
+
+    .pagefind-ui {
+      --pagefind-ui-scale: 1;
+      --pagefind-ui-primary: var(--accent);
+      --pagefind-ui-text: var(--ink);
+      --pagefind-ui-background: var(--surface);
+      --pagefind-ui-border: var(--line);
+      --pagefind-ui-tag: #1e2640;
+      --pagefind-ui-border-width: 1px;
+      --pagefind-ui-border-radius: var(--radius);
+      --pagefind-ui-image-border-radius: 8px;
+      --pagefind-ui-image-box-shadow: none;
+      --pagefind-ui-font: "Noto Sans JP", "Hiragino Sans", "Yu Gothic", sans-serif;
+    }
+    .pagefind-ui__search-input {
+      background: var(--surface) !important;
+      border: 1px solid var(--line) !important;
+      border-radius: var(--radius) !important;
+      padding: 1rem 1.25rem !important;
+      font-size: 1rem !important;
+      color: var(--ink) !important;
+      box-shadow: var(--shadow) !important;
+    }
+    .pagefind-ui__search-input:focus {
+      border-color: var(--accent) !important;
+      outline: none !important;
+      box-shadow: 0 0 0 3px rgba(245,158,11,0.15), var(--shadow) !important;
+    }
+    .pagefind-ui__search-input::placeholder { color: var(--muted) !important; }
+    .pagefind-ui__search-clear { color: var(--muted) !important; }
+    .pagefind-ui__result { border-bottom: 1px solid var(--line) !important; }
+    .pagefind-ui__result-title { color: var(--ink) !important; font-weight: 600; }
+    .pagefind-ui__result-link { color: var(--accent) !important; }
+    .pagefind-ui__result-excerpt { color: var(--muted) !important; }
+    .pagefind-ui__message { color: var(--muted) !important; }
+    .pagefind-ui__button {
+      background: #1e2640 !important;
+      border: 1px solid var(--line) !important;
+      color: var(--ink) !important;
+      border-radius: 12px !important;
+    }
+    .pagefind-ui__button:hover {
+      background: var(--accent) !important;
+      color: var(--bg) !important;
+      border-color: var(--accent) !important;
+    }
+    footer {
+      margin-top: auto; padding-top: 4rem;
+      color: var(--muted); font-size: 0.8rem; z-index: 1;
+    }
+    footer a { color: var(--accent); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+    @media (prefers-reduced-motion: reduce) {
+      * { transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="brand">
+    <div class="brand-icon">
+      <svg viewBox="0 0 24 24">
+        <circle cx="11" cy="11" r="8"/>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+    </div>
+    <span class="brand-text">Pagefind</span>
+  </div>
+  <h1><em>Search</em> your docs</h1>
+  <p class="subtitle">同じディレクトリ内の HTML ファイルを全文検索します</p>
+  <div class="search-wrapper">
+    <div id="search"></div>
+  </div>
+  <footer>
+    Powered by <a href="https://pagefind.app/" target="_blank" rel="noopener">Pagefind</a>
+  </footer>
+  <script src="/pagefind/pagefind-ui.js"></script>
+  <script>
+    new PagefindUI({
+      element: "#search",
+      showImages: false,
+      showEmptyFilters: false,
+      debounceTimeoutMs: 200,
+      translations: {
+        placeholder: "検索キーワード入力...",
+        clear_search: "クリア",
+        load_more: "もっと見る",
+        search_label: "検索",
+        filters_label: "フィルター",
+        zero_results: "該当する結果が見つかりませんでした",
+        many_results: "件の結果",
+        one_result: "1件の結果",
+        alt_search: "該当する結果がありません。代替キーワードで検索しています",
+        search_suggestion: "別のキーワード検索してください",
+        searching: "検索中..."
+      }
+    });
+  </script>
+</body>
+</html>
