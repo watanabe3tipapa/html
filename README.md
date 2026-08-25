@@ -225,19 +225,22 @@ README.md に以下のマーカーを追加してください：
 ```
 .
 ├── README.md
-└── lp
-    ├── architecture.html
-    ├── github-pages-actions-complete-guide.html
-    ├── github-pages-actions-guide.html
-    ├── index-html-auto-generate-lp.html
-    ├── index.html
-    ├── ogp-auto-generate-lp.html
-    ├── pagefind-setup-guide.html
-    ├── pppt-casual-lp.html
-    ├── pppt-darkweb-lp.html
-    └── pppt-machinery-lp.html
+├── index.html
+├── lp
+│   ├── architecture.html
+│   ├── github-pages-actions-complete-guide.html
+│   ├── github-pages-actions-guide.html
+│   ├── index-html-auto-generate-lp.html
+│   ├── index.html
+│   ├── ogp-auto-generate-lp.html
+│   ├── pagefind-setup-guide.html
+│   ├── pagefind.yml
+│   ├── pppt-casual-lp.html
+│   ├── pppt-darkweb-lp.html
+│   └── pppt-machinery-lp.html
+└── pagefind.yml
 ```
 
-*13 items indexed*
+*16 items indexed*
 
 <!-- STRUCTURE:END -->
