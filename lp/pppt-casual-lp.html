@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PPPT Casual — 省庁スライドをもっと気軽に</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #FDF8F3;
+  --surface: #FFFFFF;
+  --ink: #1e293b;
+  --muted: #64748b;
+  --accent: #FF6B6B;
+  --accent-weak: color-mix(in oklab, var(--accent) 15%, var(--surface));
+  --teal: #4ECDC4;
+  --teal-weak: color-mix(in oklab, var(--teal) 12%, var(--surface));
+  --line: color-mix(in oklab, var(--ink) 8%, transparent);
+  --shadow: 0 1px 2px rgba(0,0,0,0.04), 0 12px 32px -8px rgba(0,0,0,0.14);
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.04), 0 4px 12px -4px rgba(0,0,0,0.10);
+  --radius: 20px;
+  --radius-sm: 12px;
+  --space: clamp(1.25rem, 1rem + 1.2vw, 2rem);
+  --step--1: clamp(0.85rem, 0.82rem + 0.2vw, 0.95rem);
+  --step-0: clamp(0.95rem, 0.9rem + 0.3vw, 1.05rem);
+  --step-1: clamp(1.3rem, 1.1rem + 0.9vw, 1.8rem);
+  --step-2: clamp(1.8rem, 1.4rem + 2vw, 3rem);
+  --step-3: clamp(2.6rem, 2rem + 3vw, 4.5rem);
+}
+
+* { box-sizing: border-box; margin: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: "Noto Sans JP", "Hiragino Sans", "Yu Gothic", sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  line-height: 1.75;
+  font-size: var(--step-0);
+}
+
+/* Typography */
+h1, h2, h3, .display {
+  font-family: "Zen Maru Gothic", "Hiragino Sans", "Yu Gothic", sans-serif;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+}
+
+.display {
+  font-size: var(--step-3);
+  font-weight: 900;
+  letter-spacing: -0.03em;
+}
+
+h2 { font-size: var(--step-2); }
+h3 { font-size: var(--step-1); }
+
+a { color: inherit; text-decoration: none; }
+
+/* Utilities */
+.container {
+  width: min(92%, 1100px);
+  margin-inline: auto;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35em;
+  padding: 0.35em 0.75em;
+  border-radius: 999px;
+  font-size: var(--step--1);
+  font-weight: 700;
+  background: var(--accent-weak);
+  color: var(--accent);
+}
+
+.tag.teal { background: var(--teal-weak); color: #2a8a82; }
+
+/* Header */
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: color-mix(in oklab, var(--bg) 85%, transparent);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--line);
+}
+
+.site-header .container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 64px;
+}
+
+.brand {
+  font-family: "Zen Maru Gothic", sans-serif;
+  font-weight: 900;
+  font-size: 1.35rem;
+  letter-spacing: -0.04em;
+  display: flex;
+  align-items: center;
+  gap: 0.4em;
+}
+
+.brand .logo-mark {
+  width: 32px; height: 32px;
+  background: var(--accent);
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  font-size: 0.9rem;
+  transform: rotate(-6deg);
+}
+
+.nav-links {
+  display: flex;
+  gap: 1.5rem;
+  list-style: none;
+  font-size: var(--step--1);
+  font-weight: 700;
+}
+
+.nav-links a:hover { color: var(--accent); }
+
+.cta-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  padding: 0.6em 1.2em;
+  background: var(--ink);
+  color: #fff;
+  border-radius: 999px;
+  font-size: var(--step--1);
+  font-weight: 700;
+  transition: transform .2s, box-shadow .2s;
+}
+
+.cta-btn:hover { transform: translateY(-2px); box-shadow: var(--shadow-sm); }
+
+.cta-btn.accent { background: var(--accent); }
+
+/* Hero */
+.hero {
+  padding: calc(var(--space) * 3) 0 calc(var(--space) * 4);
+  overflow: hidden;
+}
+
+.hero .container {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: calc(var(--space) * 2);
+  align-items: center;
+}
+
+@media (max-width: 800px) {
+  .hero .container { grid-template-columns: 1fr; }
+}
+
+.hero-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  font-size: var(--step--1);
+  font-weight: 700;
+  color: var(--muted);
+  margin-bottom: 1rem;
+}
+
+.hero-eyebrow::before {
+  content: "";
+  display: block;
+  width: 24px; height: 3px;
+  background: var(--accent);
+  border-radius: 2px;
+}
+
+.hero p {
+  margin-top: 1rem;
+  color: var(--muted);
+  max-width: 44ch;
+  font-size: var(--step-0);
+}
+
+.hero-actions {
+  margin-top: 1.75rem;
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+/* Slide stack illustration */
+.slide-stack {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+  aspect-ratio: 1 / 1;
+  margin-inline: auto;
+}
+
+.slide-card {
+  position: absolute;
+  width: 78%;
+  aspect-ratio: 4 / 3;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow);
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  transition: transform .3s ease;
+}
+
+.slide-card:nth-child(1) {
+  top: 5%; left: 8%;
+  transform: rotate(-8deg);
+  z-index: 3;
+}
+.slide-card:nth-child(2) {
+  top: 18%; left: 18%;
+  transform: rotate(5deg);
+  z-index: 2;
+}
+.slide-card:nth-child(3) {
+  top: 32%; left: 5%;
+  transform: rotate(-3deg);
+  z-index: 1;
+}
+
+.slide-card:hover { transform: rotate(0deg) translateY(-6px); }
+
+.slide-card .sc-tag {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.2em 0.55em;
+  border-radius: 999px;
+  background: var(--accent-weak);
+  color: var(--accent);
+  width: fit-content;
+}
+
+.slide-card .sc-title {
+  font-family: "Zen Maru Gothic", sans-serif;
+  font-weight: 700;
+  font-size: 0.95rem;
+  line-height: 1.35;
+}
+
+.slide-card .sc-bar {
+  height: 6px;
+  background: var(--line);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.slide-card .sc-bar::after {
+  content: "";
+  display: block;
+  height: 100%;
+  width: 65%;
+  background: var(--teal);
+  border-radius: 3px;
+}
+.slide-card:nth-child(2) .sc-bar::after { width: 45%; background: var(--accent); }
+.slide-card:nth-child(3) .sc-bar::after { width: 80%; background: #f59e0b; }
+
+.slide-card .sc-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-top: auto;
+}
+.slide-card .sc-lines span {
+  height: 4px;
+  background: var(--line);
+  border-radius: 2px;
+}
+.slide-card .sc-lines span:nth-child(1) { width: 100%; }
+.slide-card .sc-lines span:nth-child(2) { width: 85%; }
+.slide-card .sc-lines span:nth-child(3) { width: 60%; }
+
+.page-badge {
+  position: absolute;
+  bottom: -10px; right: -10px;
+  background: var(--ink);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.35em 0.7em;
+  border-radius: 999px;
+  box-shadow: var(--shadow-sm);
+}
+
+/* Features */
+.features {
+  padding: calc(var(--space) * 3) 0;
+  background: var(--surface);
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: calc(var(--space) * 1.2);
+}
+
+@media (max-width: 720px) {
+  .features-grid { grid-template-columns: 1fr; }
+}
+
+.feature {
+  padding: calc(var(--space) * 1.1);
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  background: var(--bg);
+  transition: transform .2s, box-shadow .2s;
+}
+
+.feature:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow);
+}
+
+.feature-icon {
+  width: 48px; height: 48px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  font-size: 1.4rem;
+  margin-bottom: 1rem;
+  background: var(--accent-weak);
+}
+
+.feature:nth-child(2) .feature-icon { background: var(--teal-weak); }
+.feature:nth-child(3) .feature-icon { background: #fef3c7; }
+
+.feature h3 { margin-bottom: 0.5rem; }
+.feature p { color: var(--muted); font-size: var(--step--1); line-height: 1.7; }
+
+/* Feed preview */
+.feed {
+  padding: calc(var(--space) * 3) 0;
+}
+
+.section-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: calc(var(--space) * 1.2);
+  flex-wrap: wrap;
+}
+
+.section-header p { color: var(--muted); font-size: var(--step--1); }
+
+.feed-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: calc(var(--space) * 0.9);
+}
+
+.feed-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
+  transition: transform .2s, box-shadow .2s;
+}
+
+.feed-card:hover { transform: translateY(-5px); box-shadow: var(--shadow); }
+
+.feed-thumb {
+  height: 160px;
+  background: linear-gradient(135deg, #e2e8f0 0%, #f1f5f9 100%);
+  position: relative;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.feed-thumb::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 18px,
+    rgba(0,0,0,0.03) 18px,
+    rgba(0,0,0,0.03) 19px
+  );
+}
+
+.ft-bar {
+  height: 8px;
+  background: rgba(255,255,255,0.9);
+  border-radius: 4px;
+  position: relative;
+  z-index: 1;
+}
+.ft-bar.short { width: 70%; }
+.ft-bar.accent { background: var(--accent); width: 55%; opacity: .9; }
+.ft-bar.teal { background: var(--teal); width: 40%; opacity: .9; }
+
+.ft-dots {
+  display: flex;
+  gap: 6px;
+  margin-top: auto;
+  position: relative;
+  z-index: 1;
+}
+.ft-dots span {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.9);
+}
+.ft-dots span:nth-child(2) { background: var(--accent); }
+.ft-dots span:nth-child(3) { background: var(--teal); }
+
+.feed-body {
+  padding: 1rem 1.1rem 1.2rem;
+}
+
+.feed-meta {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.feed-title {
+  font-family: "Zen Maru Gothic", sans-serif;
+  font-weight: 700;
+  font-size: 0.95rem;
+  line-height: 1.4;
+  margin-bottom: 0.5rem;
+}
+
+.feed-info {
+  font-size: 0.75rem;
+  color: var(--muted);
+  display: flex;
+  gap: 0.6rem;
+}
+
+/* Themes */
+.themes {
+  padding: calc(var(--space) * 3) 0;
+  background: var(--surface);
+  border-top: 1px solid var(--line);
+}
+
+.theme-cloud {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 1rem;
+}
+
+.theme-pill {
+  padding: 0.55em 1em;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--bg);
+  font-size: var(--step--1);
+  font-weight: 700;
+  transition: .15s;
+}
+.theme-pill:hover { background: var(--ink); color: #fff; border-color: var(--ink); }
+
+/* Footer CTA */
+.footer-cta {
+  padding: calc(var(--space) * 3) 0 calc(var(--space) * 4);
+  text-align: center;
+}
+
+.footer-cta h2 { margin-bottom: 1rem; }
+.footer-cta p { color: var(--muted); margin-bottom: 1.5rem; }
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .slide-card, .feature, .feed-card, .cta-btn { transition: none; }
+}
+
+/* Print */
+@media print {
+  body { background: #fff; }
+  .no-print { display: none; }
+}
+@page { size: A4; margin: 18mm; }
+
+/* Focus */
+a:focus-visible, button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container">
+    <a href="#" class="brand">
+      <span class="logo-mark">P</span>
+      PPPT Casual
+    </a>
+    <nav>
+      <ul class="nav-links">
+        <li><a href="#features">特徴</a></li>
+        <li><a href="#feed">新着</a></li>
+        <li><a href="#themes">テーマ</a></li>
+      </ul>
+    </nav>
+    <a href="#start" class="cta-btn no-print">さっそく試す</a>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="container">
+      <div>
+        <div class="hero-eyebrow">27省庁 × 30,000+ スライド</div>
+        <h1 class="display">省庁スライドを<br>もっと気軽。</h1>
+        <p>
+          政策資料を「読む」だけじゃなく、「パラパラ」めくる感覚で探せる新しいビュー。
+          横断検索も、新着キャッチアップも、サクッとこなせます。
+        </p>
+        <div class="hero-actions">
+          <a href="#feed" class="cta-btn accent">スライドを眺める</a>
+          <a href="#features" class="cta-btn" style="background:transparent;color:var(--ink);border:1px solid var(--line);">どんな感じ？</a>
+        </div>
+      </div>
+
+      <div class="slide-stack" aria-hidden="true">
+        <div class="slide-card">
+          <span class="sc-tag">GX</span>
+          <div class="sc-title">2035年度 60%削減目標</div>
+          <div class="sc-bar"></div>
+          <div class="sc-lines">
+            <span></span><span></span><span></span>
+          </div>
+          <span class="page-badge">p.4</span>
+        </div>
+        <div class="slide-card">
+          <span class="sc-tag" style="background:var(--teal-weak);color:#2a8a82;">AI</span>
+          <div class="sc-title">生成AI 利用状況の国際比較</div>
+          <div class="sc-bar"></div>
+          <div class="sc-lines">
+            <span></span><span></span><span></span>
+          </div>
+          <span class="page-badge">p.7</span>
+        </div>
+        <div class="slide-card">
+          <span class="sc-tag" style="background:#fef3c7;color:#b45309;">半導体</span>
+          <div class="sc-title">戦略分野を17分野に集約</div>
+          <div class="sc-bar"></div>
+          <div class="sc-lines">
+            <span></span><span></span><span></span>
+          </div>
+          <span class="page-badge">p.22</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="features" id="features">
+    <div class="container">
+      <div class="features-grid">
+        <article class="feature">
+          <div class="feature-icon">🍿</div>
+          <h3>パラパラ眺める</h3>
+          <p>1枚ずつじっくりではなく、サムネイルグリッドで「流し見」。直感で気になるスライドをピックアップできます。</p>
+        </article>
+        <article class="feature">
+          <div class="feature-icon">🔍</div>
+          <h3>省庁を断検索</h3>
+          <p>「GX」や「AI」といったテーマで、複数省庁の資料を一度に発見。政策の全体像が自然と見えてきます。</p>
+        </article>
+        <article class="feature">
+          <div class="feature-icon">🔔</div>
+          <h3>新着をキャッチアップ</h3>
+          <p>毎週届く要約メールと、タイムライン風の新着フィード。審議会の動きも見逃しません。</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="feed" id="feed">
+    <div class="container">
+      <div class="section-header">
+        <div>
+          <h2>新着スライド</h2>
+          <p>最近更新された資料から、気になる1枚を。</p>
+        </div>
+        <span class="tag">33,511 ファクトデータ</span>
+      </div>
+
+      <div class="feed-grid">
+        <article class="feed-card">
+          <div class="feed-thumb">
+            <div class="ft-bar short"></div>
+            <div class="ft-bar accent"></div>
+            <div class="ft-bar teal"></div>
+            <div class="ft-dots"><span></span><span></span><span></span></div>
+          </div>
+          <div class="feed-body">
+            <div class="feed-meta">
+              <span class="tag" style="font-size:0.65rem;padding:0.2em 0.55em;">農水</span>
+              <span class="tag teal" style="font-size:0.65rem;padding:0.2em 0.55em;">新着</span>
+            </div>
+            <div class="feed-title">スマート農業技術活用促進集中プログラム</div>
+            <div class="feed-info">
+              <span>林水産省</span>
+              <span>2025/1月</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="feed-card">
+          <div class="feed-thumb">
+            <div class="ft-bar" style="width:90%"></div>
+            <div class="ft-bar accent" style="width:70%"></div>
+            <div class="ft-dots"><span></span><span></span><span></span></div>
+          </div>
+          <div class="feed-body">
+            <div class="feed-meta">
+              <span class="tag" style="font-size:0.65rem;padding:0.2em 0.55em;">総務</span>
+            </div>
+            <div class="feed-title">令和8年度地方財政計画の概要</div>
+            <div class="feed-info">
+              <span>総務省</span>
+              <span>2026/2月</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="feed-card">
+          <div class="feed-thumb">
+            <div class="ft-bar short" style="width:60%"></div>
+            <div class="ft-bar teal" style="width:50%"></div>
+            <div class="ft-bar" style="width:80%"></div>
+            <div class="ft-dots"><span></span><span></span><span></span></div>
+          </div>
+          <div class="feed-body">
+            <div class="feed-meta">
+              <span class="tag" style="font-size:0.65rem;padding:0.2em 0.55em;">農水</span>
+            </div>
+            <div class="feed-title">みどりの食料システム戦略の実現に向けて</div>
+            <div class="feed-info">
+              <span>農林水産省</span>
+              <span>2026/7月</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="feed-card">
+          <div class="feed-thumb">
+            <div class="ft-bar accent" style="width:45%"></div>
+            <div class="ft-bar" style="width:75%"></div>
+            <div class="ft-dots"><span></span><span></span><span></span></div>
+          </div>
+          <div class="feed-body">
+            <div class="feed-meta">
+              <span class="tag" style="font-size:0.65rem;padding:0.2em 0.55em;">環境</span>
+            </div>
+            <div class="feed-title">令和8年版 環境・循環型社会・生物多様性白書（概要）</div>
+            <div class="feed-info">
+              <span>環境省</span>
+              <span>2026/6月</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="feed-card">
+          <div class="feed-thumb">
+            <div class="ft-bar short" style="width:55%"></div>
+            <div class="ft-bar teal" style="width:35%"></div>
+            <div class="ft-bar accent" style="width:65%"></div>
+            <div class="ft-dots"><span></span><span></span><span></span></div>
+          </div>
+          <div class="feed-body">
+            <div class="feed-meta">
+              <span class="tag" style="font-size:0.65rem;padding:0.2em 0.55em;">経産</span>
+            </div>
+            <div class="feed-title">半導体・デジタル産業戦略の今後の方向性について</div>
+            <div class="feed-info">
+              <span>経済産業省</span>
+              <span>2026/3月</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="feed-card">
+          <div class="feed-thumb">
+            <div class="ft-bar" style="width:85%"></div>
+            <div class="ft-bar short" style="width:40%"></div>
+            <div class="ft-dots"><span></span><span></span><span></span></div>
+          </div>
+          <div class="feed-body">
+            <div class="feed-meta">
+              <span class="tag" style="font-size:0.65rem;padding:0.2em 0.55em;">内閣</span>
+            </div>
+            <div class="feed-title">成長戦略の検討体制</div>
+            <div class="feed-info">
+              <span>内閣官房</span>
+              <span>2025/12月</span>
+            </div>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="themes" id="themes">
+    <div class="container">
+      <h2>テーマから探す</h2>
+      <p style="color:var(--muted);font-size:var(--step--1);margin-top:0.25rem;">気になるキーワードを選んで、省庁横断でスライドを発見。</p>
+      <div class="theme-cloud">
+        <a class="theme-pill" href="#">DX・デジタル</a>
+        <a class="theme-pill" href="#">脱炭素・GX</a>
+        <a class="theme-pill" href="#">AI・先端技術</a>
+        <a class="theme-pill" href="#">半導体</a>
+        <a class="theme-pill" href="#">農業</a>
+        <a class="theme-pill" href="#">防災</a>
+        <a class="theme-pill" href="#">知的財産</a>
+        <a class="theme-pill" href="#">地方創生</a>
+        <a class="theme-pill" href="#">教育</a>
+        <a class="theme-pill" href="#">労働</a>
+        <a class="theme-pill" href="#">観光</a>
+        <a class="theme-pill" href="#">金融</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="footer-cta" id="start">
+    <div class="container" style="max-width:640px;">
+      <h2>政策スライドを、もっとカジュアルに。</h2>
+      <p>27省庁、30,000枚以上のスライドを、新しいビューで楽しもう。</p>
+      <a href="https://pppt.jp" class="cta-btn accent" style="font-size:var(--step-0);padding:0.75em 1.6em;">PPPTでスライドを見る</a>
+    </div>
+  </section>
+</main>
+
+<footer style="padding: 2rem 0; text-align:center; font-size:0.75rem; color:var(--muted); border-top:1px solid var(--line);">
+  <div class="container">
+    <p>※ これはLPのデザイン提案です。実際のpppt.jpとは非公式のファン提案です。</p>
+  </div>
+</footer>
+
+</body>
+</html>

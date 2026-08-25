@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GitHub Actions & GitHub Pages デプロイガイド</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0d1117;
+  --surface: #161b22;
+  --surface-2: #1c2128;
+  --ink: #c9d1d9;
+  --ink-dim: #8b949e;
+  --accent: #58a6ff;
+  --accent-2: #a371f7;
+  --success: #3fb950;
+  --warning: #d29922;
+  --line: #30363d;
+  --line-subtle: #21262d;
+  --step-0: clamp(0.9rem, 0.85rem + 0.25vw, 1rem);
+  --step-1: clamp(1.05rem, 0.95rem + 0.5vw, 1.25rem);
+  --step-2: clamp(1.3rem, 1.1rem + 1vw, 1.75rem);
+  --step-3: clamp(1.8rem, 1.4rem + 2vw, 2.75rem);
+  --step-4: clamp(2.2rem, 1.6rem + 3vw, 4rem);
+  --space: clamp(1rem, 0.7rem + 1.5vw, 2rem);
+  --radius: 10px;
+  --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -8px rgba(0,0,0,0.5);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: "Inter", "Hiragino Sans", "Yu Gothic", "Noto Sans JP", sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  font-size: var(--step-0);
+  line-height: 1.75;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Hero */
+.hero {
+  position: relative;
+  padding: calc(var(--space) * 3) var(--space) calc(var(--space) * 2.5);
+  max-width: 72rem;
+  margin: 0 auto;
+  overflow: hidden;
+}
+
+.hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 80% 50% at 20% 40%, rgba(88,166,255,0.08), transparent),
+    radial-gradient(ellipse 60% 40% at 80% 20%, rgba(163,113,247,0.06), transparent);
+  pointer-events: none;
+}
+
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+  border: 1px solid var(--line);
+  background: var(--surface);
+  padding: 0.35rem 0.85rem;
+  border-radius: 999px;
+  margin-bottom: 1.25rem;
+}
+
+.hero-badge .dot {
+  width: 6px; height: 6px;
+  background: var(--accent);
+  border-radius: 50%;
+  box-shadow: 0 0 8px var(--accent);
+}
+
+.hero h1 {
+  font-size: var(--step-4);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  margin-bottom: 1rem;
+  position: relative;
+}
+
+.hero h1 span {
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.hero p {
+  color: var(--ink-dim);
+  font-size: var(--step-1);
+  max-width: 56ch;
+  line-height: 1.7;
+}
+
+/* Layout */
+.container {
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 0 var(--space) calc(var(--space) * 3);
+}
+
+/* Nav pills */
+.toc {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: calc(var(--space) * 1.5);
+  padding: 1rem;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  position: sticky;
+  top: 0.5rem;
+  z-index: 10;
+  backdrop-filter: blur(8px);
+}
+
+.toc a {
+  color: var(--ink-dim);
+  text-decoration: none;
+  font-size: 0.8rem;
+  font-weight: 500;
+  padding: 0.35rem 0.75rem;
+  border-radius: 6px;
+  transition: all 0.15s ease;
+  border: 1px solid transparent;
+}
+
+.toc a:hover {
+  color: var(--ink);
+  background: var(--surface-2);
+  border-color: var(--line);
+}
+
+/* Sections */
+.section {
+  margin-bottom: calc(var(--space) * 2);
+}
+
+.section-header {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.section-num {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 0.05em;
+}
+
+.section h2 {
+  font-size: var(--step-2);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+/* Cards */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: calc(var(--space) * 1.1);
+  margin-bottom: 1rem;
+  box-shadow: var(--shadow);
+}
+
+.card h3 {
+  font-size: var(--step-1);
+  font-weight: 600;
+  margin-bottom: 0.6rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.card p, .card li {
+  color: var(--ink-dim);
+  font-size: 0.92rem;
+}
+
+.card ul {
+  margin-left: 1.2rem;
+  margin-top: 0.5rem;
+}
+
+.card li {
+  margin-bottom: 0.35rem;
+}
+
+/* Code blocks */
+pre {
+  background: var(--surface-2);
+  border: 1px solid var(--line-subtle);
+  border-radius: 8px;
+  padding: 1.1rem 1.25rem;
+  overflow-x: auto;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.82rem;
+  line-height: 1.65;
+  color: var(--ink);
+  margin: 0.75rem 0 0.25rem;
+}
+
+code {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.85em;
+  background: var(--surface-2);
+  padding: 0.15em 0.4em;
+  border-radius: 4px;
+  color: var(--accent);
+}
+
+pre code {
+  background: none;
+  padding: 0;
+  color: inherit;
+}
+
+/* Syntax-like coloring inside code blocks */
+pre .k  { color: #ff7b72; } /* keyword */
+pre .s  { color: #a5d6ff; } /* string */
+pre .c  { color: #8b949e; font-style: italic; } /* comment */
+pre .n  { color: #d2a8ff; } /* name/tag */
+pre .v  { color: #79c0ff; } /* variable */
+pre .p  { color: #c9d1d9; } /* punctuation */
+
+/* Labels */
+.label {
+  display: inline-block;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 0.2rem 0.55rem;
+  border-radius: 4px;
+  margin-bottom: 0.6rem;
+}
+
+.label-green {
+  color: var(--success);
+  background: rgba(63,185,80,0.12);
+  border: 1px solid rgba(63,185,80,0.25);
+}
+
+.label-purple {
+  color: var(--accent-2);
+  background: rgba(163,113,247,0.12);
+  border: 1px solid rgba(163,113,247,0.25);
+}
+
+.label-amber {
+  color: var(--warning);
+  background: rgba(210,153,34,0.12);
+  border: 1px solid rgba(210,153,34,0.25);
+}
+
+/* Two-column grid */
+.grid-2 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 28rem), 1fr));
+  gap: 1rem;
+}
+
+/* Checklist */
+.checklist {
+  list-style: none;
+  margin: 0.75rem 0 0;
+  padding: 0;
+}
+
+.checklist li {
+  position: relative;
+  padding-left: 1.6rem;
+  margin-bottom: 0.5rem;
+  color: var(--ink-dim);
+  font-size: 0.92rem;
+}
+
+.checklist li::before {
+  content: "✓";
+  position: absolute;
+  left: 0;
+  color: var(--success);
+  font-weight: 700;
+}
+
+/* Divider */
+hr {
+  border: none;
+  height: 1px;
+  background: var(--line);
+  margin: calc(var(--space) * 1.5) 0;
+}
+
+/* Footer */
+footer {
+  text-align: center;
+  color: var(--ink-dim);
+  font-size: 0.8rem;
+  padding: calc(var(--space) * 1.5) var(--space);
+  border-top: 1px solid var(--line);
+  margin-top: calc(var(--space) * 2);
+}
+
+/* Print */
+@media print {
+  body { background: #fff; color: #111; }
+  .toc, .hero::before { display: none; }
+  .card, pre { break-inside: avoid; }
+}
+@page { size: A4; margin: 16mm; }
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+/* Mobile */
+@media (max-width: 480px) {
+  .hero { padding-top: calc(var(--space) * 2); }
+  pre { padding: 0.85rem 1rem; font-size: 0.75rem; }
+}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="hero-badge"><span class="dot"></span> GitHub Actions</div>
+  <h1>GitHub Actions &<br><span>GitHub Pages</span> デプロイガイド</h1>
+  <p>静的サイト、Node.jsビルド、Jekyll、Hugoなど主要パターンをまとめたリファレンスです。YAMLファイルをコピーしてそのまま使えます。</p>
+</header>
+
+<main class="container">
+
+<nav class="toc">
+  <a href="#basic">基本ワークフロー</a>
+  <a href="#nodejs">Node.jsビルド</a>
+  <a href="#jekyll">Jekyll</a>
+  <a href="#hugo">Hugo</a>
+  <a href="#triggers">トリガー設定</a>
+  <a href="#settings">リポジトリ設定</a>
+  <a href="#tips">Tips</a>
+</nav>
+
+<!-- 1. Basic -->
+<section class="section" id="basic">
+  <div class="section-header">
+    <span class="section-num">01</span>
+    <h2>基本ワークフロー（静的サイト）</h2>
+  </div>
+  <div class="card">
+    <span class="label label-green">推奨</span>
+    <p>リポジトリのルートに <code>.github/workflows/pages.yml</code> を作成します。ビルド不要な静的ファイルそのままをデプロイする場合に最適です。</p>
+<pre><code><span class="k">name:</span> <span class="s">Deploy to GitHub Pages</span>
+
+<span class="k">on:</span>
+  <span class="k">push:</span>
+    <span class="k">branches:</span> [<span class="s">"main"</span>]
+  <span class="k">workflow_dispatch:</span>
+
+<span class="k">permissions:</span>
+  <span class="k">contents:</span> <span class="s">read</span>
+  <span class="k">pages:</span> <span class="s">write</span>
+  <span class="k">id-token:</span> <span class="s">write</span>
+
+<span class="k">concurrency:</span>
+  <span class="k">group:</span> <span class="s">"pages"</span>
+  <span class="k">cancel-in-progress:</span> <span class="k">false</span>
+
+<span class="k">jobs:</span>
+  <span class="k">deploy:</span>
+    <span class="k">environment:</span>
+      <span class="k">name:</span> <span class="s">github-pages</span>
+      <span class="k">url:</span> <span class="v">${{ steps.deployment.outputs.page_url }}</span>
+    <span class="k">runs-on:</span> <span class="s">ubuntu-latest</span>
+    <span class="k">steps:</span>
+      <span class="k">- name:</span> <span class="s">Checkout</span>
+        <span class="k">uses:</span> <span class="s">actions/checkout@v4</span>
+
+      <span class="k">- name:</span> <span class="s">Setup Pages</span>
+        <span class="k">uses:</span> <span class="s">actions/configure-pages@v5</span>
+
+      <span class="k">- name:</span> <span class="s">Upload artifact</span>
+        <span class="k">uses:</span> <span class="s">actions/upload-pages-artifact@v3</span>
+        <span class="k">with:</span>
+          <span class="k">path:</span> <span class="s">'.'</span>
+
+      <span class="k">- name:</span> <span class="s">Deploy to GitHub Pages</span>
+        <span class="k">id:</span> <span class="s">deployment</span>
+        <span class="k">uses:</span> <span class="s">actions/deploy-pages@v4</span></code></pre>
+  </div>
+</section>
+
+<!-- 2. Node.js -->
+<section class="section" id="nodejs">
+  <div class="section-header">
+    <span class="section-num">02</span>
+    <h2>Node.js ビルド & デプロイ</h2>
+  </div>
+  <div class="card">
+    <span class="label label-purple">Vite / Next.js / Astro 対応</span>
+    <p>ビルドステップが必要なプロジェクト向け。<code>npm run build</code> で生成された <code>./dist</code> や <code>./build</code> などをデプロイします。</p>
+<pre><code><span class="k">name:</span> <span class="s">Build and Deploy</span>
+
+<span class="k">on:</span>
+  <span class="k">push:</span>
+    <span class="k">branches:</span> [<span class="s">"main"</span>]
+
+<span class="k">permissions:</span>
+  <span class="k">contents:</span> <span class="s">read</span>
+  <span class="k">pages:</span> <span class="s">write</span>
+  <span class="k">id-token:</span> <span class="s">write</span>
+
+<span class="k">concurrency:</span>
+  <span class="k">group:</span> <span class="s">"pages"</span>
+  <span class="k">cancel-in-progress:</span> <span class="k">true</span>
+
+<span class="k">jobs:</span>
+  <span class="k">build:</span>
+    <span class="k">runs-on:</span> <span class="s">ubuntu-latest</span>
+    <span class="k">steps:</span>
+      <span class="k">- uses:</span> <span class="s">actions/checkout@v4</span>
+
+      <span class="k">- name:</span> <span class="s">Setup Node</span>
+        <span class="k">uses:</span> <span class="s">actions/setup-node@v4</span>
+        <span class="k">with:</span>
+          <span class="k">node-version:</span> <span class="s">20</span>
+          <span class="k">cache:</span> <span class="s">'npm'</span>
+
+      <span class="k">- name:</span> <span class="s">Install dependencies</span>
+        <span class="k">run:</span> <span class="s">npm ci</span>
+
+      <span class="k">- name:</span> <span class="s">Build</span>
+        <span class="k">run:</span> <span class="s">npm run build</span>
+
+      <span class="k">- name:</span> <span class="s">Setup Pages</span>
+        <span class="k">uses:</span> <span class="s">actions/configure-pages@v5</span>
+
+      <span class="k">- name:</span> <span class="s">Upload artifact</span>
+        <span class="k">uses:</span> <span class="s">actions/upload-pages-artifact@v3</span>
+        <span class="k">with:</span>
+          <span class="k">path:</span> <span class="s">'./dist'</span>   <span class="c"># Next.jsなら './out' などに変更</span>
+
+  <span class="k">deploy:</span>
+    <span class="k">needs:</span> <span class="s">build</span>
+    <span class="k">runs-on:</span> <span class="s">ubuntu-latest</span>
+    <span class="k">environment:</span>
+      <span class="k">name:</span> <span class="s">github-pages</span>
+      <span class="k">url:</span> <span class="v">${{ steps.deployment.outputs.page_url }}</span>
+    <span class="k">steps:</span>
+      <span class="k">- name:</span> <span class="s">Deploy to GitHub Pages</span>
+        <span class="k">id:</span> <span class="s">deployment</span>
+        <span class="k">uses:</span> <span class="s">actions/deploy-pages@v4</span></code></pre>
+  </div>
+</section>
+
+<!-- 3. Jekyll -->
+<section class="section" id="jekyll">
+  <div class="section-header">
+    <span class="section-num">03</span>
+    <h2>Jekyll</h2>
+  </div>
+  <div class="card">
+    <span class="label label-green">公式アクション</span>
+<pre><code><span class="k">name:</span> <span class="s">Deploy Jekyll site to Pages</span>
+
+<span class="k">on:</span>
+  <span class="k">push:</span>
+    <span class="k">branches:</span> [<span class="s">"main"</span>]
+
+<span class="k">permissions:</span>
+  <span class="k">contents:</span> <span class="s">read</span>
+  <span class="k">pages:</span> <span class="s">write</span>
+  <span class="k">id-token:</span> <span class="s">write</span>
+
+<span class="k">jobs:</span>
+  <span class="k">build:</span>
+    <span class="k">runs-on:</span> <span class="s">ubuntu-latest</span>
+    <span class="k">steps:</span>
+      <span class="k">- uses:</span> <span class="s">actions/checkout@v4</span>
+
+      <span class="k">- name:</span> <span class="s">Setup Pages</span>
+        <span class="k">uses:</span> <span class="s">actions/configure-pages@v5</span>
+
+      <span class="k">- name:</span> <span class="s">Build Jekyll</span>
+        <span class="k">uses:</span> <span class="s">actions/jekyll-build-pages@v1</span>
+        <span class="k">with:</span>
+          <span class="k">source:</span> <span class="s">./</span>
+          <span class="k">destination:</span> <span class="s">./_site</span>
+
+      <span class="k">- name:</span> <span class="s">Upload artifact</span>
+        <span class="k">uses:</span> <span class="s">actions/upload-pages-artifact@v3</span>
+
+  <span class="k">deploy:</span>
+    <span class="k">needs:</span> <span class="s">build</span>
+    <span class="k">runs-on:</span> <span class="s">ubuntu-latest</span>
+    <span class="k">environment:</span>
+      <span class="k">name:</span> <span class="s">github-pages</span>
+      <span class="k">url:</span> <span class="v">${{ steps.deployment.outputs.page_url }}</span>
+    <span class="k">steps:</span>
+      <span class="k">- name:</span> <span class="s">Deploy to GitHub Pages</span>
+        <span class="k">id:</span> <span class="s">deployment</span>
+        <span class="k">uses:</span> <span class="s">actions/deploy-pages@v4</span></code></pre>
+  </div>
+</section>
+
+<!-- 4. Hugo -->
+<section class="section" id="hugo">
+  <div class="section-header">
+    <span class="section-num">04</span>
+    <h2>Hugo</h2>
+  </div>
+  <div class="card">
+    <span class="label label-purple">Extended版対応</span>
+<pre><code><span class="k">name:</span> <span class="s">Deploy Hugo</span>
+
+<span class="k">on:</span>
+  <span class="k">push:</span>
+    <span class="k">branches:</span> [<span class="s">"main"</span>]
+
+<span class="k">permissions:</span>
+  <span class="k">contents:</span> <span class="s">read</span>
+  <span class="k">pages:</span> <span class="s">write</span>
+  <span class="k">id-token:</span> <span class="s">write</span>
+
+<span class="k">jobs:</span>
+  <span class="k">build:</span>
+    <span class="k">runs-on:</span> <span class="s">ubuntu-latest</span>
+    <span class="k">steps:</span>
+      <span class="k">- uses:</span> <span class="s">actions/checkout@v4</span>
+        <span class="k">with:</span>
+          <span class="k">submodules:</span> <span class="k">true</span>   <span class="c"># Hugoテーマ用</span>
+
+      <span class="k">- uses:</span> <span class="s">actions/setup-go@v5</span>
+        <span class="k">with:</span>
+          <span class="k">go-version:</span> <span class="s">'1.22'</span>
+
+      <span class="k">- name:</span> <span class="s">Setup Hugo</span>
+        <span class="k">uses:</span> <span class="s">peaceiris/actions-hugo@v3</span>
+        <span class="k">with:</span>
+          <span class="k">hugo-version:</span> <span class="s">'latest'</span>
+          <span class="k">extended:</span> <span class="k">true</span>
+
+      <span class="k">- run:</span> <span class="s">hugo --minify</span>
+
+      <span class="k">- uses:</span> <span class="s">actions/upload-pages-artifact@v3</span>
+        <span class="k">with:</span>
+          <span class="k">path:</span> <span class="s">'./public'</span>
+
+  <span class="k">deploy:</span>
+    <span class="k">needs:</span> <span class="s">build</span>
+    <span class="k">runs-on:</span> <span class="s">ubuntu-latest</span>
+    <span class="k">environment:</span>
+      <span class="k">name:</span> <span class="s">github-pages</span>
+      <span class="k">url:</span> <span class="v">${{ steps.deployment.outputs.page_url }}</span>
+    <span class="k">steps:</span>
+      <span class="k">- uses:</span> <span class="s">actions/deploy-pages@v4</span>
+        <span class="k">id:</span> <span class="s">deployment</span></code></pre>
+  </div>
+</section>
+
+<hr>
+
+<!-- 5. Triggers -->
+<section class="section" id="triggers">
+  <div class="section-header">
+    <span class="section-num">05</span>
+    <h2>トリガー設定のバリエーション</h2>
+  </div>
+  <div class="grid-2">
+    <div class="card">
+      <h3>タグ push 時のみ</h3>
+<pre><code><span class="k">on:</span>
+  <span class="k">push:</span>
+    <span class="k">tags:</span>
+      <span class="k">-</span> <span class="s">'v*'</span></code></pre>
+    </div>
+    <div class="card">
+      <h3>複数ブランチ</h3>
+<pre><code><span class="k">on:</span>
+  <span class="k">push:</span>
+    <span class="k">branches:</span>
+      <span class="k">-</span> <span class="s">main</span>
+      <span class="k">-</span> <span class="s">develop</span></code></pre>
+    </div>
+  </div>
+</section>
+
+<!-- 6. Settings -->
+<section class="section" id="settings">
+  <div class="section-header">
+    <span class="section-num">06</span>
+    <h2>リポジトリ設定チェックリスト</h2>
+  </div>
+  <div class="card">
+    <ul class="checklist">
+      <li><strong>Settings &gt; Pages &gt; Source</strong> を <strong>GitHub Actions</strong> に変更</li>
+      <li><code>permissions</code> に <code>pages: write</code> と <code>id-token: write</code> を記述</li>
+      <li><code>upload-pages-artifact</code> の <code>path</code> がビルド成果物のディレクトリを指しているか確認</li>
+      <li>カスタムドメインを使う場合は <code>CNAME</code> ファイルをデプロイ対象ディレクトリに含める</li>
+    </ul>
+  </div>
+</section>
+
+<!-- 7. Tips -->
+<section class="section" id="tips">
+  <div class="section-header">
+    <span class="section-num">07</span>
+    <h2>Tips</h2>
+  </div>
+  <div class="grid-2">
+    <div class="card">
+      <span class="label label-amber">CNAME</span>
+      <h3>カスタムドメイン</h3>
+      <p>ビルド後に <code>CNAME</code> ファイルを生成してからアップロードします。</p>
+<pre><code><span class="k">- run:</span> <span class="s">npm run build</span>
+<span class="k">- run:</span> <span class="s">echo 'www.example.com' &gt; ./dist/CNAME</span>
+<span class="k">- uses:</span> <span class="s">actions/upload-pages-artifact@v3</span>
+  <span class="k">with:</span>
+    <span class="k">path:</span> <span class="s">'./dist'</span></code></pre>
+    </div>
+    <div class="card">
+      <span class="label label-green">キャッシュ</span>
+      <h3>依存関係のキャッシュ</h3>
+      <p><code>actions/setup-node</code> の <code>cache: 'npm'</code> や <code>actions/cache</code> を使うとビルドが高速化します。Hugoでも <code>~/.cache/hugo</code> のキャッシュが有効です。</p>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  GitHub Actions & GitHub Pages デプロイガイド · ブラウザで開いて 印刷 → PDF保存 も可能です
+</footer>
+
+</body>
+</html>

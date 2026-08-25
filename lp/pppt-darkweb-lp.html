@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>pppt-onion — 公共スライド暗号アーカイブ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #000000;
+  --surface: #050505;
+  --panel: #0a0a0a;
+  --ink: #c8c8c8;
+  --muted: #444;
+  --accent: #00ff41;
+  --accent-dim: rgba(0,255,65,0.08);
+  --alert: #ff0040;
+  --alert-dim: rgba(255,0,64,0.12);
+  --warn: #ffee00;
+  --line: rgba(0,255,65,0.12);
+  --grid: rgba(0,255,65,0.04);
+  --radius: 0px;
+  --space: clamp(1.5rem, 1.2rem + 1.5vw, 2.5rem);
+  --step--1: clamp(0.65rem, 0.62rem + 0.18vw, 0.8rem);
+  --step-0: clamp(0.8rem, 0.75rem + 0.25vw, 0.95rem);
+  --step-1: clamp(1rem, 0.85rem + 0.8vw, 1.5rem);
+  --step-2: clamp(1.4rem, 1.1rem + 1.5vw, 2.4rem);
+  --step-3: clamp(2rem, 1.4rem + 3vw, 3.8rem);
+  --mono: "Share Tech Mono", "JetBrains Mono", "SFMono-Regular", monospace;
+  --body: "Noto Sans JP", "Hiragino Sans", "Yu Gothic", sans-serif;
+}
+
+* { box-sizing: border-box; margin: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--body);
+  background: var(--bg);
+  color: var(--ink);
+  line-height: 1.7;
+  font-size: var(--step-0);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* ── CRT / noise layers ── */
+body::before,
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* scanlines */
+body::before {
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0,0,0,0.15) 0px,
+    rgba(0,0,0,0.15) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+  mix-blend-mode: multiply;
+}
+
+/* noise */
+body::after {
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 200px 200px;
+  opacity: .6;
+}
+
+/* ── Typography ── */
+h1, h2, h3, .display {
+  font-family: var(--mono);
+  font-weight: 400;
+  line-height: 1.05;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.display {
+  font-size: var(--step-3);
+  letter-spacing: 0.08em;
+}
+
+h2 { font-size: var(--step-2); }
+h3 { font-size: var(--step-1); }
+
+.mono { font-family: var(--mono); }
+
+a { color: inherit; text-decoration: none; }
+
+/* ── Utilities ── */
+.container {
+  position: relative;
+  z-index: 2;
+  width: min(94%, 1100px);
+  margin-inline: auto;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  padding: 0.2em 0.6em;
+  border: 1px solid var(--line);
+  font-family: var(--mono);
+  font-size: var(--step--1);
+  color: var(--accent);
+  background: var(--accent-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.tag.alert { color: var(--alert); background: var(--alert-dim); border-color: rgba(255,0,64,0.25); }
+.tag.warn { color: var(--warn); background: rgba(255,238,0,0.06); border-color: rgba(255,238,0,0.2); }
+
+/* ── Header ── */
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(0,0,0,0.85);
+  backdrop-filter: blur(2px);
+  border-bottom: 1px solid var(--line);
+}
+.site-header .container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 52px;
+}
+
+.brand {
+  font-family: var(--mono);
+  font-size: 1rem;
+  letter-spacing: 0.12em;
+  display: flex;
+  align-items: center;
+  gap: 0.6em;
+  color: var(--accent);
+}
+.brand .onion {
+  font-size: 0.7rem;
+  color: var(--muted);
+  border: 1px solid var(--muted);
+  padding: 0.1em 0.4em;
+}
+
+.nav-links {
+  display: none;
+  gap: 2rem;
+  list-style: none;
+  font-family: var(--mono);
+  font-size: var(--step--1);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+@media (min-width: 640px) { .nav-links { display: flex; } }
+
+.nav-links a { color: var(--muted); transition: color .2s; }
+.nav-links a:hover { color: var(--accent); }
+
+.cta-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  padding: 0.5em 1em;
+  background: transparent;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  font-family: var(--mono);
+  font-size: var(--step--1);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  transition: .15s;
+  cursor: pointer;
+}
+.cta-btn:hover {
+  background: var(--accent);
+  color: #000;
+}
+
+/* ── Hero ── */
+.hero {
+  padding: calc(var(--space) * 4) 0 calc(var(--space) * 3);
+  position: relative;
+}
+
+.hero-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: calc(var(--space) * 2);
+}
+@media (min-width: 860px) {
+  .hero-grid { grid-template-columns: 1.1fr 0.9fr; align-items: center; }
+}
+
+.hero-badge {
+  font-family: var(--mono);
+  font-size: var(--step--1);
+  color: var(--alert);
+  border: 1px solid rgba(255,0,64,0.3);
+  padding: 0.3em 0.7em;
+  display: inline-block;
+  margin-bottom: 1.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  animation: flicker 3s infinite;
+}
+
+@keyframes flicker {
+  0%, 100% { opacity: 1; }
+  41% { opacity: 1; }
+  42% { opacity: .4; }
+  43% { opacity: 1; }
+  46% { opacity: .3; }
+  47% { opacity: 1; }
+}
+
+.glitch {
+  position: relative;
+  color: var(--ink);
+}
+.glitch::before,
+.glitch::after {
+  content: attr(data-text);
+  position: absolute;
+  left: 0; top: 0;
+  width: 100%; height: 100%;
+  background: var(--bg);
+}
+.glitch::before {
+  left: 2px;
+  text-shadow: -1px 0 var(--alert);
+  clip: rect(20px, 999px, 80px, 0);
+  animation: glitch-anim-1 2.5s infinite linear alternate-reverse;
+}
+.glitch::after {
+  left: -2px;
+  text-shadow: -1px 0 var(--accent);
+  clip: rect(60px, 999px, 100px, 0);
+  animation: glitch-anim-2 3s infinite linear alternate-reverse;
+}
+
+@keyframes glitch-anim-1 {
+  0% { clip: rect(10px, 9999px, 40px, 0); }
+  20% { clip: rect(60px, 9999px, 90px, 0); }
+  40% { clip: rect(30px, 9999px, 70px, 0); }
+  60% { clip: rect(80px, 9999px, 100px, 0); }
+  80% { clip: rect(20px, 9999px, 50px, 0); }
+  100% { clip: rect(50px, 9999px, 80px, 0); }
+}
+@keyframes glitch-anim-2 {
+  0% { clip: rect(50px, 9999px, 80px, 0); }
+  20% { clip: rect(10px, 9999px, 40px, 0); }
+  40% { clip: rect(70px, 9999px, 100px, 0); }
+  60% { clip: rect(20px, 9999px, 60px, 0); }
+  80% { clip: rect(40px, 9999px, 70px, 0); }
+  100% { clip: rect(60px, 9999px, 90px, 0); }
+}
+
+.hero p {
+  margin-top: 1.5rem;
+  color: var(--muted);
+  max-width: 48ch;
+}
+
+.hero-meta {
+  margin-top: 2rem;
+  font-family: var(--mono);
+  font-size: var(--step--1);
+  color: var(--muted);
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.hero-meta span { display: flex; gap: 0.8rem; }
+.hero-meta .k { color: var(--accent); }
+.hero-meta .v { color: var(--ink); }
+
+.hero-actions {
+  margin-top: 2.5rem;
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+/* ── Terminal / access panel ── */
+.access-panel {
+  border: 1px solid var(--line);
+  background: var(--surface);
+  position: relative;
+}
+.access-panel::before {
+  content: "[ROOT@pppt-onion ~]#";
+  position: absolute;
+  top: -11px; left: 12px;
+  background: var(--bg);
+  padding: 0 6px;
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  color: var(--accent);
+  letter-spacing: 0.06em;
+}
+
+.panel-body {
+  padding: 1.5rem;
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  line-height: 1.6;
+}
+
+.panel-body .line { display: flex; gap: 0.6rem; margin-bottom: 0.5rem; }
+.panel-body .prompt { color: var(--accent); flex-shrink: 0; }
+.panel-body .out { color: var(--muted); }
+.panel-body .ok { color: var(--accent); }
+.panel-body .warn { color: var(--warn); }
+.panel-body .err { color: var(--alert); }
+
+.cursor {
+  display: inline-block;
+  width: 8px; height: 15px;
+  background: var(--accent);
+  animation: blink 1s step-end infinite;
+  vertical-align: middle;
+  margin-left: 2px;
+}
+@keyframes blink { 50% { opacity: 0; } }
+
+/* file grid inside panel */
+.file-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.5rem;
+  margin: 1rem 0;
+}
+@media (min-width: 480px) { .file-grid { grid-template-columns: repeat(3, 1fr); } }
+
+.file-node {
+  border: 1px solid var(--line);
+  background: var(--panel);
+  padding: 0.6rem;
+  position: relative;
+  transition: .15s;
+}
+.file-node:hover {
+  border-color: var(--accent);
+  background: var(--accent-dim);
+}
+
+.fn-id {
+  font-size: 0.55rem;
+  color: var(--muted);
+  letter-spacing: 0.06em;
+  margin-bottom: 0.3rem;
+}
+.fn-bar {
+  height: 2px;
+  background: var(--line);
+  margin-bottom: 3px;
+  overflow: hidden;
+}
+.fn-bar::after {
+  content: "";
+  display: block;
+  height: 100%;
+  width: var(--w, 60%);
+  background: var(--accent);
+  opacity: .7;
+}
+.file-node:nth-child(2) .fn-bar::after { background: var(--alert); }
+.file-node:nth-child(3) .fn-bar::after { background: var(--warn); }
+
+.fn-stamp {
+  position: absolute;
+  top: 4px; right: 4px;
+  font-size: 0.5rem;
+  color: var(--alert);
+  border: 1px solid rgba(255,0,64,0.3);
+  padding: 0 2px;
+  transform: rotate(8deg);
+  text-transform: uppercase;
+}
+.fn-stamp.green { color: var(--accent); border-color: rgba(0,255,65,0.3); }
+
+/* ── Features ── */
+.features {
+  padding: calc(var(--space) * 3) 0;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: calc(var(--space));
+}
+@media (min-width: 720px) { .features-grid { grid-template-columns: repeat(3, 1fr); } }
+
+.feature {
+  border: 1px solid var(--line);
+  background: var(--panel);
+  padding: calc(var(--space) * 0.9);
+  position: relative;
+}
+.feature::before {
+  content: attr(data-index);
+  position: absolute;
+  top: -9px; left: 10px;
+  background: var(--surface);
+  padding: 0 5px;
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  color: var(--accent);
+  letter-spacing: 0.08em;
+}
+.feature h3 {
+  font-family: var(--mono);
+  margin-bottom: 0.6rem;
+  color: var(--ink);
+}
+.feature p { color: var(--muted); font-size: var(--step--1); line-height: 1.65; }
+
+/* ── Recovered files feed ── */
+.feed {
+  padding: calc(var(--space) * 3) 0;
+}
+
+.section-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: calc(var(--space) * 1.2);
+  flex-wrap: wrap;
+}
+.section-header p { color: var(--muted); font-size: var(--step--1); }
+
+.feed-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1px;
+  background: var(--line);
+  border: 1px solid var(--line);
+}
+@media (min-width: 560px) { .feed-grid { grid-template-columns: 1fr 1fr; } }
+@media (min-width: 900px) { .feed-grid { grid-template-columns: repeat(3, 1fr); } }
+
+.doc-row {
+  background: var(--surface);
+  padding: 1rem 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  position: relative;
+  transition: .15s;
+}
+.doc-row:hover { background: var(--panel); }
+
+.doc-row .doc-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.doc-id {
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  color: var(--muted);
+  letter-spacing: 0.06em;
+}
+
+.doc-title {
+  font-family: var(--body);
+  font-weight: 700;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  color: var(--ink);
+}
+
+.doc-meta {
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  color: var(--muted);
+  display: flex;
+  gap: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: auto;
+}
+
+.stamp {
+  font-family: var(--mono);
+  font-size: 0.55rem;
+  padding: 0.1em 0.35em;
+  border: 1px solid;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+.stamp.secret { color: var(--alert); border-color: rgba(255,0,64,0.35); }
+.stamp.confid { color: var(--warn); border-color: rgba(255,238,0,0.25); }
+.stamp.unclass { color: var(--accent); border-color: rgba(0,255,65,0.3); }
+
+/* ── Themes ── */
+.themes {
+  padding: calc(var(--space) * 3) 0;
+  background: var(--surface);
+  border-top: 1px solid var(--line);
+}
+
+.theme-cloud {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 1rem;
+}
+
+.theme-pill {
+  padding: 0.4em 0.8em;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  font-family: var(--mono);
+  font-size: var(--step--1);
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: .15s;
+}
+.theme-pill:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-dim);
+}
+
+/* ── Footer CTA ── */
+.footer-cta {
+  padding: calc(var(--space) * 4) 0 calc(var(--space) * 4);
+  text-align: center;
+  border-top: 1px solid var(--line);
+}
+
+.footer-cta h2 {
+  margin-bottom: 1rem;
+  color: var(--ink);
+}
+.footer-cta p { color: var(--muted); margin-bottom: 2rem; }
+
+/* onion address mock */
+.onion-addr {
+  font-family: var(--mono);
+  font-size: var(--step--1);
+  color: var(--accent);
+  border: 1px solid var(--line);
+  padding: 0.6em 1em;
+  display: inline-block;
+  margin-bottom: 1.5rem;
+  letter-spacing: 0.04em;
+}
+
+/* ── Footer ── */
+.site-footer {
+  padding: 2.5rem 0;
+  text-align: center;
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  color: var(--muted);
+  border-top: 1px solid var(--line);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+/* ── Motion ── */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .hero-badge, .glitch::before, .glitch::after, .cursor {
+    animation: none;
+  }
+}
+
+/* Print */
+@media print {
+  body { background: #fff; color: #000; }
+  body::before, body::after { display: none; }
+  .no-print { display: none; }
+}
+@page { size: A4; margin: 18mm; }
+
+/* Focus */
+a:focus-visible, button:focus-visible {
+  outline: 1px solid var(--accent);
+  outline-offset: 2px;
+}
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container">
+    <a href="#" class="brand">
+      pppt-onion
+      <span class="onion">.onion</span>
+    </a>
+    <nav>
+      <ul class="nav-links">
+        <li><a href="#features">protocols</a></li>
+        <li><a href="#feed">archive</a></li>
+        <li><a href="#themes">index</a></li>
+      </ul>
+    </nav>
+    <a href="#start" class="cta-btn no-print">connect</a>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="container hero-grid">
+      <div>
+        <div class="hero-badge">unauthorized access tolerated</div>
+        <h1 class="display glitch" data-text="HIDDEN ARCHIVE">HIDDEN ARCHIVE</h1>
+        <p>
+          省庁の政策スライドを、表の検索では辿り着けない角度から覗き込む。
+          27ノード、30,964ファイル。暗号化された図書館の目録。
+        </p>
+        <div class="hero-meta">
+          <span><span class="k">nodes</span><span class="v">27 ministries</span></span>
+          <span><span class="k">files</span><span class="v">30,964 slides</span></span>
+          <span><span class="k">facts</span><span class="v">33,511 data points</span></span>
+          <span><span class="k">status</span><span class="v" style="color:var(--accent);">online</span></span>
+        </div>
+        <div class="hero-actions">
+          <a href="#feed" class="cta-btn">browse archive</a>
+          <a href="#features" class="cta-btn" style="border-color:var(--muted);color:var(--muted);">read protocol</a>
+        </div>
+      </div>
+
+      <div class="access-panel" aria-hidden="true">
+        <div class="panel-body">
+          <div class="line"><span class="prompt">$</span><span class="out">torify curl -s https://pppt.jp/api/v1/slides?theme=all</span></div>
+          <div class="line"><span class="ok">[200]</span><span class="out">established secure circuit</span></div>
+          <div class="line"><span class="warn">[WARN]</span><span class="out">33,511 unstructured facts detected</span></div>
+          <div class="line"><span class="err">[NOTE]</span><span class="out">some slides marked [CONFIDENTIAL]</span></div>
+
+          <div class="file-grid">
+            <div class="file-node">
+              <div class="fn-stamp secret">secret</div>
+              <div class="fn-id">ENV-GX-04</div>
+              <div class="fn-bar" style="--w:70%"></div>
+              <div class="fn-bar" style="--w:40%"></div>
+              <div class="fn-bar" style="--w:55%"></div>
+            </div>
+            <div class="file-node">
+              <div class="fn-stamp">leak</div>
+              <div class="fn-id">MIC-AI-07</div>
+              <div class="fn-bar" style="--w:50%"></div>
+              <div class="fn-bar" style="--w:65%"></div>
+            </div>
+            <div class="file-node">
+              <div class="fn-stamp green">open</div>
+              <div class="fn-id">METI-SC22</div>
+              <div class="fn-bar" style="--w:80%"></div>
+              <div class="fn-bar" style="--w:30%"></div>
+              <div class="fn-bar" style="--w:60%"></div>
+            </div>
+            <div class="file-node">
+              <div class="fn-stamp secret">secret</div>
+              <div class="fn-id">MAFF-AGR-12</div>
+              <div class="fn-bar" style="--w:45%"></div>
+              <div class="fn-bar" style="--w:70%"></div>
+            </div>
+            <div class="file-node">
+              <div class="fn-stamp confid" style="border-color:rgba(255,238,0,0.25);color:var(--warn);">confid</div>
+              <div class="fn-id">CAO-GRO-09</div>
+              <div class="fn-bar" style="--w:35%"></div>
+              <div class="fn-bar" style="--w:50%"></div>
+            </div>
+            <div class="file-node">
+              <div class="fn-stamp green">open</div>
+              <div class="fn-id">MOE-BIO-06</div>
+              <div class="fn-bar" style="--w:60%"></div>
+              <div class="fn-bar" style="--w:25%"></div>
+            </div>
+          </div>
+
+          <div class="line"><span class="prompt">$</span><span class="out">decrypt --batch *.slide</span><span class="cursor"></span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="features" id="features">
+    <div class="container">
+      <div class="features-grid">
+        <article class="feature" data-index="PROTOCOL_01">
+          <h3>deep crawl</h3>
+          <p>表層の検索結果では見えない、スライドの断片同士を結合する横断クロール。省庁の境界を越えて接続点を発見する。</p>
+        </article>
+        <article class="feature" data-index="PROTOCOL_02">
+          <h3>exfiltrate facts</h3>
+          <p>グラフや数値を構造化データとして抽出。推定値は明示し、出典スライドへの逆引きを保持する。</p>
+        </article>
+        <article class="feature" data-index="PROTOCOL_03">
+          <h3>live intercept</h3>
+          <p>審議会議事録と新着資料を週次で傍受。政策の変化を、公開される前の気配から追跡する。</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="feed" id="feed">
+    <div class="container">
+      <div class="section-header">
+        <div>
+          <h2>recovered_files</h2>
+          <p>最近インデックスされた文書モジュール。</p>
+        </div>
+        <span class="tag">33,511 facts</span>
+      </div>
+
+      <div class="feed-grid">
+        <article class="doc-row">
+          <div class="doc-top">
+            <span class="doc-id">SLD-1842 // MAFF</span>
+            <span class="stamp secret">secret</span>
+          </div>
+          <div class="doc-title">スマート農業技術活用促進集中プログラム</div>
+          <div class="doc-meta">
+            <span>MAFF</span>
+            <span>2025-01</span>
+            <span>GX / 農業</span>
+          </div>
+        </article>
+
+        <article class="doc-row">
+          <div class="doc-top">
+            <span class="doc-id">SLD-2201 // MIC</span>
+            <span class="stamp unclass">unclass</span>
+          </div>
+          <div class="doc-title">令和8年度地方財政計画の概要</div>
+          <div class="doc-meta">
+            <span>MIC</span>
+            <span>2026-02</span>
+            <span>財政</span>
+          </div>
+        </article>
+
+        <article class="doc-row">
+          <div class="doc-top">
+            <span class="doc-id">SLD-2419 // MAFF</span>
+            <span class="stamp confid">confid</span>
+          </div>
+          <div class="doc-title">みどりの食料システム戦略の実現に向けて</div>
+          <div class="doc-meta">
+            <span>MAFF</span>
+            <span>2026-07</span>
+            <span>食料 / GX</span>
+          </div>
+        </article>
+
+        <article class="doc-row">
+          <div class="doc-top">
+            <span class="doc-id">SLD-2384 // MOE</span>
+            <span class="stamp unclass">unclass</span>
+          </div>
+          <div class="doc-title">令和8年版 環境・循環型社会・生物多様性白書（概要）</div>
+          <div class="doc-meta">
+            <span>MOE</span>
+            <span>2026-06</span>
+            <span>環境</span>
+          </div>
+        </article>
+
+        <article class="doc-row">
+          <div class="doc-top">
+            <span class="doc-id">SLD-2156 // METI</span>
+            <span class="stamp secret">secret</span>
+          </div>
+          <div class="doc-title">半導体・デジタル産業戦略の今後の方向性について</div>
+          <div class="doc-meta">
+            <span>METI</span>
+            <span>2026-03</span>
+            <span>半導体 / AI</span>
+          </div>
+        </article>
+
+        <article class="doc-row">
+          <div class="doc-top">
+            <span class="doc-id">SLD-2093 // CAO</span>
+            <span class="stamp confid">confid</span>
+          </div>
+          <div class="doc-title">成長戦略の検討体制</div>
+          <div class="doc-meta">
+            <span>CAO</span>
+            <span>2025-12</span>
+            <span>成長戦略</span>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="themes" id="themes">
+    <div class="container">
+      <h2>index_nodes</h2>
+      <p style="color:var(--muted);font-size:var(--step--1);margin-top:0.25rem;">タグを選択してクエリを実行。</p>
+      <div class="theme-cloud">
+        <a class="theme-pill" href="#">DX・デジタル</a>
+        <a class="theme-pill" href="#">脱炭素・GX</a>
+        <a class="theme-pill" href="#">AI・先端技術</a>
+        <a class="theme-pill" href="#">半導体</a>
+        <a class="theme-pill" href="#">農業</a>
+        <a class="theme-pill" href="#">防災</a>
+        <a class="theme-pill" href="#">知的財産</a>
+        <a class="theme-pill" href="#">地方創生</a>
+        <a class="theme-pill" href="#">教育</a>
+        <a class="theme-pill" href="#">労働</a>
+        <a class="theme-pill" href="#">観光</a>
+        <a class="theme-pill" href="#">金融</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="footer-cta" id="start">
+    <div class="container" style="max-width:640px;">
+      <h2>initialize_connection</h2>
+      <p>27ノード、30,964ファイルへのアクセスを確立します。</p>
+      <div class="onion-addr">http://pppt7ktjk4ds5tba.onion</div>
+      <div>
+        <a href="https://pppt.jp" class="cta-btn">connect to surface node</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <p>Non-official fan proposal. Actual data source: pppt.jp // All documents are publicly available.</p>
+  </div>
+</footer>
+
+</body>
+</html>

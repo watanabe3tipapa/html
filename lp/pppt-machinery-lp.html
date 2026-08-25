@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PPPT /MACHINERY — 省庁スライド横断検索</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;700&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #06060a;
+  --surface: #0e0e14;
+  --panel: #14141c;
+  --ink: #e9e9ef;
+  --muted: #6b6f7a;
+  --accent: #00f0ff;
+  --accent-dim: rgba(0,240,255,0.12);
+  --alert: #ff3864;
+  --alert-dim: rgba(255,56,100,0.12);
+  --warn: #ffd166;
+  --line: rgba(255,255,255,0.09);
+  --grid: rgba(255,255,255,0.035);
+  --shadow: 0 0 0 1px var(--line), 0 20px 40px -20px rgba(0,0,0,0.8);
+  --shadow-glow: 0 0 0 1px var(--line), 0 0 30px -10px var(--accent-dim);
+  --radius: 4px;
+  --radius-lg: 8px;
+  --space: clamp(1.5rem, 1.2rem + 1.5vw, 2.5rem);
+  --step--1: clamp(0.7rem, 0.68rem + 0.15vw, 0.82rem);
+  --step-0: clamp(0.85rem, 0.82rem + 0.2vw, 0.95rem);
+  --step-1: clamp(1.1rem, 0.95rem + 0.8vw, 1.6rem);
+  --step-2: clamp(1.6rem, 1.3rem + 1.6vw, 2.6rem);
+  --step-3: clamp(2.2rem, 1.7rem + 2.6vw, 4rem);
+  --mono: "JetBrains Mono", "SFMono-Regular", monospace;
+  --display: "Space Grotesk", "Noto Sans JP", sans-serif;
+  --body: "Noto Sans JP", "Hiragino Sans", "Yu Gothic", sans-serif;
+}
+
+* { box-sizing: border-box; margin: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--body);
+  background: var(--bg);
+  color: var(--ink);
+  line-height: 1.7;
+  font-size: var(--step-0);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Grid background */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Typography */
+h1, h2, h3, .display {
+  font-family: var(--display);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+
+.display {
+  font-size: var(--step-3);
+  letter-spacing: -0.04em;
+  text-transform: uppercase;
+}
+
+h2 { font-size: var(--step-2); }
+h3 { font-size: var(--step-1); }
+
+.mono { font-family: var(--mono); }
+
+a { color: inherit; text-decoration: none; }
+
+/* Utilities */
+.container {
+  position: relative;
+  z-index: 1;
+  width: min(92%, 1140px);
+  margin-inline: auto;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  padding: 0.25em 0.7em;
+  border-radius: var(--radius);
+  font-family: var(--mono);
+  font-size: var(--step--1);
+  font-weight: 700;
+  background: var(--accent-dim);
+  color: var(--accent);
+  border: 1px solid rgba(0,240,255,0.25);
+  text-transform: uppercase;
+}
+
+.tag.alert { background: var(--alert-dim); color: var(--alert); border-color: rgba(255,56,100,0.3); }
+.tag.warn { background: rgba(255,209,102,0.1); color: var(--warn); border-color: rgba(255,209,102,0.3); }
+
+/* Header */
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: color-mix(in oklab, var(--bg) 90%, transparent);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--line);
+}
+
+.site-header .container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 60px;
+}
+
+.brand {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 1.1rem;
+  letter-spacing: 0.05em;
+  display: flex;
+  align-items: center;
+  gap: 0.6em;
+  text-transform: uppercase;
+}
+
+.brand .logo-mark {
+  width: 28px; height: 28px;
+  border: 1.5px solid var(--accent);
+  border-radius: var(--radius);
+  display: grid;
+  place-items: center;
+  color: var(--accent);
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  font-weight: 700;
+  position: relative;
+}
+
+.brand .logo-mark::after {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  background: var(--accent);
+  opacity: 0.15;
+  border-radius: 1px;
+}
+
+.nav-links {
+  display: flex;
+  gap: 2rem;
+  list-style: none;
+  font-family: var(--mono);
+  font-size: var(--step--1);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.nav-links a { color: var(--muted); transition: color .15s; }
+.nav-links a:hover { color: var(--ink); }
+
+.cta-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  padding: 0.55em 1.1em;
+  background: var(--panel);
+  color: var(--ink);
+  border-radius: var(--radius);
+  font-family: var(--mono);
+  font-size: var(--step--1);
+  font-weight: 700;
+  border: 1px solid var(--line);
+  transition: .15s;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.cta-btn:hover {
+  border-color: var(--accent);
+  box-shadow: 0 0 20px -8px var(--accent);
+}
+
+.cta-btn.accent {
+  background: var(--accent);
+  color: #000;
+  border-color: var(--accent);
+}
+.cta-btn.accent:hover {
+  box-shadow: 0 0 24px -6px var(--accent);
+}
+
+/* Hero */
+.hero {
+  padding: calc(var(--space) * 3) 0 calc(var(--space) * 4);
+}
+
+.hero .container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: calc(var(--space) * 2);
+  align-items: center;
+}
+
+@media (max-width: 860px) {
+  .hero .container { grid-template-columns: 1fr; }
+}
+
+.hero-eyebrow {
+  font-family: var(--mono);
+  font-size: var(--step--1);
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.hero-eyebrow .status {
+  width: 7px; height: 7px;
+  background: var(--accent);
+  border-radius: 50%;
+  box-shadow: 0 0 8px var(--accent);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: .4; }
+}
+
+.hero p {
+  margin-top: 1.25rem;
+  color: var(--muted);
+  max-width: 46ch;
+}
+
+.hero-actions {
+  margin-top: 2rem;
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+/* Terminal / Slide viewer */
+.term {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.term-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 0.9rem;
+  background: var(--panel);
+  border-bottom: 1px solid var(--line);
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.term-header .dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--muted);
+}
+.term-header .dot:nth-child(1) { background: var(--alert); }
+.term-header .dot:nth-child(2) { background: var(--warn); }
+.term-header .dot:nth-child(3) { background: #4ade80; }
+
+.term-body {
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.term-line {
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+.term-line .prompt { color: var(--accent); margin-right: 0.5em; }
+
+.slide-viewer {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg);
+  padding: 1rem;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.6rem;
+}
+
+.v-slide {
+  aspect-ratio: 4 / 3;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 0.6rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  position: relative;
+  transition: .2s;
+}
+.v-slide:hover {
+  border-color: var(--accent);
+  box-shadow: 0 0 20px -10px var(--accent);
+}
+
+.v-slide .vs-id {
+  font-family: var(--mono);
+  font-size: 0.55rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.v-slide .vs-bar {
+  height: 3px;
+  background: var(--line);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.v-slide .vs-bar::after {
+  content: "";
+  display: block;
+  height: 100%;
+  width: var(--w, 60%);
+  background: var(--accent);
+  opacity: .8;
+}
+.v-slide:nth-child(2) .vs-bar::after { background: var(--alert); }
+.v-slide:nth-child(3) .vs-bar::after { background: var(--warn); }
+
+.v-slide .vs-lines {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.v-slide .vs-lines span {
+  height: 2px;
+  background: var(--line);
+  border-radius: 1px;
+}
+.v-slide .vs-lines span:nth-child(1) { width: 100%; }
+.v-slide .vs-lines span:nth-child(2) { width: 80%; }
+.v-slide .vs-lines span:nth-child(3) { width: 55%; }
+
+.v-slide .vs-page {
+  position: absolute;
+  bottom: 4px; right: 6px;
+  font-family: var(--mono);
+  font-size: 0.55rem;
+  color: var(--muted);
+}
+
+/* Features */
+.features {
+  padding: calc(var(--space) * 3) 0;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: calc(var(--space));
+}
+
+@media (max-width: 760px) {
+  .features-grid { grid-template-columns: 1fr; }
+}
+
+.feature {
+  padding: calc(var(--space) * 0.9);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--panel);
+  transition: .2s;
+  position: relative;
+  overflow: hidden;
+}
+
+.feature::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  opacity: 0;
+  transition: opacity .2s;
+}
+.feature:hover::before { opacity: .6; }
+.feature:hover {
+  border-color: rgba(0,240,255,0.25);
+  box-shadow: var(--shadow-glow);
+}
+
+.feature-id {
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 0.75rem;
+}
+
+.feature h3 {
+  font-family: var(--display);
+  margin-bottom: 0.5rem;
+  font-size: var(--step-1);
+}
+.feature p { color: var(--muted); font-size: var(--step--1); line-height: 1.65; }
+
+/* Feed */
+.feed {
+  padding: calc(var(--space) * 3) 0;
+}
+
+.section-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: calc(var(--space) * 1.2);
+  flex-wrap: wrap;
+}
+
+.section-header p { color: var(--muted); font-size: var(--step--1); }
+
+.feed-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+  gap: calc(var(--space) * 0.8);
+}
+
+.feed-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  transition: .2s;
+  position: relative;
+}
+.feed-card:hover {
+  border-color: rgba(0,240,255,0.2);
+  box-shadow: 0 0 30px -14px var(--accent);
+}
+
+.feed-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1px transparent;
+  transition: .2s;
+  pointer-events: none;
+}
+.feed-card:hover::after {
+  box-shadow: inset 0 0 0 1px rgba(0,240,255,0.15);
+}
+
+.feed-thumb {
+  height: 150px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--line);
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  position: relative;
+}
+
+.ft-bar {
+  height: 4px;
+  background: var(--line);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.ft-bar::after {
+  content: "";
+  display: block;
+  height: 100%;
+  width: var(--w, 70%);
+  background: var(--accent);
+  opacity: .85;
+}
+.ft-bar.alert::after { background: var(--alert); }
+.ft-bar.warn::after { background: var(--warn); }
+
+.ft-dots {
+  display: flex;
+  gap: 6px;
+  margin-top: auto;
+}
+.ft-dots span {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--line);
+}
+.ft-dots span.on { background: var(--accent); box-shadow: 0 0 6px var(--accent); }
+.ft-dots span.alert { background: var(--alert); box-shadow: 0 0 6px var(--alert); }
+
+.feed-body {
+  padding: 1rem 1.1rem 1.1rem;
+}
+
+.feed-meta {
+  display: flex;
+  gap: 0.4rem;
+  margin-bottom: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.feed-title {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 0.95rem;
+  line-height: 1.35;
+  margin-bottom: 0.5rem;
+}
+
+.feed-info {
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  color: var(--muted);
+  display: flex;
+  gap: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* Themes */
+.themes {
+  padding: calc(var(--space) * 3) 0;
+  background: var(--surface);
+  border-top: 1px solid var(--line);
+}
+
+.theme-cloud {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.theme-pill {
+  padding: 0.5em 0.9em;
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  background: var(--panel);
+  font-family: var(--mono);
+  font-size: var(--step--1);
+  font-weight: 700;
+  transition: .15s;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+}
+.theme-pill:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-dim);
+}
+
+/* Footer CTA */
+.footer-cta {
+  padding: calc(var(--space) * 3) 0 calc(var(--space) * 4);
+  text-align: center;
+}
+
+.footer-cta h2 { margin-bottom: 1rem; }
+.footer-cta p { color: var(--muted); margin-bottom: 1.75rem; }
+
+/* Footer */
+.site-footer {
+  padding: 2.5rem 0;
+  text-align: center;
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  color: var(--muted);
+  border-top: 1px solid var(--line);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .status { animation: none; }
+  .feature, .feed-card, .cta-btn, .v-slide { transition: none; }
+}
+
+/* Print */
+@media print {
+  body { background: #fff; color: #000; }
+  body::before { display: none; }
+  .no-print { display: none; }
+}
+@page { size: A4; margin: 18mm; }
+
+/* Focus */
+a:focus-visible, button:focus-visible {
+  outline: 1px solid var(--accent);
+  outline-offset: 2px;
+}
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container">
+    <a href="#" class="brand">
+      <span class="logo-mark">P</span>
+      PPPT <span style="color:var(--muted);">/</span>MACHINERY
+    </a>
+    <nav>
+      <ul class="nav-links">
+        <li><a href="#features">Modules</a></li>
+        <li><a href="#feed">Feed</a></li>
+        <li><a href="#themes">Index</a></li>
+      </ul>
+    </nav>
+    <a href="#start" class="cta-btn accent no-print">Initialize</a>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="container">
+      <div>
+        <div class="hero-eyebrow">
+          <span class="status"></span>
+          <span class="mono">27 Ministries / 30,964 Slides</span>
+        </div>
+        <h1 class="display">Cross-Ministry<br>Slide Scan</h1>
+        <p>
+          省庁資料を「閲覧」するだけでなく、「スキャン」する。
+          横断検索と造化データで、政策の全体像を高速に把握します。
+        </p>
+        <div class="hero-actions">
+          <a href="#feed" class="cta-btn accent">Execute Scan</a>
+          <a href="#features" class="cta-btn">System Spec</a>
+        </div>
+      </div>
+
+      <div class="term" aria-hidden="true">
+        <div class="term-header">
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span style="margin-left:auto;">pppt-term v2.1 — bash</span>
+        </div>
+        <div class="term-body">
+          <div class="term-line"><span class="prompt">$</span>pppt scan --theme GX,AI,semicon --ministries all</div>
+          <div class="term-line" style="color:var(--accent);">[OK] Connected to 27 ministries</div>
+          <div class="term-line" style="color:var(--warn);">[WARN] 33,511 fact data points detected</div>
+          <div class="slide-viewer">
+            <div class="v-slide">
+              <div class="vs-id">ENV-GX-2035</div>
+              <div class="vs-bar" style="--w:70%"></div>
+              <div class="vs-lines"><span></span><span></span><span></span></div>
+              <div class="vs-page">P.04</div>
+            </div>
+            <div class="v-slide">
+              <div class="vs-id">MIC-AI-2024</div>
+              <div class="vs-bar" style="--w:55%"></div>
+              <div class="vs-lines"><span></span><span></span><span></span></div>
+              <div class="vs-page">P.07</div>
+            </div>
+            <div class="v-slide">
+              <div class="vs-id">METI-SC-17</div>
+              <div class="vs-bar" style="--w:80%"></div>
+              <div class="vs-lines"><span></span><span></span><span></span></div>
+              <div class="vs-page">P.22</div>
+            </div>
+          </div>
+          <div class="term-line" style="color:var(--alert);">[DONE] 30,964 slides indexed.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="features" id="features">
+    <div class="container">
+      <div class="features-grid">
+        <article class="feature">
+          <div class="feature-id">MOD-01 // SCAN ENGINE</div>
+          <h3>パラパラではなく、スキャン。</h3>
+          <p>サムネイルグリッドと構造化データの二軸で、気になるスライドを瞬時に抽出。閲覧から発見へ。</p>
+        </article>
+        <article class="feature">
+          <div class="feature-id">MOD-02 // CROSS SEARCH</div>
+          <h3>省庁を横断検索。</h3>
+          <p>「GX」「AI」「半導体」などテーマタグで、複数省庁の資料を一括クエリ。政策の断片を接続ます。</p>
+        </article>
+        <article class="feature">
+          <div class="feature-id">MOD-03 // LIVE FEED</div>
+          <h3>新着をキャッチアップ。</h3>
+          <p>審議会議事録と新着資料を、タイムラインと週次レポートの二チャンネルで監視。変化を見逃さない。</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="feed" id="feed">
+    <div class="container">
+      <div class="section-header">
+        <div>
+          <h2>Latest Ingestion</h2>
+          <p>最近インデックスされた資料モジュール。</p>
+        </div>
+        <span class="tag">33,511 facts</span>
+      </div>
+
+      <div class="feed-grid">
+        <article class="feed-card">
+          <div class="feed-thumb">
+            <div class="ft-bar" style="--w:75%"></div>
+            <div class="ft-bar alert" style="--w:45%"></div>
+            <div class="ft-bar warn" style="--w:60%"></div>
+            <div class="ft-dots"><span class="on"></span><span class="alert"></span><span></span></div>
+          </div>
+          <div class="feed-body">
+            <div class="feed-meta">
+              <span class="tag" style="font-size:0.6rem;padding:0.2em 0.5em;">MAFF</span>
+              <span class="tag alert" style="font-size:0.6rem;padding:0.2em 0.5em;">NEW</span>
+            </div>
+            <div class="feed-title">スマート農業技術活用促進集中プログラム</div>
+            <div class="feed-info">
+              <span>MAFF</span>
+              <span>2025-01</span>
+              <span>SLD-1842</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="feed-card">
+          <div class="feed-thumb">
+            <div class="ft-bar" style="--w:60%"></div>
+            <div class="ft-bar" style="--w:40%"></div>
+            <div class="ft-dots"><span class="on"></span><span></span><span></span></div>
+          </div>
+          <div class="feed-body">
+            <div class="feed-meta">
+              <span class="tag" style="font-size:0.6rem;padding:0.2em 0.5em;">MIC</span>
+            </div>
+            <div class="feed-title">令和8年度地方財政計画の概要</div>
+            <div class="feed-info">
+              <span>MIC</span>
+              <span>2026-02</span>
+              <span>SLD-2201</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="feed-card">
+          <div class="feed-thumb">
+            <div class="ft-bar warn" style="--w:50%"></div>
+            <div class="ft-bar" style="--w:80%"></div>
+            <div class="ft-bar alert" style="--w:35%"></div>
+            <div class="ft-dots"><span class="on"></span><span class="on"></span><span></span></div>
+          </div>
+          <div class="feed-body">
+            <div class="feed-meta">
+              <span class="tag" style="font-size:0.6rem;padding:0.2em 0.5em;">MAFF</span>
+            </div>
+            <div class="feed-title">みどりの食料システム戦略の実現に向けて</div>
+            <div class="feed-info">
+              <span>MAFF</span>
+              <span>2026-07</span>
+              <span>SLD-2419</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="feed-card">
+          <div class="feed-thumb">
+            <div class="ft-bar alert" style="--w:55%"></div>
+            <div class="ft-bar" style="--w:70%"></div>
+            <div class="ft-dots"><span></span><span class="alert"></span><span></span></div>
+          </div>
+          <div class="feed-body">
+            <div class="feed-meta">
+              <span class="tag" style="font-size:0.6rem;padding:0.2em 0.5em;">MOE</span>
+            </div>
+            <div class="feed-title">令和8年版 環境・循環型社会・生物多様性白書（概要）</div>
+            <div class="feed-info">
+              <span>MOE</span>
+              <span>2026-06</span>
+              <span>SLD-2384</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="feed-card">
+          <div class="feed-thumb">
+            <div class="ft-bar" style="--w:45%"></div>
+            <div class="ft-bar warn" style="--w:65%"></div>
+            <div class="ft-bar" style="--w:30%"></div>
+            <div class="ft-dots"><span class="on"></span><span></span><span class="alert"></span></div>
+          </div>
+          <div class="feed-body">
+            <div class="feed-meta">
+              <span class="tag" style="font-size:0.6rem;padding:0.2em 0.5em;">METI</span>
+            </div>
+            <div class="feed-title">半導体・デジタル産業戦略の今後の方向性について</div>
+            <div class="feed-info">
+              <span>METI</span>
+              <span>2026-03</span>
+              <span>SLD-2156</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="feed-card">
+          <div class="feed-thumb">
+            <div class="ft-bar" style="--w:85%"></div>
+            <div class="ft-bar" style="--w:40%"></div>
+            <div class="ft-dots"><span class="on"></span><span></span><span></span></div>
+          </div>
+          <div class="feed-body">
+            <div class="feed-meta">
+              <span class="tag" style="font-size:0.6rem;padding:0.2em 0.5em;">CAO</span>
+            </div>
+            <div class="feed-title">成長戦略の検討体制</div>
+            <div class="feed-info">
+              <span>CAO</span>
+              <span>2025-12</span>
+              <span>SLD-2093</span>
+            </div>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="themes" id="themes">
+    <div class="container">
+      <h2>Theme Index</h2>
+      <p style="color:var(--muted);font-size:var(--step--1);margin-top:0.25rem;">タグを選択してクエリを実行。</p>
+      <div class="theme-cloud">
+        <a class="theme-pill" href="#">DX・デジタル</a>
+        <a class="theme-pill" href="#">脱炭素・GX</a>
+        <a class="theme-pill" href="#">AI・先端技術</a>
+        <a class="theme-pill" href="#">半導体</a>
+        <a class="theme-pill" href="#">農業</a>
+        <a class="theme-pill" href="#">防災</a>
+        <a class="theme-pill" href="#">知的財産</a>
+        <a class="theme-pill" href="#">地方創生</a>
+        <a class="theme-pill" href="#">育</a>
+        <a class="theme-pill" href="#">労働</a>
+        <a class="theme-pill" href="#">観光</a>
+        <a class="theme-pill" href="#">金融</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="footer-cta" id="start">
+    <div class="container" style="max-width:640px;">
+      <h2>Initialize Scan.</h2>
+      <p>27省庁、30,964枚のスライドデータベースへ接続します。</p>
+      <a href="https://pppt.jp" class="cta-btn accent" style="font-size:var(--step-0);padding:0.7em 1.5em;">Connect to PPPT</a>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <p>Non-official fan proposal. Actual data source: pppt.jp</p>
+  </div>
+</footer>
+
+</body>
+</html>
