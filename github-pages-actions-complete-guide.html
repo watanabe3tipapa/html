@@ -1,0 +1,1486 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GitHub Actions & GitHub Pages 完全ガイド</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0d1117;
+  --surface: #161b22;
+  --surface-2: #1c2128;
+  --surface-3: #22282e;
+  --ink: #c9d1d9;
+  --ink-dim: #8b949e;
+  --accent: #58a6ff;
+  --accent-2: #a371f7;
+  --accent-3: #56d364;
+  --success: #3fb950;
+  --warning: #d29922;
+  --danger: #f85149;
+  --line: #30363d;
+  --line-subtle: #21262d;
+  --step--1: clamp(0.78rem, 0.75rem + 0.15vw, 0.88rem);
+  --step-0: clamp(0.9rem, 0.85rem + 0.25vw, 1rem);
+  --step-1: clamp(1.05rem, 0.95rem + 0.5vw, 1.25rem);
+  --step-2: clamp(1.3rem, 1.1rem + 1vw, 1.75rem);
+  --step-3: clamp(1.7rem, 1.3rem + 2vw, 2.5rem);
+  --step-4: clamp(2.2rem, 1.6rem + 3vw, 3.8rem);
+  --space: clamp(1rem, 0.7rem + 1.5vw, 2rem);
+  --radius: 12px;
+  --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -8px rgba(0,0,0,0.5);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: "Inter", "Hiragino Sans", "Yu Gothic", "Noto Sans JP", sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  font-size: var(--step-0);
+  line-height: 1.8;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Hero */
+.hero {
+  position: relative;
+  padding: calc(var(--space) * 3.5) var(--space) calc(var(--space) * 2.5);
+  max-width: 76rem;
+  margin: 0 auto;
+  overflow: hidden;
+}
+
+.hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 70% 50% at 15% 30%, rgba(88,166,255,0.07), transparent),
+    radial-gradient(ellipse 50% 40% at 85% 20%, rgba(163,113,247,0.06), transparent),
+    radial-gradient(ellipse 40% 30% at 50% 80%, rgba(86,211,100,0.04), transparent);
+  pointer-events: none;
+}
+
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent);
+  border: 1px solid var(--line);
+  background: var(--surface);
+  padding: 0.4rem 0.95rem;
+  border-radius: 999px;
+  margin-bottom: 1.4rem;
+}
+
+.hero-badge .dot {
+  width: 7px; height: 7px;
+  background: var(--accent);
+  border-radius: 50%;
+  box-shadow: 0 0 10px var(--accent);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.hero h1 {
+  font-size: var(--step-4);
+  font-weight: 900;
+  line-height: 1.08;
+  letter-spacing: -0.035em;
+  margin-bottom: 1.1rem;
+  position: relative;
+}
+
+.hero h1 span {
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.hero > p {
+  color: var(--ink-dim);
+  font-size: var(--step-1);
+  max-width: 58ch;
+  line-height: 1.7;
+  margin-bottom: 1.5rem;
+}
+
+.hero-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  color: var(--ink-dim);
+  font-size: 0.8rem;
+}
+
+.hero-meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+/* Layout */
+.container {
+  max-width: 76rem;
+  margin: 0 auto;
+  padding: 0 var(--space) calc(var(--space) * 3);
+}
+
+/* TOC */
+.toc-wrap {
+  position: sticky;
+  top: 0.5rem;
+  z-index: 20;
+  margin-bottom: calc(var(--space) * 1.8);
+}
+
+.toc {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  padding: 0.85rem 1rem;
+  background: rgba(22,27,34,0.92);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.toc a {
+  color: var(--ink-dim);
+  text-decoration: none;
+  font-size: 0.76rem;
+  font-weight: 500;
+  padding: 0.3rem 0.65rem;
+  border-radius: 6px;
+  transition: all 0.12s ease;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+
+.toc a:hover {
+  color: var(--ink);
+  background: var(--surface-2);
+  border-color: var(--line);
+}
+
+/* Sections */
+.section {
+  margin-bottom: calc(var(--space) * 2.2);
+}
+
+.section-header {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  margin-bottom: 1.3rem;
+  padding-bottom: 0.85rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.section-num {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 0.06em;
+  flex-shrink: 0;
+}
+
+.section h2 {
+  font-size: var(--step-3);
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  line-height: 1.2;
+}
+
+.section > p {
+  color: var(--ink-dim);
+  margin-bottom: 1rem;
+  max-width: 68ch;
+}
+
+/* Cards */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: calc(var(--space) * 1.1);
+  margin-bottom: 1rem;
+  box-shadow: var(--shadow);
+}
+
+.card h3 {
+  font-size: var(--step-1);
+  font-weight: 700;
+  margin-bottom: 0.6rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  letter-spacing: -0.01em;
+}
+
+.card h4 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--ink);
+  margin: 1.2rem 0 0.5rem;
+}
+
+.card p, .card li {
+  color: var(--ink-dim);
+  font-size: 0.9rem;
+  line-height: 1.75;
+}
+
+.card ul, .card ol {
+  margin-left: 1.3rem;
+  margin-top: 0.5rem;
+}
+
+.card li {
+  margin-bottom: 0.4rem;
+}
+
+/* Code */
+pre {
+  background: var(--surface-2);
+  border: 1px solid var(--line-subtle);
+  border-radius: 8px;
+  padding: 1.15rem 1.3rem;
+  overflow-x: auto;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.79rem;
+  line-height: 1.65;
+  color: var(--ink);
+  margin: 0.8rem 0 0.3rem;
+}
+
+code {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.84em;
+  background: var(--surface-2);
+  padding: 0.15em 0.4em;
+  border-radius: 4px;
+  color: var(--accent);
+}
+
+pre code {
+  background: none;
+  padding: 0;
+  color: inherit;
+}
+
+pre .k  { color: #ff7b72; }
+pre .s  { color: #a5d6ff; }
+pre .c  { color: #8b949e; font-style: italic; }
+pre .n  { color: #d2a8ff; }
+pre .v  { color: #79c0ff; }
+pre .p  { color: #c9d1d9; }
+pre .d  { color: #ffa657; }
+
+/* Labels */
+.label {
+  display: inline-block;
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  padding: 0.22rem 0.6rem;
+  border-radius: 4px;
+  margin-bottom: 0.65rem;
+}
+
+.label-green {
+  color: var(--success);
+  background: rgba(63,185,80,0.12);
+  border: 1px solid rgba(63,185,80,0.25);
+}
+
+.label-purple {
+  color: var(--accent-2);
+  background: rgba(163,113,247,0.12);
+  border: 1px solid rgba(163,113,247,0.25);
+}
+
+.label-amber {
+  color: var(--warning);
+  background: rgba(210,153,34,0.12);
+  border: 1px solid rgba(210,153,34,0.25);
+}
+
+.label-red {
+  color: var(--danger);
+  background: rgba(248,81,73,0.12);
+  border: 1px solid rgba(248,81,73,0.25);
+}
+
+.label-blue {
+  color: var(--accent);
+  background: rgba(88,166,255,0.12);
+  border: 1px solid rgba(88,166,255,0.25);
+}
+
+/* Grid */
+.grid-2 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 28rem), 1fr));
+  gap: 1rem;
+}
+
+.grid-3 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
+  gap: 1rem;
+}
+
+/* Table */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.8rem 0;
+  font-size: 0.85rem;
+}
+
+th, td {
+  text-align: left;
+  padding: 0.65rem 0.8rem;
+  border-bottom: 1px solid var(--line);
+}
+
+th {
+  color: var(--accent);
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  background: var(--surface-2);
+}
+
+td {
+  color: var(--ink-dim);
+}
+
+tr:hover td {
+  background: var(--surface-2);
+}
+
+/* Checklist */
+.checklist {
+  list-style: none;
+  margin: 0.8rem 0 0;
+  padding: 0;
+}
+
+.checklist li {
+  position: relative;
+  padding-left: 1.7rem;
+  margin-bottom: 0.55rem;
+  color: var(--ink-dim);
+  font-size: 0.9rem;
+}
+
+.checklist li::before {
+  content: "✓";
+  position: absolute;
+  left: 0;
+  color: var(--success);
+  font-weight: 700;
+}
+
+/* Alert boxes */
+.alert {
+  border-left: 3px solid var(--accent);
+  background: var(--surface-2);
+  padding: 0.9rem 1.1rem;
+  border-radius: 0 8px 8px 0;
+  margin: 0.8rem 0;
+  font-size: 0.88rem;
+  color: var(--ink-dim);
+}
+
+.alert-warning {
+  border-left-color: var(--warning);
+  background: rgba(210,153,34,0.08);
+}
+
+.alert-danger {
+  border-left-color: var(--danger);
+  background: rgba(248,81,73,0.08);
+}
+
+.alert-success {
+  border-left-color: var(--success);
+  background: rgba(63,185,80,0.08);
+}
+
+/* Directory tree */
+.tree {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.82rem;
+  color: var(--ink-dim);
+  line-height: 1.85;
+  background: var(--surface-2);
+  padding: 1rem 1.3rem;
+  border-radius: 8px;
+  border: 1px solid var(--line-subtle);
+  margin: 0.6rem 0;
+}
+
+.tree .dir { color: var(--accent); }
+.tree .file { color: var(--ink); }
+.tree .comment { color: var(--ink-dim); font-style: italic; }
+
+/* Step flow */
+.steps {
+  counter-reset: step;
+  list-style: none;
+  padding: 0;
+  margin: 0.8rem 0;
+}
+
+.steps li {
+  position: relative;
+  padding-left: 2.4rem;
+  margin-bottom: 1rem;
+  color: var(--ink-dim);
+  font-size: 0.9rem;
+}
+
+.steps li::before {
+  counter-increment: step;
+  content: counter(step);
+  position: absolute;
+  left: 0;
+  top: 0.1rem;
+  width: 1.6rem;
+  height: 1.6rem;
+  background: var(--surface-3);
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  color: var(--accent);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.7rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* HR */
+hr {
+  border: none;
+  height: 1px;
+  background: var(--line);
+  margin: calc(var(--space) * 1.8) 0;
+}
+
+/* Footer */
+footer {
+  text-align: center;
+  color: var(--ink-dim);
+  font-size: 0.78rem;
+  padding: calc(var(--space) * 1.5) var(--space);
+  border-top: 1px solid var(--line);
+  margin-top: calc(var(--space) * 2);
+}
+
+/* Print */
+@media print {
+  body { background: #fff; color: #111; }
+  .toc-wrap, .hero::before { display: none; }
+  .card, pre, table { break-inside: avoid; }
+}
+@page { size: A4; margin: 14mm; }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .hero-badge .dot { animation: none; }
+}
+
+@media (max-width: 480px) {
+  .hero { padding-top: calc(var(--space) * 2); }
+  pre { padding: 0.8rem 1rem; font-size: 0.72rem; }
+  .toc { padding: 0.6rem 0.7rem; }
+}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="hero-badge"><span class="dot"></span> GitHub Actions</div>
+  <h1>GitHub Actions &<br><span>GitHub Pages</span> 完全ガイド</h1>
+  <p>静的サイトからフレームワークビルドまで、実用的なYAMLテンプレートと設定解説を網羅したリファレンスです。</p>
+  <div class="hero-meta">
+    <span>14 パターン</span>
+    <span>·</span>
+    <span>トラブルシューティング付き</span>
+    <span>·</span>
+    <span>コピペ対応</span>
+  </div>
+</header>
+
+<main class="container">
+
+<div class="toc-wrap">
+  <nav class="toc">
+    <a href="#concept">基本概念</a>
+    <a href="#basic">基本</a>
+    <a href="#nodejs">Node.js</a>
+    <a href="#nextjs">Next.js</a>
+    <a href="#astro">Astro</a>
+    <a href="#vite">Vite</a>
+    <a href="#jekyll">Jekyll</a>
+    <a href="#hugo">Hugo</a>
+    <a href="#nuxt">Nuxt</a>
+    <a href="#sveltekit">SvelteKit</a>
+    <a href="#docusaurus">Docusaurus</a>
+    <a href="#mkdocs">MkDocs</a>
+    <a href="#advanced">応用</a>
+    <a href="#troubleshoot">トラブル</a>
+  </nav>
+</div>
+
+<!-- 1. Concept -->
+<section class="section" id="concept">
+  <div class="section-header">
+    <span class="section-num">01</span>
+    <h2>基本概念と全体像</h2>
+  </div>
+  <p>GitHub Actions を使った Pages デプロイは「ビルド」と「デプロイ」の2段階で構成されます。まずこの流れを理解しておくと、あらゆるフレームワークに応用できます。</p>
+
+  <div class="grid-2">
+    <div class="card">
+      <h3>ワークフローの流れ</h3>
+      <ol class="steps">
+        <li><strong>トリガー</strong>（push / tag / PR など）でワークフロー開始</li>
+        <li><strong>Checkout</strong> でリポジトリを Runner に取得</li>
+        <li><strong>Setup</strong>（Node / Hugo / Python など環境構築）</li>
+        <li><strong>Build</strong> で静的ファイルを生成</li>
+        <li><strong>Upload artifact</strong> で成果物を一時保存</li>
+        <li><strong>Deploy</strong> で GitHub Pages に公開</li>
+      </ol>
+    </div>
+    <div class="card">
+      <h3>必須 permissions</h3>
+      <p>以下の3行はほぼすべての Pages ワークフローに必要です。</p>
+<pre><code><span class="k">permissions:</span>
+  <span class="k">contents:</span> <span class="s">read</span>
+  <span class="k">pages:</span> <span class="s">write</span>
+  <span class="k">id-token:</span> <span class="s">write</span></code></pre>
+      <ul>
+        <li><code>contents: read</code> — リポジトリ読み取り</li>
+        <li><code>pages: write</code> — Pages への書き込み</li>
+        <li><code>id-token: write</code> — OIDC トークン発行（deploy-pages で必須）</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>主要アクション一覧</h3>
+    <table>
+      <tr><th>アクション</th><th>役割</th><th>備考</th></tr>
+      <tr><td><code>actions/checkout@v4</code></td><td>リポジトリをチェックアウト</td><td>ほぼ必須</td></tr>
+      <tr><td><code>actions/configure-pages@v5</code></td><td>Pages のベースURL等を設定</td><td>ビルド前に実行</td></tr>
+      <tr><td><code>actions/upload-pages-artifact@v3</code></td><td>成果物を一時アップロード</td><td>path に出力ディレクトリを指定</td></tr>
+      <tr><td><code>actions/deploy-pages@v4</code></td><td>Pages にデプロイ</td><td>needs で build に依存</td></tr>
+      <tr><td><code>actions/setup-node@v4</code></td><td>Node.js 環境構築</td><td>cache 指定で高速化</td></tr>
+      <tr><td><code>actions/jekyll-build-pages@v1</code></td><td>Jekyll ビルド</td><td>GitHub公式</td></tr>
+      <tr><td><code>peaceiris/actions-hugo@v3</code></td><td>Hugo セットアップ</td><td>コミュニティ製</td></tr>
+    </table>
+  </div>
+</section>
+
+<!-- 2. Basic -->
+<section class="section" id="basic">
+  <div class="section-header">
+    <span class="section-num">02</span>
+    <h2>基本ワークフロー（静的ファイルそのまま）</h2>
+  </div>
+  <p>ビルド不要な HTML/CSS/JS ファイルをそのままデプロイする場合。リポジトリルートがドキュメントルートになります。</p>
+
+  <div class="card">
+    <span class="label label-green">推奨</span>
+<pre><code><span class="k">name:</span> <span class="s">Deploy to GitHub Pages</span>
+
+<span class="k">on:</span>
+  <span class="k">push:</span>
+    <span class="k">branches:</span> [<span class="s">"main"</span>]
+  <span class="k">workflow_dispatch:</span>
+
+<span class="k">permissions:</span>
+  <span class="k">contents:</span> <span class="s">read</span>
+  <span class="k">pages:</span> <span class="s">write</span>
+  <span class="k">id-token:</span> <span class="s">write</span>
+
+<span class="k">concurrency:</span>
+  <span class="k">group:</span> <span class="s">"pages"</span>
+  <span class="k">cancel-in-progress:</span> <span class="k">false</span>
+
+<span class="k">jobs:</span>
+  <span class="k">deploy:</span>
+    <span class="k">environment:</span>
+      <span class="k">name:</span> <span class="s">github-pages</span>
+      <span class="k">url:</span> <span class="v">${{ steps.deployment.outputs.page_url }}</span>
+    <span class="k">runs-on:</span> <span class="s">ubuntu-latest</span>
+    <span class="k">steps:</span>
+      <span class="k">- name:</span> <span class="s">Checkout</span>
+        <span class="k">uses:</span> <span class="s">actions/checkout@v4</span>
+
+      <span class="k">- name:</span> <span class="s">Setup Pages</span>
+        <span class="k">uses:</span> <span class="s">actions/configure-pages@v5</span>
+
+      <span class="k">- name:</span> <span class="s">Upload artifact</span>
+        <span class="k">uses:</span> <span class="s">actions/upload-pages-artifact@v3</span>
+        <span class="k">with:</span>
+          <span class="k">path:</span> <span class="s">'.'</span>
+
+      <span class="k">- name:</span> <span class="s">Deploy to GitHub Pages</span>
+        <span class="k">id:</span> <span class="s">deployment</span>
+        <span class="k">uses:</span> <span class="s">actions/deploy-pages@v4</span></code></pre>
+    <div class="alert alert-success">
+      <strong>ポイント：</strong><code>path: '.'</code> はリポジトリルート全体をアップロードします。<code>path</code> には <code>index.html</code> が存在するディレクトリを必ず指定してください。
+    </div>
+  </div>
+</section>
+
+<!-- 3. Node.js -->
+<section class="section" id="nodejs">
+  <div class="section-header">
+    <span class="section-num">03</span>
+    <h2>Node.js ビルド & デプロイ</h2>
+  </div>
+  <p>npm プロジェクトの汎用テンプレートです。Vite / React / Vue / 純粋なビルドツールなどに対応します。</p>
+
+  <div class="card">
+    <span class="label label-purple">汎用テンプレート</span>
+<pre><code><span class="k">name:</span> <span class="s">Build and Deploy</span>
+
+<span class="k">on:</span>
+  <span class="k">push:</span>
+    <span class="k">branches:</span> [<span class="s">"main"</span>]
+
+<span class="k">permissions:</span>
+  <span class="k">contents:</span> <span class="s">read</span>
+  <span class="k">pages:</span> <span class="s">write</span>
+  <span class="k">id-token:</span> <span class="s">write</span>
+
+<span class="k">concurrency:</span>
+  <span class="k">group:</span> <span class="s">"pages"</span>
+  <span class="k">cancel-in-progress:</span> <span class="k">true</span>
+
+<span class="k">jobs:</span>
+  <span class="k">build:</span>
+    <span class="k">runs-on:</span> <span class="s">ubuntu-latest</span>
+    <span class="k">steps:</span>
+      <span class="k">- uses:</span> <span class="s">actions/checkout@v4</span>
+
+      <span class="k">- name:</span> <span class="s">Setup Node</span>
+        <span class="k">uses:</span> <span class="s">actions/setup-node@v4</span>
+        <span class="k">with:</span>
+          <span class="k">node-version:</span> <span class="s">20</span>
+          <span class="k">cache:</span> <span class="s">'npm'</span>
+
+      <span class="k">- name:</span> <span class="s">Install dependencies</span>
+        <span class="k">run:</span> <span class="s">npm ci</span>
+
+      <span class="k">- name:</span> <span class="s">Build</span>
+        <span class="k">run:</span> <span class="s">npm run build</span>
+
+      <span class="k">- name:</span> <span class="s">Setup Pages</span>
+        <span class="k">uses:</span> <span class="s">actions/configure-pages@v5</span>
+
+      <span class="k">- name:</span> <span class="s">Upload artifact</span>
+        <span class="k">uses:</span> <span class="s">actions/upload-pages-artifact@v3</span>
+        <span class="k">with:</span>
+          <span class="k">path:</span> <span class="s">'./dist'</span>
+
+  <span class="k">deploy:</span>
+    <span class="k">needs:</span> <span class="s">build</span>
+    <span class="k">runs-on:</span> <span class="s">ubuntu-latest</span>
+    <span class="k">environment:</span>
+      <span class="k">name:</span> <span class="s">github-pages</span>
+      <span class="k">url:</span> <span class="v">${{ steps.deployment.outputs.page_url }}</span>
+    <span class="k">steps:</span>
+      <span class="k">- name:</span> <span class="s">Deploy to GitHub Pages</span>
+        <span class="k">id:</span> <span class="s">deployment</span>
+        <span class="k">uses:</span> <span class="s">actions/deploy-pages@v4</span></code></pre>
+    <h4>各フレームワークの出力ディレクトリ</h4>
+    <table>
+      <tr><th>フレームワーク</th><th>path</th><th>備考</th></tr>
+      <tr><td>Vite</td><td><code>./dist</code></td><td>デフォルト</td></tr>
+      <tr><td>Create React App</td><td><code>./build</code></td><td></td></tr>
+      <tr><td>Vue CLI</td><td><code>./dist</code></td><td></td></tr>
+      <tr><td>Next.js（static）</td><td><code>./out</code></td><td>next.config で <code>output: 'export'</code> 必須</td></tr>
+      <tr><td>Astro</td><td><code>./dist</code></td><td></td></tr>
+      <tr><td>Nuxt（static）</td><td><code>./.output/public</code></td><td></td></tr>
+      <tr><td>SvelteKit（static）</td><td><code>./build</code></td><td>adapter-static 必須</td></tr>
+      <tr><td>Docusaurus</td><td><code>./build</code></td><td></td></tr>
+      <tr><td>Gatsby</td><td><code>./public</code></td><td></td></tr>
+      <tr><td>Remix（static）</td><td><code>./build/client</code></td><td></td></tr>
+    </table>
+  </div>
+</section>
+
+<!-- 4. Next.js -->
+<section class="section" id="nextjs">
+  <div class="section-header">
+    <span class="section-num">04</span>
+    <h2>Next.js（Static Export）</h2>
+  </div>
+  <p>Next.js を GitHub Pages で動かすには「Static Export」が必要です。SSR は Pages で直接動作しません。</p>
+
+  <div class="card">
+    <span class="label label-blue">next.config.js 設定</span>
+    <p>まず <code>next.config.js</code> を以下のように設定します。</p>
+<pre><code><span class="c">/** @type {import('next').NextConfig} */</span>
+<span class="k">const</span> <span class="v">nextConfig</span> <span class="p">=</span> {
+  <span class="v">output</span><span class="p">:</span> <span class="s">'export'</span><span class="p">,</span>
+  <span class="v">distDir</span><span class="p">:</span> <span class="s">'dist'</span><span class="p">,</span>
+  <span class="v">images</span><span class="p">:</span> {
+    <span class="v">unoptimized</span><span class="p">:</span> <span class="k">true</span><span class="p">,</span>   <span class="c">// Pagesでは必須</span>
+  <span class="p">},</span>
+}
+<span class="v">module</span><span class="p">.</span><span class="v">exports</span> <span class="p">=</span> <span class="v">nextConfig</span></code></pre>
+  </div>
+
+  <div class="card">
+    <span class="label label-purple">ワークフロー</span>
+<pre><code><span class="k">name:</span> <span class="s">Deploy Next.js</span>
+
+<span class="k">on:</span>
+  <span class="k">push:</span>
+    <span class="k">branches:</span> [<span class="s">"main"</span>]
+
+<span class="k">permissions:</span>
+  <span class="k">contents:</span> <span class="s">read</span>
+  <span class="k">pages:</span> <span class="s">write</span>
+  <span class="k">id-token:</span> <span class="s">write</span>
+
+<span class="k">jobs:</span>
+  <span class="k">build:</span>
+    <span class="k">runs-on:</span> <span class="s">ubuntu-latest</span>
+    <span class="k">steps:</span>
+      <span class="k">- uses:</span> <span class="s">actions/checkout@v4</span>
+
+      <span class="k">- uses:</span> <span class="s">actions/setup-node@v4</span>
+        <span class="k">with:</span>
+          <span class="k">node-version:</span> <span class="s">20</span>
+          <span class="k">cache:</span> <span class="s">npm</span>
+
+      <span class="k">- run:</span> <span class="s">npm ci</span>
+      <span class="k">- run:</span> <span class="s">npm run build</span>
+
+      <span class="k">- uses:</span> <span class="s">actions/upload-pages-artifact@v3</span>
+        <span class="k">with:</span>
+          <span class="k">path:</span> <span class="s">./dist</span>
+
+  <span class="k">deploy:</span>
+    <span class="k">needs:</span> <span class="s">build</span>
+    <span class="k">runs-on:</span> <span class="s">ubuntu-latest</span>
+    <span class="k">environment:</span>
+      <span class="k">name:</span> <span class="s">github-pages</span>
+      <span class="k">url:</span> <span class="v">${{ steps.deployment.outputs.page_url }}</span>
+    <span class="k">steps:</span>
+      <span class="k">- uses:</span> <span class="s">actions/deploy-pages@v4</span>
+        <span class="k">id:</span> <span class="s">deployment</span></code></pre>
+    <div class="alert alert-warning">
+      <strong>制約：</strong>API Routes（<code>app/api</code> や <code>pages/api</code>）は Static Export では生成されません。サーバー機能が必要な場合は Vercel や Cloudflare Pages を検討してください。
+    </div>
+  </div>
+</section>
+
+<!-- 5. Astro -->
+<section class="section" id="astro">
+  <div class="section-header">
+    <span class="section-num">05</span>
+    <h2>Astro</h2>
+  </div>
+  <p>Astro はデフォルトで静的出力なので、設定が比較的シンプルです。</p>
+
+  <div class="card">
+    <span class="label label-green">astro.config.mjs</span>
+<pre><code><span class="k">import</span> { <span class="v">defineConfig</span> } <span class="k">from</span> <span class="s">'astro/config'</span>
+
+<span class="k">export default</span> <span class="d">defineConfig</span>({
+  <span class="v">site</span><span class="p">:</span> <span class="s">'https://username.github.io'</span><span class="p">,</span>
+  <span class="v">base</span><span class="p">:</span> <span class="s">'/repo-name'</span><span class="p">,</span>   <span class="c">// プロジェクトサイトの場合のみ</span>
+})</code></pre>
+  </div>
+
+  <div class="card">
+    <span class="label label-purple">ワークフロー</span>
+<pre><code><span class="k">name:</span> <span class="s">Deploy Astro</span>
+
+<span class="k">on:</span>
+  <span class="k">push:</span>
+    <span class="k">branches:</span> [<span class="s">"main"</span>]
+
+<span class="k">permissions:</span>
+  <span class="k">contents:</span> <span class="s">read</span>
+  <span class="k">pages:</span> <span class="s">write</span>
+  <span class="k">id-token:</span> <span class="s">write</span>
+
+<span class="k">jobs:</span>
+  <span class="k">build:</span>
+    <span class="k">runs-on:</span> <span class="s">ubuntu-latest</span>
+    <span class="k">steps:</span>
+      <span class="k">- uses:</span> <span class="s">actions/checkout@v4</span>
+      <span class="k">- uses:</span> <span class="s">actions/setup-node@v4</span>
+        <span class="k">with:</span>
+          <span class="k">node-version:</span> <span class="s">20</span>
+          <span class="k">cache:</span> <span class="s">npm</span>
+      <span class="k">- run:</span> <span class="s">npm ci</span>
+      <span class="k">- run:</span> <span class="s">npm run build</span>
+      <span class="k">- uses:</span> <span class="s">actions/upload-pages-artifact@v3</span>
+        <span class="k">with:</span>
+          <span class="k">path:</span> <span class="s">./dist</span>
+
+  <span class="k">deploy:</span>
+    <span class="k">needs:</span> <span class="s">build</span>
+    <span class="k">runs-on:</span> <span class="s">ubuntu-latest</span>
+    <span class="k">environment:</span>
+      <span class="k">name:</span> <span class="s">github-pages</span>
+      <span class="k">url:</span> <span class="v">${{ steps.deployment.outputs.page_url }}</span>
+    <span class="k">steps:</span>
+      <span class="k">- uses:</span> <span class="s">actions/deploy-pages@v4</span>
+        <span class="k">id:</span> <span class="s">deployment</span></code></pre>
+  </div>
+</section>
+
+<!-- 6. Vite -->
+<section class="section" id="vite">
+  <div class="section-header">
+    <span class="section-num">06</span>
+    <h2>Vite（vanilla / React / Vue / Preact）</h2>
+  </div>
+
+  <div class="card">
+    <span class="label label-blue">vite.config.js</span>
+    <p>プロジェクトサイト（<code>username.github.io/repo-name</code>）の場合、<code>base</code> の設定が必須です。</p>
+<pre><code><span class="k">import</span> { <span class="v">defineConfig</span> } <span class="k">from</span> <span class="s">'vite'</span>
+
+<span class="k">export default</span> <span class="d">defineConfig</span>({
+  <span class="v">base</span><span class="p">:</span> <span class="s">'/repo-name/'</span><span class="p">,</span>   <span class="c">// 末尾スラッシュ必須</span>
+})</code></pre>
+    <div class="alert">
+      ユーザーサイト（<code>username.github.io</code>）の場合は <code>base: '/'</code> または省略可能です。
+    </div>
+  </div>
+
+  <div class="card">
+    <span class="label label-purple">ワークフロー</span>
+<pre><code><span class="k">name:</span> <span class="s">Deploy Vite</span>
+
+<span class="k">on:</span>
+  <span class="k">push:</span>
+    <span class="k">branches:</span> [<span class="s">"main"</span>]
+
+<span class="k">permissions:</span>
+  <span class="k">contents:</span> <span class="s">read</span>
+  <span class="k">pages:</span> <span class="s">write</span>
+  <span class="k">id-token:</span> <span class="s">write</span>
+
+<span class="k">jobs:</span>
+  <span class="k">build:</span>
+    <span class="k">runs-on:</span> <span class="s">ubuntu-latest</span>
+    <span class="k">steps:</span>
+      <span class="k">- uses:</span> <span class="s">actions/checkout@v4</span>
+      <span class="k">- uses:</span> <span class="s">actions/setup-node@v4</span>
+        <span class="k">with:</span>
+          <span class="k">node-version:</span> <span class="s">20</span>
+          <span class="k">cache:</span> <span class="s">npm</span>
+      <span class="k">- run:</span> <span class="s">npm ci</span>
+      <span class="k">- run:</span> <span class="s">npm run build</span>
+      <span class="k">- uses:</span> <span class="s">actions/upload-pages-artifact@v3</span>
+        <span class="k">with:</span>
+          <span class="k">path:</span> <span class="s">./dist</span>
+
+  <span class="k">deploy:</span>
+    <span class="k">needs:</span> <span class="s">build</span>
+    <span class="k">runs-on:</span> <span class="s">ubuntu-latest</span>
+    <span class="k">environment:</span>
+      <span class="k">name:</span> <span class="s">github-pages</span>
+      <span class="k">url:</span> <span class="v">${{ steps.deployment.outputs.page_url }}</span>
+    <span class="k">steps:</span>
+      <span class="k">- uses:</span> <span class="s">actions/deploy-pages@v4</span>
+        <span class="k">id:</span> <span class="s">deployment</span></code></pre>
+  </div>
+</section>
+
+<!-- 7. Jekyll -->
+<section class="section" id="jekyll">
+  <div class="section-header">
+    <span class="section-num">07</span>
+    <h2>Jekyll</h2>
+  </div>
+
+  <div class="card">
+    <span class="label label-green">公式アクション使用</span>
+<pre><code><span class="k">name:</span> <span class="s">Deploy Jekyll site to Pages</span>
+
+<span class="k">on:</span>
+  <span class="k">push:</span>
+    <span class="k">branches:</span> [<span class="s">"main"</span>]
+
+<span class="k">permissions:</span>
+  <span class="k">contents:</span> <span class="s">read</span>
+  <span class="k">pages:</span> <span class="s">write</span>
+  <span class="k">id-token:</span> <span class="s">write</span>
+
+<span class="k">jobs:</span>
+  <span class="k">build:</span>
+    <span class="k">runs-on:</span> <span class="s">ubuntu-latest</span>
+    <span class="k">steps:</span>
+      <span class="k">- uses:</span> <span class="s">actions/checkout@v4</span>
+
+      <span class="k">- name:</span> <span class="s">Setup Pages</span>
+        <span class="k">uses:</span> <span class="s">actions/configure-pages@v5</span>
+
+      <span class="k">- name:</span> <span class="s">Build Jekyll</span>
+        <span class="k">uses:</span> <span class="s">actions/jekyll-build-pages@v1</span>
+        <span class="k">with:</span>
+          <span class="k">source:</span> <span class="s">./</span>
+          <span class="k">destination:</span> <span class="s">./_site</span>
+
+      <span class="k">- name:</span> <span class="s">Upload artifact</span>
+        <span class="k">uses:</span> <span class="s">actions/upload-pages-artifact@v3</span>
+
+  <span class="k">deploy:</span>
+    <span class="k">needs:</span> <span class="s">build</span>
+    <span class="k">runs-on:</span> <span class="s">ubuntu-latest</span>
+    <span class="k">environment:</span>
+      <span class="k">name:</span> <span class="s">github-pages</span>
+      <span class="k">url:</span> <span class="v">${{ steps.deployment.outputs.page_url }}</span>
+    <span class="k">steps:</span>
+      <span class="k">- name:</span> <span class="s">Deploy to GitHub Pages</span>
+        <span class="k">id:</span> <span class="s">deployment</span>
+        <span class="k">uses:</span> <span class="s">actions/deploy-pages@v4</span></code></pre>
+    <div class="alert">
+      <strong>注意：</strong>GitHub Pages で使える Jekyll プラグインは許可リスト制です。カスタムプラグインを使う場合はローカルでビルドしてから <code>_site</code> ディレクトリをデプロイする方法を使ってください。
+    </div>
+  </div>
+</section>
+
+<!-- 8. Hugo -->
+<section class="section" id="hugo">
+  <div class="section-header">
+    <span class="section-num">08</span>
+    <h2>Hugo</h2>
+  </div>
+
+  <div class="card">
+    <span class="label label-purple">Extended 版対応</span>
+<pre><code><span class="k">name:</span> <span class="s">Deploy Hugo</span>
+
+<span class="k">on:</span>
+  <span class="k">push:</span>
+    <span class="k">branches:</span> [<span class="s">"main"</span>]
+
+<span class="k">permissions:</span>
+  <span class="k">contents:</span> <span class="s">read</span>
+  <span class="k">pages:</span> <span class="s">write</span>
+  <span class="k">id-token:</span> <span class="s">write</span>
+
+<span class="k">jobs:</span>
+  <span class="k">build:</span>
+    <span class="k">runs-on:</span> <span class="s">ubuntu-latest</span>
+    <span class="k">steps:</span>
+      <span class="k">- uses:</span> <span class="s">actions/checkout@v4</span>
+        <span class="k">with:</span>
+          <span class="k">submodules:</span> <span class="k">true</span>   <span class="c"># テーマがサブモジュールの場合必須</span>
+          <span class="k">fetch-depth:</span> <span class="s">0</span>         <span class="c"># .GitInfo / Lastmod 用</span>
+
+      <span class="k">- uses:</span> <span class="s">actions/setup-go@v5</span>
+        <span class="k">with:</span>
+          <span class="k">go-version:</span> <span class="s">'1.22'</span>
+
+      <span class="k">- name:</span> <span class="s">Setup Hugo</span>
+        <span class="k">uses:</span> <span class="s">peaceiris/actions-hugo@v3</span>
+        <span class="k">with:</span>
+          <span class="k">hugo-version:</span> <span class="s">'latest'</span>
+          <span class="k">extended:</span> <span class="k">true</span>
+
+      <span class="k">- name:</span> <span class="s">Build</span>
+        <span class="k">run:</span> <span class="s">hugo --minify</span>
+
+      <span class="k">- name:</span> <span class="s">Upload artifact</span>
+        <span class="k">uses:</span> <span class="s">actions/upload-pages-artifact@v3</span>
+        <span class="k">with:</span>
+          <span class="k">path:</span> <span class="s">'./public'</span>
+
+  <span class="k">deploy:</span>
+    <span class="k">needs:</span> <span class="s">build</span>
+    <span class="k">runs-on:</span> <span class="s">ubuntu-latest</span>
+    <span class="k">environment:</span>
+      <span class="k">name:</span> <span class="s">github-pages</span>
+      <span class="k">url:</span> <span class="v">${{ steps.deployment.outputs.page_url }}</span>
+    <span class="k">steps:</span>
+      <span class="k">- uses:</span> <span class="s">actions/deploy-pages@v4</span>
+        <span class="k">id:</span> <span class="s">deployment</span></code></pre>
+    <div class="alert alert-success">
+      <strong>fetch-depth: 0</strong> を忘れると .GitInfo やページの更新日時が正しく出力されません。テーマが Go Modules を使う場合は <code>actions/setup-go</code> も必要です。
+    </div>
+  </div>
+</section>
+
+<!-- 9. Nuxt -->
+<section class="section" id="nuxt">
+  <div class="section-header">
+    <span class="section-num">09</span>
+    <h2>Nuxt（Static）</h2>
+  </div>
+
+  <div class="card">
+    <span class="label label-blue">nuxt.config.ts</span>
+<pre><code><span class="k">export default</span> <span class="d">defineNuxtConfig</span>({
+  <span class="v">ssr</span><span class="p">:</span> <span class="k">false</span><span class="p">,</span>               <span class="c">// または prerender 設定</span>
+  <span class="v">nitro</span><span class="p">:</span> {
+    <span class="v">output</span><span class="p">:</span> {
+      <span class="v">publicDir</span><span class="p">:</span> <span class="s">'.output/public'</span>
+    }
+  }
+})</code></pre>
+  </div>
+
+  <div class="card">
+    <span class="label label-purple">ワークフロー</span>
+<pre><code><span class="k">name:</span> <span class="s">Deploy Nuxt</span>
+
+<span class="k">on:</span>
+  <span class="k">push:</span>
+    <span class="k">branches:</span> [<span class="s">"main"</span>]
+
+<span class="k">permissions:</span>
+  <span class="k">contents:</span> <span class="s">read</span>
+  <span class="k">pages:</span> <span class="s">write</span>
+  <span class="k">id-token:</span> <span class="s">write</span>
+
+<span class="k">jobs:</span>
+  <span class="k">build:</span>
+    <span class="k">runs-on:</span> <span class="s">ubuntu-latest</span>
+    <span class="k">steps:</span>
+      <span class="k">- uses:</span> <span class="s">actions/checkout@v4</span>
+      <span class="k">- uses:</span> <span class="s">actions/setup-node@v4</span>
+        <span class="k">with:</span>
+          <span class="k">node-version:</span> <span class="s">20</span>
+          <span class="k">cache:</span> <span class="s">npm</span>
+      <span class="k">- run:</span> <span class="s">npm ci</span>
+      <span class="k">- run:</span> <span class="s">npx nuxt generate</span>   <span class="c"># 静的生成</span>
+      <span class="k">- uses:</span> <span class="s">actions/upload-pages-artifact@v3</span>
+        <span class="k">with:</span>
+          <span class="k">path:</span> <span class="s">./.output/public</span>
+
+  <span class="k">deploy:</span>
+    <span class="k">needs:</span> <span class="s">build</span>
+    <span class="k">runs-on:</span> <span class="s">ubuntu-latest</span>
+    <span class="k">environment:</span>
+      <span class="k">name:</span> <span class="s">github-pages</span>
+      <span class="k">url:</span> <span class="v">${{ steps.deployment.outputs.page_url }}</span>
+    <span class="k">steps:</span>
+      <span class="k">- uses:</span> <span class="s">actions/deploy-pages@v4</span>
+        <span class="k">id:</span> <span class="s">deployment</span></code></pre>
+  </div>
+</section>
+
+<!-- 10. SvelteKit -->
+<section class="section" id="sveltekit">
+  <div class="section-header">
+    <span class="section-num">10</span>
+    <h2>SvelteKit（adapter-static）</h2>
+  </div>
+
+  <div class="card">
+    <span class="label label-blue">svelte.config.js</span>
+<pre><code><span class="k">import</span> <span class="v">adapter</span> <span class="k">from</span> <span class="s">'@sveltejs/adapter-static'</span>
+
+<span class="k">export default</span> {
+  <span class="v">kit</span><span class="p">:</span> {
+    <span class="v">adapter:</span> <span class="d">adapter</span>({
+      <span class="v">pages</span><span class="p">:</span> <span class="s">'build'</span><span class="p">,</span>
+      <span class="v">assets</span><span class="p">:</span> <span class="s">'build'</span><span class="p">,</span>
+      <span class="v">fallback</span><span class="p">:</span> <span class="k">undefined</span>   <span class="c">// SPA の場合は 'index.html'</span>
+    })
+  }
+}</code></pre>
+  </div>
+
+  <div class="card">
+    <span class="label label-purple">ワークフロー</span>
+<pre><code><span class="k">name:</span> <span class="s">Deploy SvelteKit</span>
+
+<span class="k">on:</span>
+  <span class="k">push:</span>
+    <span class="k">branches:</span> [<span class="s">"main"</span>]
+
+<span class="k">permissions:</span>
+  <span class="k">contents:</span> <span class="s">read</span>
+  <span class="k">pages:</span> <span class="s">write</span>
+  <span class="k">id-token:</span> <span class="s">write</span>
+
+<span class="k">jobs:</span>
+  <span class="k">build:</span>
+    <span class="k">runs-on:</span> <span class="s">ubuntu-latest</span>
+    <span class="k">steps:</span>
+      <span class="k">- uses:</span> <span class="s">actions/checkout@v4</span>
+      <span class="k">- uses:</span> <span class="s">actions/setup-node@v4</span>
+        <span class="k">with:</span>
+          <span class="k">node-version:</span> <span class="s">20</span>
+          <span class="k">cache:</span> <span class="s">npm</span>
+      <span class="k">- run:</span> <span class="s">npm ci</span>
+      <span class="k">- run:</span> <span class="s">npm run build</span>
+      <span class="k">- uses:</span> <span class="s">actions/upload-pages-artifact@v3</span>
+        <span class="k">with:</span>
+          <span class="k">path:</span> <span class="s">./build</span>
+
+  <span class="k">deploy:</span>
+    <span class="k">needs:</span> <span class="s">build</span>
+    <span class="k">runs-on:</span> <span class="s">ubuntu-latest</span>
+    <span class="k">environment:</span>
+      <span class="k">name:</span> <span class="s">github-pages</span>
+      <span class="k">url:</span> <span class="v">${{ steps.deployment.outputs.page_url }}</span>
+    <span class="k">steps:</span>
+      <span class="k">- uses:</span> <span class="s">actions/deploy-pages@v4</span>
+        <span class="k">id:</span> <span class="s">deployment</span></code></pre>
+  </div>
+</section>
+
+<!-- 11. Docusaurus -->
+<section class="section" id="docusaurus">
+  <div class="section-header">
+    <span class="section-num">11</span>
+    <h2>Docusaurus</h2>
+  </div>
+
+  <div class="card">
+    <span class="label label-blue">docusaurus.config.js</span>
+<pre><code><span class="k">const</span> <span class="v">config</span> <span class="p">=</span> {
+  <span class="v">url</span><span class="p">:</span> <span class="s">'https://username.github.io'</span><span class="p">,</span>
+  <span class="v">baseUrl</span><span class="p">:</span> <span class="s">'/repo-name/'</span><span class="p">,</span>
+  <span class="v">organizationName</span><span class="p">:</span> <span class="s">'username'</span><span class="p">,</span>
+  <span class="v">projectName</span><span class="p">:</span> <span class="s">'repo-name'</span><span class="p">,</span>
+  <span class="v">deploymentBranch</span><span class="p">:</span> <span class="s">'gh-pages'</span><span class="p">,</span>   <span class="c">// 手動デプロイ時用（Actionsでは不要）</span>
+  <span class="v">trailingSlash</span><span class="p">:</span> <span class="k">false</span><span class="p">,</span>
+}</span>
+
+<span class="v">module</span><span class="p">.</span><span class="v">exports</span> <span class="p">=</span> <span class="v">config</span></code></pre>
+  </div>
+
+  <div class="card">
+    <span class="label label-purple">ワークフロー</span>
+<pre><code><span class="k">name:</span> <span class="s">Deploy Docusaurus</span>
+
+<span class="k">on:</span>
+  <span class="k">push:</span>
+    <span class="k">branches:</span> [<span class="s">"main"</span>]
+
+<span class="k">permissions:</span>
+  <span class="k">contents:</span> <span class="s">read</span>
+  <span class="k">pages:</span> <span class="s">write</span>
+  <span class="k">id-token:</span> <span class="s">write</span>
+
+<span class="k">jobs:</span>
+  <span class="k">build:</span>
+    <span class="k">runs-on:</span> <span class="s">ubuntu-latest</span>
+    <span class="k">steps:</span>
+      <span class="k">- uses:</span> <span class="s">actions/checkout@v4</span>
+      <span class="k">- uses:</span> <span class="s">actions/setup-node@v4</span>
+        <span class="k">with:</span>
+          <span class="k">node-version:</span> <span class="s">20</span>
+          <span class="k">cache:</span> <span class="s">npm</span>
+      <span class="k">- run:</span> <span class="s">npm ci</span>
+      <span class="k">- run:</span> <span class="s">npm run build</span>
+      <span class="k">- uses:</span> <span class="s">actions/upload-pages-artifact@v3</span>
+        <span class="k">with:</span>
+          <span class="k">path:</span> <span class="s">./build</span>
+
+  <span class="k">deploy:</span>
+    <span class="k">needs:</span> <span class="s">build</span>
+    <span class="k">runs-on:</span> <span class="s">ubuntu-latest</span>
+    <span class="k">environment:</span>
+      <span class="k">name:</span> <span class="s">github-pages</span>
+      <span class="k">url:</span> <span class="v">${{ steps.deployment.outputs.page_url }}</span>
+    <span class="k">steps:</span>
+      <span class="k">- uses:</span> <span class="s">actions/deploy-pages@v4</span>
+        <span class="k">id:</span> <span class="s">deployment</span></code></pre>
+  </div>
+</section>
+
+<!-- 12. MkDocs -->
+<section class="section" id="mkdocs">
+  <div class="section-header">
+    <span class="section-num">12</span>
+    <h2>MkDocs（Python）</h2>
+  </div>
+
+  <div class="card">
+    <span class="label label-purple">ワークフロー</span>
+<pre><code><span class="k">name:</span> <span class="s">Deploy MkDocs</span>
+
+<span class="k">on:</span>
+  <span class="k">push:</span>
+    <span class="k">branches:</span> [<span class="s">"main"</span>]
+
+<span class="k">permissions:</span>
+  <span class="k">contents:</span> <span class="s">read</span>
+  <span class="k">pages:</span> <span class="s">write</span>
+  <span class="k">id-token:</span> <span class="s">write</span>
+
+<span class="k">jobs:</span>
+  <span class="k">build:</span>
+    <span class="k">runs-on:</span> <span class="s">ubuntu-latest</span>
+    <span class="k">steps:</span>
+      <span class="k">- uses:</span> <span class="s">actions/checkout@v4</span>
+
+      <span class="k">- name:</span> <span class="s">Setup Python</span>
+        <span class="k">uses:</span> <span class="s">actions/setup-python@v5</span>
+        <span class="k">with:</span>
+          <span class="k">python-version:</span> <span class="s">'3.11'</span>
+          <span class="k">cache:</span> <span class="s">pip</span>
+
+      <span class="k">- name:</span> <span class="s">Install dependencies</span>
+        <span class="k">run:</span> <span class="p">|</span>
+          <span class="s">pip install mkdocs mkdocs-material</span>
+
+      <span class="k">- name:</span> <span class="s">Build</span>
+        <span class="k">run:</span> <span class="s">mkdocs build</span>
+
+      <span class="k">- uses:</span> <span class="s">actions/upload-pages-artifact@v3</span>
+        <span class="k">with:</span>
+          <span class="k">path:</span> <span class="s">./site</span>
+
+  <span class="k">deploy:</span>
+    <span class="k">needs:</span> <span class="s">build</span>
+    <span class="k">runs-on:</span> <span class="s">ubuntu-latest</span>
+    <span class="k">environment:</span>
+      <span class="k">name:</span> <span class="s">github-pages</span>
+      <span class="k">url:</span> <span class="v">${{ steps.deployment.outputs.page_url }}</span>
+    <span class="k">steps:</span>
+      <span class="k">- uses:</span> <span class="s">actions/deploy-pages@v4</span>
+        <span class="k">id:</span> <span class="s">deployment</span></code></pre>
+    <div class="alert">
+      <strong>mkdocs.yml</strong> の <code>site_dir</code> を変更していない場合、デフォルトの <code>./site</code> が出力先です
+    </div>
+  </div>
+</section>
+
+<hr>
+
+<!-- 13. Advanced -->
+<section class="section" id="advanced">
+  <div class="section-header">
+    <span class="section-num">13</span>
+    <h2>応用テクニック</h2>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <span class="label label-amber">タグデプロイ</span>
+      <h3>リリース時のみデプロイ</h3>
+<pre><code><span class="k">on:</span>
+  <span class="k">push:</span>
+    <span class="k">tags:</span>
+      <span class="k">-</span> <span class="s">'v*'</span></code></pre>
+      <p>バージョンタグを push したときだけ本番デプロイしmain への push ではステージングに出す、という運用に使えます。</p>
+    </div>
+
+    <div class="card">
+      <span class="label label-blue">手動実行</span>
+      <h3>workflow_dispatch</h3>
+<pre><code><span class="k">on:</span>
+  <span class="k">workflow_dispatch:</span>
+    <span class="k">inputs:</span>
+      <span class="k">environment:</span>
+        <span class="k">description:</span> <span class="s">'Environment'</span>
+        <span class="k">required:</span> <span class="k">true</span>
+        <span class="k">default:</span> <span class="s">'production'</span>
+        <span class="k">type:</span> <span class="s">choice</span>
+        <span class="k">options:</span>
+          <span class="k">-</span> <span class="s">production</span>
+          <span class="k">-</span> <span class="s">staging</span></code></pre>
+    </div>
+  </div>
+
+  <div class="card">
+    <span class="label label-green">環境変数 & Secrets</span>
+    <h3>ビルド時に API キーや環境変数を渡す</h3>
+<pre><code><span class="k">jobs:</span>
+  <span class="k">build:</span>
+    <span class="k">runs-on:</span> <span class="s">ubuntu-latest</span>
+    <span class="k">env:</span>
+      <span class="k">VITE_API_URL:</span> <span class="v">${{ vars.API_URL }}</span>
+      <span class="k">VITE_API_KEY:</span> <span class="v">${{ secrets.API_KEY }}</span>
+    <span class="k">steps:</span>
+      <span class="k">- run:</span> <span class="s">npm run build</span></code></pre>
+    <ul>
+      <li><code>vars</code> — リポジトリ設定 &gt; Variables で管理（非機密）</li>
+      <li><code>secrets</code> — リポジトリ設定 &gt; Secrets で管理（機密）</li>
+      <li>Vite の場合は <code>VITE_</code> プレフィックスが必要です</li>
+      <li>Next.js の場合は <code>NEXT_PUBLIC_</code> プレフィックスが必要です</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <span class="label label-purple">カスタムドメイン</span>
+    <h3>CNAME の扱い</h3>
+    <p>方法1：ビルド後に生成</p>
+<pre><code><span class="k">- run:</span> <span class="s">npm run build</span>
+<span class="k">- run:</span> <span class="s">echo 'www.example.com' &gt; ./dist/CNAME</span>
+<span class="k">- uses:</span> <span class="s">actions/upload-pages-artifact@v3</span>
+  <span class="k">with:</span>
+    <span class="k">path:</span> <span class="s">./dist</span></code></pre>
+    <p>方法2：リポジトリに CNAME ファイルを置いてコピー</p>
+<pre><code><span class="c"># public/CNAME または src/CNAME を</span>
+<span class="c"># ビルド時に dist/ へコピーする設定を各フレームワークで行う</span></code></pre>
+    <div class="alert alert-warning">
+      GitHub Pages の Settings でカスタムドメインを設定しても、Actions デプロイのたびに上書きされることがあります。CNAME ファイルを成果物に含めるのが確実です。
+    </div>
+  </div>
+
+  <div class="card">
+    <span class="label label-blue">キャッシュ戦略</span>
+    <h3>ビルド高速化</h3>
+    <div class="grid-2">
+      <div>
+        <h4>Node.js（npm）</h4>
+<pre><code><span class="k">- uses:</span> <span class="s">actions/setup-node@v4</span>
+  <span class="k">with:</span>
+    <span class="k">node-version:</span> <span class="s">20</span>
+    <span class="k">cache:</span> <span class="s">npm</span></code></pre>
+      </div>
+      <div>
+        <h4>Hugo</h4>
+<pre><code><span class="k">- uses:</span> <span class="s">actions/cache@v4</span>
+  <span class="k">with:</span>
+    <span class="k">path:</span> <span class="s">~/go/pkg/mod</span>
+    <span class="k">key:</span> <span class="v">${{ runner.os }}-go</span></code></pre>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <span class="label label-amber">concurrency</span>
+    <h3>同時実行制御</h3>
+<pre><code><span class="k">concurrency:</span>
+  <span class="k">group:</span> <span class="s">"pages"</span>
+  <span class="k">cancel-in-progress:</span> <span class="k">true</span></code></pre>
+    <ul>
+      <li><code>group: "pages"</code> — Pages デプロイジョブを1つに制限</li>
+      <li><code>cancel-in-progress: true</code> — 新しい push が来たら古いビルドをキャンセル（節約）</li>
+      <li><code>cancel-in-progress: false</code> — 古いビルドは最後まで実行（安全）</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <span class="label label-red">条件付きデプロイ</span>
+    <h3>特定条件でのみ実行</h3>
+<pre><code><span class="k">jobs:</span>
+  <span class="k">deploy:</span>
+    <span class="k">if:</span> <span class="v">github.ref == 'refs/heads/main'</span>
+    <span class="c"># または</span>
+    <span class="k">if:</span> <span class="v">startsWith(github.ref, 'refs/tags/v')</span>
+    <span class="c"># または</span>
+    <span class="k">if:</span> <span class="v">github.event_name == 'workflow_dispatch'</span></code></pre>
+  </div>
+
+  <div class="card">
+    <span class="label label-green">404 ページ</span>
+    <h3>SPA / カスタム 404 の設定</h3>
+    <p>GitHub Pages は <code>404.html</code> を自動的にエラーページとして使います。SPA の場合は <code>404.html</code> を <code>index.html</code> と同じ内容にするか、各フレームワークの推奨方法に従てください。</p>
+    <ul>
+      <li>Vite SPA: <code>dist/404.html</code> を <code>index.html</code> のコピーにする</li>
+      <li>Vue Router（history mode）: <code>public/404.html</code> にフォールバック用 HTML を配置</li>
+      <li>Next.js Static Export: <code>not-found.tsx</code> が自動で <code>404.html</code> を生成</li>
+    </ul>
+  </div>
+</section>
+
+<!-- 14. Troubleshoot -->
+<section class="section" id="troubleshoot">
+  <div class="section-header">
+    <span class="section-num">14</span>
+    <h2>トラブルシューティング</h2>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <span class="label label-red">Error: Ensure GITHUB_TOKEN</span>
+      <h3>deploy-pages で失敗</h3>
+      <p><code>permissions</code> に <code>id-token: write</code> と <code>pages: write</code> が不足しています。リポジトリ設定で「Read and write permissions」が有効になっているか確認してください。</p>
+    </div>
+    <div class="card">
+      <span class="label label-red">404 after deploy</span>
+      <h3>デプロイ後に 404</h3>
+      <ul>
+        <li><code>path</code> に <code>index.html</code> のあるディレクトリを指定しているか</li>
+        <li>プロジェクトサイトで <code>base</code> / <code>baseUrl</code> の設定を忘れていないか</li>
+        <li>Pages の Source が GitHub Actions に設定されているか</li>
+      </ul>
+    </div>
+    <div class="card">
+      <span class="label label-red">Assets 404</span>
+      <h3>CSS/JS/画像が 404</h3>
+      <p>プロジェクトサイト（<code>/repo-name/</code>）の場合、絶対パス（<code>/assets/...</code>）ではなく相対パス（<code>./assets/...</code>）または <code>base</code> 設定を使う必要があります。Vite / Astro / Next.js などの <code>base</code> 設定を確認してください。</p>
+    </div>
+    <div class="card">
+      <span class="label label-red">Build succeeds, deploy fails</span>
+      <h3>ビルド成功、デプロイ失敗</h3>
+      <ul>
+        <li><code>deploy</code> ジョブに <code>needs: build</code> があるか</li>
+        <li>artifact の <code>path</code> が存在しないディレクトリを指していないか</li>
+        <li>同時実行制限に引っかかっていないか（数分待って再実行）</li>
+      </ul>
+    </div>
+    <div class="card">
+      <span class="label label-red">Next.js images</span>
+      <h3>Next.js Image コンポーネントが崩れる</h3>
+      <p>Static Export では <code>next/image</code> の最適化サーバーが動作しません。<code>images.unoptimized: true</code> を <code>next.config.js</code> に追加してください。</p>
+    </div>
+    <div class="card">
+      <span class="label label-red">Hugo themes</span>
+      <h3>Hugo テーマが読み込めない</h3>
+      <ul>
+        <li><code>actions/checkout@v4</code> で <code>submodules: true</code> を設定</li>
+        <li>Git Submodule ではなく Go Modules を使っている場合は <code>actions/setup-go</code> を追加</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>よくあるディレクトリ構造</h3>
+    <div class="tree">
+<span class="dir">my-project/</span>
+├── <span class="dir">.github/</span>
+│   └── <span class="dir">workflows/</span>
+│       └── <span class="file">pages.yml</span>          <span class="comment"># ワークフロー定義</span>
+├── <span class="dir">src/</span> または <span class="dir">app/</span> など        <span class="comment"># ソースコード</span>
+├── <span class="dir">public/</span>                  <span class="comment"># 静的アセット</span>
+├── <span class="file">package.json</span>
+├── <span class="file">vite.config.js</span> など     <span class="comment"># ビルド設定</span>
+└── <span class="file">README.md</span>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  GitHub Actions & GitHub Pages 完全ガイド · ブラウザで開いて 印刷 → PDF保存 も可能です
+</footer>
+
+</body>
+</html>
