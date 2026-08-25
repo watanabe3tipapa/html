@@ -1,0 +1,61 @@
+name: Update README Structure
+
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update-readme:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Generate directory tree for HTML files
+        run: |
+          # HTMLフイルのツリー構造を生成
+          {
+            echo "<!-- STRUCTURE:START -->"
+            echo "<!-- このセクションはGitHub Actionsによって自動更新されます -->"
+            echo ""
+            echo "\`\`\`"
+            # treeコマンドがあれば使い、なければfindで代替
+            if command -v tree &> /dev/null; then
+              tree -I 'node_modules|.git|.github' --noreport
+            else
+              find . -not -path '*/\.git/*' -not -path '*/node_modules/*' -not -path '*/\.github/*' | sort | sed 's|^\./||; s|^|  |; s|  \([^ ]\)|\1|'
+            fi
+            echo "\`\`\`"
+            echo ""
+            echo "<!-- STRUCTURE:END -->"
+          } > structure_block.txt
+
+      - name: Update README.md
+        run: |
+          # README.mdにマーカーがなければ末尾に追加
+          if ! grep -q "<!-- STRUCTURE:START -->" README.md; then
+            echo "" >> README.md
+            cat structure_block.txt >> README.md
+          else
+            # マーカー間を置換（sedでブロック置換）
+            sed -i '/<!-- STRUCTURE:START -->/,/<!-- STRUCTURE:END -->/c\
+<!-- STRUCTURE:START --><!-- このセクションはGitHub Actionsによって自動更新されます -->\`\`\`'"$(if command -v tree &> /dev/null; then tree -I 'node_modules|.git|.github' --noreport | sed 's/$/\/'; else find . -not -path '*/\.git/*' -not -path '*/node_modules/*' -not -path '*/\.github/*' | sort | sed 's|^\./||; s|^|  |; s|  \([^ ]\)|\1|; s/$/\/'; fi)"'\`\`\`<!-- STRUCTURE:END -->' README.md
+          fi
+
+      - name: Commit and push changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add README.md
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "docs: update site structure in README [skip ci]"
+            git push
+          fi
