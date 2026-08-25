@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pagefind Setup Architecture</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0b0f19;
+      --surface: #151b2b;
+      --surface-raised: #1e2640;
+      --ink: #e2e8f0;
+      --muted: #8896ab;
+      --accent: #f59e0b;
+      --accent-dim: rgba(245, 158, 11, 0.12);
+      --accent-glow: rgba(245, 158, 11, 0.25);
+      --line: rgba(226, 232, 240, 0.1);
+      --ok: #34d399;
+      --ok-dim: rgba(52, 211, 153, 0.12);
+      --info: #60a5fa;
+      --info-dim: rgba(96, 165, 250, 0.12);
+      --radius: 14px;
+      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 12px 36px -8px rgba(0,0,0,0.5);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: "Noto Sans JP", "Hiragino Sans", "Yu Gothic", sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      min-height: 100vh;
+      padding: 4rem 1.5rem;
+      -webkit-font-smoothing: antialiased;
+      line-height: 1.8;
+    }
+
+    .container {
+      max-width: 840px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      font-size: clamp(1.6rem, 4vw, 2.2rem);
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: 0.5rem;
+      letter-spacing: -0.02em;
+    }
+
+    h1 em {
+      color: var(--accent);
+      font-style: normal;
+    }
+
+    .lead {
+      text-align: center;
+      color: var(--muted);
+      margin-bottom: 3rem;
+      font-size: 0.95rem;
+    }
+
+    /* Diagram */
+    .diagram-wrap {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 2rem 1.5rem;
+      margin-bottom: 3rem;
+      box-shadow: var(--shadow);
+    }
+
+    .diagram-title {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 1.5rem;
+      text-align: center;
+    }
+
+    svg {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    /* Legend */
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 1rem 2rem;
+      margin-top: 1.5rem;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+
+    .dot.source { background: var(--accent); box-shadow: 0 0 6px var(--accent); }
+    .dot.config { background: var(--info); box-shadow: 0 0 6px var(--info); }
+    .dot.output { background: var(--ok); box-shadow: 0 0 6px var(--ok); }
+
+    /* Flow list */
+    .flow {
+      list-style: none;
+      counter-reset: step;
+    }
+
+    .flow li {
+      position: relative;
+      padding-left: 3.5rem;
+      padding-bottom: 2.5rem;
+      border-left: 2px solid var(--line);
+      margin-left: 0.9rem;
+    }
+
+    .flow li:last-child {
+      border-left: 2px solid transparent;
+      padding-bottom: 0;
+    }
+
+    .flow li::before {
+      counter-increment: step;
+      content: counter(step);
+      position: absolute;
+      left: -1rem;
+      top: -0.1rem;
+      width: 2rem;
+      height: 2rem;
+      background: var(--surface);
+      border: 2px solid var(--accent);
+      color: var(--accent);
+      border-radius: 50%;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 0.8rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .flow li strong {
+      color: var(--ink);
+      display: block;
+      margin-bottom: 0.3rem;
+      font-size: 1.05rem;
+    }
+
+    .flow li p {
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .flow li code {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 0.82em;
+      background: var(--surface-raised);
+      color: var(--accent);
+      padding: 0.15em 0.5em;
+      border-radius: 6px;
+      border: 1px solid var(--line);
+    }
+
+    /* File tree mini */
+    .file-tree {
+      background: #0d1320;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 1rem 1.25rem;
+      margin-top: 0.75rem;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 0.82rem;
+      line-height: 1.9;
+      color: var(--muted);
+    }
+
+    .file-tree .dir { color: var(--info); }
+    .file-tree .file { color: var(--ok); }
+    .file-tree .config { color: var(--accent); }
+
+    /* Section title */
+    h2 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      margin: 3rem 0 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    h2::before {
+      content: "";
+      width: 4px;
+      height: 1.2em;
+      background: var(--accent);
+      border-radius: 2px;
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 4rem;
+      color: var(--muted);
+      font-size: 0.8rem;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      * { transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+
+    <h1><em>Pagefind</em> Setup Architecture</h1>
+    <p class="lead">GitHub Actions + Pagefind + GitHub Pages の構成模式</p>
+
+    <!-- Diagram -->
+    <div class="diagram-wrap">
+      <div class="diagram-title">System Flow</div>
+
+      <svg viewBox="0 0 700 520" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+            <path d="M0,0 L0,6 L9,3 z" fill="#f59e0b" opacity="0.8"/>
+          </marker>
+          <marker id="arrow-ok" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+            <path d="M0,0 L0,6 L9,3 z" fill="#34d399" opacity="0.8"/>
+          </marker>
+          <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+            <feGaussianBlur stdDeviation="3" result="blur"/>
+            <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+          </filter>
+        </defs>
+
+        <!-- Background boxes -->
+        <rect x="40" y="40" width="280" height="440" rx="12" fill="rgba(245,158,11,0.04)" stroke="rgba(245,158,11,0.15)" stroke-width="1"/>
+        <rect x="380" y="40" width="280" height="440" rx="12" fill="rgba(52,211,153,0.04)" stroke="rgba(52,211,153,0.15)" stroke-width="1"/>
+
+        <!-- Labels -->
+        <text x="180" y="68" text-anchor="middle" fill="#f59e0b" font-size="12" font-weight="600" letter-spacing="0.08em">SOURCE & CONFIG</text>
+        <text x="520" y="68" text-anchor="middle" fill="#34d399" font-size="12" font-weight="600" letter-spacing="0.08em">OUTPUT & SERVE</text>
+
+        <!-- Source: HTML files -->
+        <rect x="80" y="100" width="200" height="48" rx="10" fill="#1a1520" stroke="#f59e0b" stroke-width="1.5"/>
+        <text x="180" y="120" text-anchor="middle" fill="#f59e0b" font-size="11" font-weight="600">HTML Files</text>
+        <text x="180" y="136" text-anchor="middle" fill="#8896ab" font-size="9">index.html, about.html, docs/*.html</text>
+
+        <!-- Config: pagefind.yml -->
+        <rect x="80" y="180" width="200" height="48" rx="10" fill="#151b2b" stroke="#60a5fa" stroke-width="1.5"/>
+        <text x="180" y="200" text-anchor="middle" fill="#60a5fa" font-size="11" font-weight="600">pagefind.yml</text>
+        <text x="180" y="216" text-anchor="middle" fill="#8896ab" font-size="9">site, glob, exclude_selectors</text>
+
+        <!-- Config: GitHub Actions -->
+        <rect x="80" y="260" width="200" height="48" rx="10" fill="#151b2b" stroke="#60a5fa" stroke-width="1.5"/>
+        <text x="180" y="280" text-anchor="middle" fill="#60a5fa" font-size="11" font-weight="600">GitHub Actions</text>
+        <text x="180" y="296" text-anchor="middle" fill="#8896ab" font-size="9">.github/workflows/pagefind.yml</text>
+
+        <!-- Arrow: HTML + Config -> Actions -->
+        <line x1="180" y1="148" x2="180" y2="180" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="4,3" opacity="0.5"/>
+        <line x1="180" y1="228" x2="180" y2="260" stroke="#60a5fa" stroke-width="1.5" stroke-dasharray="4,3" opacity="0.5"/>
+
+        <!-- Arrow: Actions -> Pagefind Index -->
+        <line x1="280" y1="284" x2="380" y2="284" stroke="#f59e0b" stroke-width="2" marker-end="url(#arrow)"/>
+        <text x="330" y="276" text-anchor="middle" fill="#f59e0b" font-size="9">npx pagefind</text>
+
+        <!-- Output: pagefind/ -->
+        <rect x="420" y="260" width="200" height="48" rx="10" fill="#0f1f18" stroke="#34d399" stroke-width="1.5"/>
+        <text x="520" y="280" text-anchor="middle" fill="#34d399" font-size="11" font-weight="600">pagefind/</text>
+        <text x="520" y="296" text-anchor="middle" fill="#8896ab" font-size="9">index, wasm, chunks</text>
+
+        <!-- Arrow: pagefind -> GitHub Pages -->
+        <line x1="520" y1="308" x2="520" y2="350" stroke="#34d399" stroke-width="2" marker-end="url(#arrow-ok)"/>
+
+        <!-- Output: GitHub Pages -->
+        <rect x="420" y="370" width="200" height="48" rx="10" fill="#0f1f18" stroke="#34d399" stroke-width="1.5"/>
+        <text x="520" y="390" text-anchor="middle" fill="#34d399" font-size="11" font-weight="600">GitHub Pages</text>
+        <text x="520" y="406" text-anchor="middle" fill="#8896ab" font-size="9">username.github.io/repo</text>
+
+        <!-- Arrow: Browser -> GitHub Pages -->
+        <rect x="420" y="450" width="200" height="40" rx="10" fill="rgba(245,158,11,0.06)" stroke="rgba(245,158,11,0.2)" stroke-width="1"/>
+        <text x="520" y="468" text-anchor="middle" fill="#e2e8f0" font-size="10" font-weight="500">Browser (Client-side Search)</text>
+        <text x="520" y="482" text-anchor="middle" fill="#8896ab" font-size="9">fetch /pagefind/pagefind.js</text>
+
+        <line x1="520" y1="418" x2="520" y2="450" stroke="#34d399" stroke-width="1.5" stroke-dasharray="4,3" opacity="0.5"/>
+
+        <!-- Trigger icon -->
+        <circle cx="180" cy="340" r="18" fill="rgba(96,165,250,0.1)" stroke="#60a5fa" stroke-width="1.5"/>
+        <text x="180" y="345" text-anchor="middle" fill="#60a5fa" font-size="10" font-weight="600">push</text>
+        <line x1="180" y1="308" x2="180" y2="322" stroke="#60a5fa" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+        <!-- Note box -->
+        <rect x="80" y="390" width="200" height="70" rx="8" fill="rgba(245,158,11,0.05)" stroke="rgba(245,158,11,0.15)" stroke-width="1"/>
+        <text x="180" y="412" text-anchor="middle" fill="#f59e0b" font-size="9" font-weight="600">README Auto-update</text>
+        <text x="180" y="430" text-anchor="middle" fill="#8896ab" font-size="8">update-readme-html-index.yml</text>
+        <text x="180" y="444" text-anchor="middle" fill="#8896ab" font-size="8">HTML file list -> README.md</text>
+      </svg>
+
+      <div class="legend">
+        <div class="legend-item"><span class="dot source"></span> Source files</div>
+        <div class="legend-item"><span class="dot config"></span> Config / Workflow</div>
+        <div class="legend-item"><span class="dot output"></span> Output / Deploy</div>
+      </div>
+    </div>
+
+    <!-- File Structure -->
+    <h2>Repository Structure</h2>
+    <div class="file-tree">
+      <span class="dir">.</span><br>
+      &nbsp;&nbsp;|-- <span class="file">index.html</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="muted"># 検索UIページ</span><br>
+      &nbsp;&nbsp;|-- <span class="file">about.html</span><br>
+      &nbsp;&nbsp;|-- <span class="file">docs/guide.html</span><br>
+      &nbsp;&nbsp;|-- <span class="config">pagefind.yml</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="muted"># Pagefind設定</span><br>
+      &nbsp;&nbsp;|-- <span class="dir">.github/</span><br>
+      &nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;`-- <span class="dir">workflows/</span><br>
+      &nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|-- <span class="config">pagefind.yml</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="muted"># インデックス生成</span><br>
+      &nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`-- <span class="config">update-readme-html-index.yml</span>&nbsp;&nbsp;<span class="muted"># README更新</span><br>
+      &nbsp;&nbsp;`-- <span class="dir">pagefind/</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="muted"># Actions生成 (デプロイ時)</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|-- <span class="file">pagefind.js</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|-- <span class="file">pagefind-ui.css</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`-- <span class="dir">index/</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="muted"># 検索インデックス</span>
+    </div>
+
+    <!-- Flow -->
+    <h2>Execution Flow</h2>
+    <ol class="flow">
+      <li>
+        <strong>Developer pushes to main</strong>
+        <p>HTMLファイル、<code>pagefind.yml</code>、ワークフローファイルをリモートにプッシュ</p>
+      </li>
+      <li>
+        <strong>GitHub Actions triggers</strong>
+        <p><code>.github/workflows/pagefind.yml</code> が実行。Node.js環境で <code>npm install -g pagefind</code></p>
+      </li>
+      <li>
+        <strong>Pagefind reads config</strong>
+        <p>リポジトリルートの <code>pagefind.yml</code> を読み込み、<code>site: "."</code> の HTML をインデックス化</p>
+      </li>
+      <li>
+        <strong>Search bundle generated</strong>
+        <p><code>pagefind/</code> ディレクトリに WASM + JS + index を出力</p>
+      </li>
+      <li>
+        <strong>Deploy to GitHub Pages</strong>
+        <p>HTML + pagefind/ バンドルを GitHub Pages にデプロイ</p>
+      </li>
+      <li>
+        <strong>Browser loads search</strong>
+        <p>ユーザーが <code>index.html</code> を開くと <code>/pagefind/pagefind-ui.js</code> を読み込み、クライアントサイドで検索実行</p>
+      </li>
+      <li>
+        <strong>README auto-updated (optional)</strong>
+        <p><code>update-readme-html-index.yml</code> が同時に実行され、HTMLファイル一覧を README.md に書き込み</p>
+      </li>
+    </ol>
+
+    <footer>
+      Pagefind Architecture Diagram
+    </footer>
+
+  </div>
+
+</body>
+</html>
