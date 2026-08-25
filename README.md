@@ -16,6 +16,7 @@ README から生成した HTML を [Pagefind](https://pagefind.app/) でイン�
 
 ```
 .
+<<<<<<< HEAD
 ├── index.html
 ├── pagefind.yml              # Pagefind 設定
 ├── .github/
@@ -124,6 +125,23 @@ jobs:
 ## 3. 検索 UI の埋め込み
 
 `index.html` に以下を追加します。
+=======
+├── README.md
+└── lp
+    ├── architecture.html
+    ├── github-pages-actions-complete-guide.html
+    ├── github-pages-actions-guide.html
+    ├── index-html-auto-generate-lp.html
+    ├── index.html
+    ├── ogp-auto-generate-lp.html
+    ├── pagefind-setup-guide.html
+    ├── pppt-casual-lp.html
+    ├── pppt-darkweb-lp.html
+    └── pppt-machinery-lp.html
+```
+
+*13 items indexed*
+>>>>>>> 3e749a0f705d7ec531430f040514ce460affcc0d
 
 ```html
 <!DOCTYPE html>
