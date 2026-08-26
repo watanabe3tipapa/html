@@ -121,6 +121,7 @@ README.md に以下のマーカーを追加してください：
 │   ├── architecture.html
 │   ├── github-pages-actions-complete-guide.html
 │   ├── github-pages-actions-guide.html
+│   ├── github_gist_file_formats.html
 │   ├── index-html-auto-generate-lp.html
 │   ├── index.html
 │   ├── ogp-auto-generate-lp.html
@@ -132,6 +133,6 @@ README.md に以下のマーカーを追加してください：
 └── pagefind.yml
 ```
 
-*16 items indexed*
+*17 items indexed*
 
 <!-- STRUCTURE:END -->
