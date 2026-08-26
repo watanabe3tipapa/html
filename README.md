@@ -16,116 +16,6 @@ README から生成した HTML を [Pagefind](https://pagefind.app/) でイン�
 
 ```
 .
-<<<<<<< HEAD
-├── index.html
-├── pagefind.yml              # Pagefind 設定
-├── .github/
-│   └── workflows/
-│       ├── pagefind.yml          # GitHub Actions ワークフロー
-│       └── update-readme-html-index.yml
-└── ...
-```
-
----
-
-## 1. Pagefind 設定
-
-リポジトリのルートに `pagefind.yml` を作成します。
-
-```yaml
-site: "."
-glob: "**/*.html"
-output_subdir: "pagefind"
-
-exclude_selectors:
-  - "nav"
-  - "footer"
-  - "header"
-  - ".sidebar"
-  - "[data-pagefind-ignore]"
-
-keep_index_url: false
-```
-
-### 設定項目
-
-| 項目 | 説明 |
-|------|------|
-| `site` | ビルド済み HTML のルートディレクトリ |
-| `glob` | インデックス対象ファイルのパターン |
-| `output_subdir` | 検索バンドルの出力先 |
-| `exclude_selectors` | インデックスから除外する CSS セレクタ |
-| `keep_index_url` | URL に `index.html` を保持するか |
-
-> **Note**: 公開フォルダが `docs/` の場合は `site: "docs"` に変更してください。
-
----
-
-## 2. GitHub Actions ワークフロー
-
-`.github/workflows/pagefind.yml` を作成します。
-
-```yaml
-name: Build and Deploy Pagefind Index
-
-on:
-  push:
-    branches: [main, master]
-  workflow_dispatch:
-
-permissions:
-  contents: read
-  pages: write
-  id-token: write
-
-concurrency:
-  group: "pages"
-  cancel-in-progress: false
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-
-      - name: Install Pagefind
-        run: npm install -g pagefind
-
-      - name: Generate Pagefind Index
-        run: pagefind --verbose
-
-      - name: Setup Pages
-        uses: actions/configure-pages@v5
-
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: "."
-
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
-```
-
----
-
-## 3. 検索 UI の埋め込み
-
-`index.html` に以下を追加します。
-=======
 ├── README.md
 └── lp
     ├── architecture.html
@@ -141,7 +31,6 @@ jobs:
 ```
 
 *13 items indexed*
->>>>>>> 3e749a0f705d7ec531430f040514ce460affcc0d
 
 ```html
 <!DOCTYPE html>
