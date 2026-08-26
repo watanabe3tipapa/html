@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GitHub Gist ファイル形式 詳細解説</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0d1117;
+  --surface: #161b22;
+  --surface-raised: #1c2128;
+  --ink: #c9d1d9;
+  --ink-bright: #f0f6fc;
+  --muted: #8b949e;
+  --accent: #58a6ff;
+  --accent-weak: rgba(88, 166, 255, 0.12);
+  --border: #30363d;
+  --line: #21262d;
+  --code-bg: #0d1117;
+  --green: #3fb950;
+  --purple: #d2a8ff;
+  --orange: #e3b341;
+  --red: #f85149;
+  --step--1: clamp(0.875rem, 0.85rem + 0.15vw, 0.9375rem);
+  --step-0: clamp(1rem, 0.95rem + 0.3vw, 1.125rem);
+  --step-1: clamp(1.25rem, 1.1rem + 0.6vw, 1.5rem);
+  --step-2: clamp(1.75rem, 1.4rem + 1.2vw, 2.25rem);
+  --step-3: clamp(2.5rem, 1.8rem + 2.4vw, 3.5rem);
+  --space: clamp(1.5rem, 1.2rem + 1vw, 2rem);
+  --radius: 8px;
+  --shadow: 0 4px 6px -1px rgba(0,0,0,0.3), 0 2px 4px -2px rgba(0,0,0,0.3);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html { scroll-behavior: smooth; }
+}
+
+* { box-sizing: border-box; margin: 0; }
+
+body {
+  font-family: "Noto Sans JP", "Hiragino Sans", "Yu Gothic", "Noto Sans JP", sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  line-height: 1.85;
+  font-size: var(--step-0);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Typography */
+h1, h2, h3 {
+  font-weight: 700;
+  color: var(--ink-bright);
+  line-height: 1.3;
+  letter-spacing: -0.02em;
+}
+h1 { font-size: var(--step-3); }
+h2 { font-size: var(--step-2); margin-top: calc(var(--space) * 2); }
+h3 { font-size: var(--step-1); margin-top: calc(var(--space) * 1.25); color: var(--ink); }
+
+p, ul, ol { margin-top: 1em; }
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.2s;
+}
+a:hover { border-bottom-color: var(--accent); }
+
+/* Layout */
+.container {
+  max-width: 780px;
+  margin: 0 auto;
+  padding: 0 var(--space);
+}
+
+/* Header / Hero */
+header {
+  border-bottom: 1px solid var(--border);
+  background: linear-gradient(180deg, var(--surface) 0%, var(--bg) 100%);
+  padding: calc(var(--space) * 2.5) 0 calc(var(--space) * 1.5);
+  position: relative;
+  overflow: hidden;
+}
+header::before {
+  content: "";
+  position: absolute;
+  top: -60%;
+  right: -20%;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, var(--accent-weak) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  font-family: "JetBrains Mono", monospace;
+  font-size: var(--step--1);
+  color: var(--muted);
+  background: var(--line);
+  padding: 0.35em 0.9em;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  margin-bottom: 1.25em;
+}
+.badge::before {
+  content: "";
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  background: var(--green);
+  border-radius: 50%;
+  box-shadow: 0 0 8px var(--green);
+}
+
+.subtitle {
+  color: var(--muted);
+  font-size: var(--step-1);
+  margin-top: 0.75em;
+  line-height: 1.5;
+  max-width: 60ch;
+}
+
+/* Signature element: file extension chips */
+.ext {
+  display: inline-block;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.78em;
+  font-weight: 700;
+  padding: 0.15em 0.55em;
+  border-radius: 4px;
+  line-height: 1.4;
+  vertical-align: middle;
+  margin-right: 0.3em;
+  letter-spacing: 0.02em;
+}
+.ext.md { background: rgba(47,129,247,0.15); color: #79c0ff; border: 1px solid rgba(47,129,247,0.3); }
+.ext.txt { background: rgba(139,148,158,0.15); color: #b0b8c1; border: 1px solid rgba(139,148,158,0.3); }
+.ext.py { background: rgba(210,168,255,0.12); color: #d2a8ff; border: 1px solid rgba(210,168,255,0.25); }
+.ext.js { background: rgba(227,179,65,0.12); color: #e3b341; border: 1px solid rgba(227,179,65,0.25); }
+.ext.json { background: rgba(63,185,80,0.12); color: #3fb950; border: 1px solid rgba(63,185,80,0.25); }
+.ext.yml { background: rgba(248,81,73,0.12); color: #f85149; border: 1px solid rgba(248,81,73,0.25); }
+.ext.bin { background: rgba(139,148,158,0.1); color: #8b949e; border: 1px dashed var(--border); }
+
+/* Code blocks */
+pre, code {
+  font-family: "JetBrains Mono", "Hiragino Sans", monospace;
+  font-size: 0.9em;
+}
+pre {
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.1em 1.25em;
+  overflow-x: auto;
+  margin-top: 1em;
+  box-shadow: var(--shadow);
+  position: relative;
+}
+pre::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--accent), var(--purple), var(--green));
+  opacity: 0.6;
+  border-radius: var(--radius) var(--radius) 0 0;
+}
+code {
+  background: var(--line);
+  padding: 0.15em 0.4em;
+  border-radius: 4px;
+  color: var(--ink-bright);
+  word-break: break-all;
+}
+pre code {
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+  word-break: normal;
+}
+
+/* Tables */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1em;
+  font-size: var(--step--1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+th, td {
+  padding: 0.75em 1em;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+th {
+  background: var(--surface);
+  color: var(--ink-bright);
+  font-weight: 700;
+  font-size: 0.9em;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: var(--accent-weak); }
+
+/* Lists */
+ul, ol { padding-left: 1.5em; }
+li { margin-top: 0.35em; }
+li::marker { color: var(--muted); }
+
+/* Sections */
+section {
+  padding: calc(var(--space) * 1.25) 0;
+  border-bottom: 1px solid var(--line);
+}
+section:last-of-type { border-bottom: none; }
+
+/* Callout boxes */
+.callout {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--accent);
+  border-radius: var(--radius);
+  padding: 1em 1.25em;
+  margin-top: 1.25em;
+  color: var(--ink);
+}
+.callout strong { color: var(--ink-bright); }
+
+.callout.warn { border-left-color: var(--orange); }
+.callout.danger { border-left-color: var(--red); }
+
+/* Inline code in headings */
+h2 code, h3 code {
+  font-size: 0.85em;
+  vertical-align: middle;
+}
+
+/* Keyboard keys */
+kbd {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.85em;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-bottom-width: 2px;
+  border-radius: 5px;
+  padding: 0.1em 0.45em;
+  color: var(--ink-bright);
+}
+
+/* Footer */
+footer {
+  text-align: center;
+  padding: calc(var(--space) * 2) 0;
+  color: var(--muted);
+  font-size: var(--step--1);
+  border-top: 1px solid var(--border);
+  margin-top: calc(var(--space) * 1.5);
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}
+
+/* Print */
+@media print {
+  body { background: #fff; color: #111; }
+  header, .callout, pre, table, .ext {
+    background: #f6f8fa !important;
+    border-color: #d0d7de !important;
+    color: #111 !important;
+  }
+  h1, h2, h3 { color: #111; }
+  a { color: #0969da; }
+}
+@page { size: A4; margin: 18mm; }
+
+/* Focus */
+a:focus-visible, kbd:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="container">
+    <div class="badge">reference / github-gist</div>
+    <h1>GitHub Gist のファイル形式<br>詳細解説</h1>
+    <p class="subtitle">Gist が受け付けるファイル形式、マークアップのレンダリング、シンタックスハイライト、Raw 表示、Embed の仕組みを、実践的な視点からまとめた技術リファレンスです。</p>
+  </div>
+</header>
+
+<main class="container">
+
+<section>
+<h2>1. Gist で扱えるファイルの基本</h2>
+<p>GitHub Gist は、テキストベースのスニペット（断片）を手軽に共有するためのサービスです。リポジトリほど重厚な管理機能はありませんが、バージョン管理、フォーク、コメントなどの GitHub らしい機能を備えています。</p>
+
+<div class="callout">
+<strong>要点:</strong> Gist は「テキストファイル」を前提としています。バイナリファイルも一部アップロード可能ですが、表示・扱い方が大きく異なります。
+</div>
+
+<h3>1.1 テキストファイル形式（主要）</h3>
+<ul>
+  <li><span class="ext md">.md</span> Markdown（GFM 対応、プレビュー表示可能）</li>
+  <li><span class="ext txt">.txt</span> プレーンテキスト</li>
+  <li><span class="ext py">.py</span> Python / <span class="ext js">.js</span> JavaScript / <span class="ext json">.json</span> JSON などのソースコード全般</li>
+  <li><span class="ext yml">.yml</span> YAML / <span class="ext json">.toml</span> TOML などの設定ファイル</li>
+  <li>HTML, CSS, SQL, Shell Script など、ほぼすべてのテキストベース言語</li>
+</ul>
+
+<h3>1.2 バイナリファイル形式（制限付き）</h3>
+<ul>
+  <li><span class="ext bin">.png</span> <span class="ext bin">.jpg</span> <span class="ext bin">.gif</span> 画像ファイル（表示は可能だが、差分表示などは不可）</li>
+  <li><span class="ext bin">.zip</span> <span class="ext bin">.tar.gz</span> アーカイブ（アップロードはできるが、中身の閲覧は制限される）</li>
+  <li>実行ファイル（<span class="ext bin">.exe</span> など）はセキュリティポリシーにより拒否されることが多い</li>
+</ul>
+</section>
+
+<section>
+<h2>2. ファイル名と拡張子の重要性</h2>
+<p>Gist は、ファイル名（特に拡張子）をもとに「このファイルは何の言語か」を自動判定します。これは GitHub 本体と同じく <strong>github/linguist</strong> というライブラリによって行われます。</p>
+
+<table>
+<thead>
+<tr><th>拡張子</th><th>判定される言語</th><th>ハイライト</th><th>Markdown レンダリング</th></tr>
+</thead>
+<tbody>
+<tr><td><span class="ext md">.md</span></td><td>Markdown</td><td>GFM ソース</td><td>自動で HTML レンダリング</td></tr>
+<tr><td><span class="ext py">.py</span></td><td>Python</td><td>Python 構文</td><td>なし（コードとして表示）</td></tr>
+<tr><td><span class="ext js">.js</span></td><td>JavaScript</td><td>JS 構文</td><td>なし</td></tr>
+<tr><td><span class="ext json">.json</span></td><td>JSON</td><td>JSON 構文</td><td>なし</td></tr>
+<tr><td><span class="ext txt">.txt</span> または拡張子なし</td><td>Plain text</td><td>なし</td><td>なし</td></tr>
+<tr><td><span class="ext yml">.yml</span> / <span class="ext yml">.yaml</span></td><td>YAML</td><td>YAML 構文</td><td>なし</td></tr>
+</tbody>
+</table>
+
+<div class="callout warn">
+<strong>注意:</strong> 拡張子を間違えると、シンタックスハイライトが適用されません。たとえば Python コードを <code>script.txt</code> として保存すると、ただのテキストとして表示されます。
+</div>
+</section>
+
+<section>
+<h2>3. Markdown（<span class="ext md">.md</span>）の扱い</h2>
+<p>Gist 上の Markdown ファイルは、<strong>GitHub Flavored Markdown（GFM）</strong> として解釈されます。これは標準的な Markdown に、以下の GitHub 独自拡張を加えた仕様です。</p>
+
+<h3>3.1 GFM で利用できる主な記法</h3>
+<ul>
+  <li><strong>テーブル:</strong> <code>| 列A | 列B |</code> による表組み</li>
+  <li><strong>タスクリスト:</strong> <code>- [x] 完了タスク</code></li>
+  <li><strong>打ち消し線:</strong> <code>~~打ち消し~~</code></li>
+  <li><strong>自動リンク:</strong> URL をそのまま記述すると自動でリンク化</li>
+  <li><strong>コードフェンス:</strong> <code>```python</code> による言語指定付きコードブロック</li>
+  <li><strong>Mermaid 図表:</strong> Gist では GitHub 同様、Mermaid 記法が使える場合がある（環境による）</li>
+</ul>
+
+<h3>3.2 Markdown の表示モード</h3>
+<p>Gist の Markdown ファイルには、通常「Raw」「Code」「Preview（Rendered）」の切り替えが存在します。デフォルトではレンダリング済み HTML が表示されますが、右上の <kbd>Raw</kbd> ボタンでソースを、そのままのテキストで取得できます。</p>
+
+<pre><code>ファイル例: README.md
+表示URL: https://gist.github.com/{user}/{gist_id}
+Raw URL: https://gist.githubusercontent.com/{user}/{gist_id}/raw/README.md</code></pre>
+</section>
+
+<section>
+<h2>4. シンタックスハイライトの仕組み</h2>
+<p>Gist のシンタックスハイライトは、GitHub 本体と同じく <strong>github/linguist</strong> によって行われます。言語判定は以下の順序で行われます。</p>
+
+<ol>
+  <li><strong>拡張子マッピング:</strong> <code>.rb</code> → Ruby、<code>.go</code> → Go など、拡張子と言語の対応表を参照</li>
+  <li><strong>ヘッダー解析:</strong> Shebang（<code>#!/usr/bin/env python3</code> など）がある場合、それを優先して言語を判定</li>
+  <li><strong>コンテンツヒューリスティック:</strong> ファイル内容の統計的特徴から言語を推定（拡張子がない場合など）</li>
+  <li><strong>.gitattributes オーバーライド:</strong> リポジトリの場合と異なり、Gist では <code>.gitattributes</code> は基本的に使えません</li>
+</ol>
+
+<div class="callout">
+<strong>ヒント:</strong> Gist では <code>.gitattributes</code> による言語指定オーバーライドは効かないため、正しい拡張子を付けることが最も確実な方法です。
+</div>
+
+<h3>4.1 対応言語例</h3>
+<p>Linguist は 700 以上の言語をサポートしています。主要なものを以下に示します。</p>
+
+<table>
+<thead>
+<tr><th>言語</th><th>拡張子</th><th>備考</th></tr>
+</thead>
+<tbody>
+<tr><td>Python</td><td><span class="ext py">.py</span> <span class="ext py">.pyw</span></td><td>インデントベース、Shebang でも判定可能</td></tr>
+<tr><td>JavaScript</td><td><span class="ext js">.js</span> <span class="ext js">.mjs</span> <span class="ext js">.cjs</span></td><td>Node.js 用も同様</td></tr>
+<tr><td>TypeScript</td><td><span class="ext js">.ts</span> <span class="ext js">.tsx</span></td><td>JSX 構文にも対応</td></tr>
+<tr><td>Ruby</td><td><span class="ext py">.rb</span> <span class="ext py">.erb</span></td><td>Shebang <code>#!/usr/bin/env ruby</code> も有効</td></tr>
+<tr><td>Go</td><td><span class="ext py">.go</span></td><td>拡張子のみで確実に判定</td></tr>
+<tr><td>Rust</td><td><span class="ext py">.rs</span></td><td>Cargo.toml も別ファイルとして認識</td></tr>
+<tr><td>HTML</td><td><span class="ext txt">.html</span> <span class="ext txt">.htm</span></td><td>タグ構文でハイライト</td></tr>
+<tr><td>CSS / SCSS</td><td><span class="ext txt">.css</span> <span class="ext txt">.scss</span> <span class="ext txt">.sass</span></td><td>プリプロセッサも区別</td></tr>
+<tr><td>Shell</td><td><span class="ext txt">.sh</span> <span class="ext txt">.bash</span> <span class="ext txt">.zsh</span></td><td>Shebang 判定が有効</td></tr>
+<tr><td>SQL</td><td><span class="ext txt">.sql</span></td><td>主要な方言に対応</td></tr>
+<tr><td>Dockerfile</td><td><code>Dockerfile</code>（拡張子なし）</td><td>ファイル名一致で判定</td></tr>
+<tr><td>Makefile</td><td><code>Makefile</code>（拡張子なし）</td><td>ファイル名一致で判定</td></tr>
+</tbody>
+</table>
+</section>
+
+<section>
+<h2>5. Raw 表示と URL 構造</h2>
+<p>Gist の各ファイルには、ブラウザ上で見える表示用 URL と、プログラムから直接取得するための Raw URL が存在します。</p>
+
+<h3>5.1 URL パターン</h3>
+<pre><code>【Gist ページ（HTML）】
+https://gist.github.com/&lt;ユーザー名&gt;/&lt;GistID&gt;
+
+【特定ファイルの Raw（テキストそのまま）】
+https://gist.githubusercontent.com/&lt;ユーザー名&gt;/&lt;GistID&gt;/raw/&lt;ファイル名&gt;
+
+【リビジョン指定 Raw】
+https://gist.githubusercontent.com/&lt;ユーザー名&gt;/&lt;GistID&gt;/raw/&lt;commit-sha&gt;/&lt;ファイル名&gt;</code></pre>
+
+<h3>5.2 Raw 表示の特徴</h3>
+<ul>
+  <li>HTML タグや Markdown レンダリングは<strong>一切行われず</strong>、ファイルのバイト列がそのまま返されます</li>
+  <li><code>curl</code> や <code>wget</code>、プログラムからの取得に最適です</li>
+  <li>Content-Type は拡張子に基づいて設定されます（<code>.json</code> なら <code>application/json</code>、<code>.md</code> なら <code>text/plain</code> や <code>text/markdown</code> など）</li>
+  <li>認証が必要な非公開 Gist では、Personal Access Token などが必要です</li>
+</ul>
+
+<div class="callout danger">
+<strong>セキュリティ:</strong> Raw URL は直接ファイル内容を返すため、機密情報を含む Gist を誤って公開設定にしないよう注意が必要です。検索エンジンにインデックスされることもあります。
+</div>
+</section>
+
+<section>
+<h2>6. Embed（埋め込み）の仕様</h2>
+<p>Gist は他の Web ページに埋め込むための Embed 機能を提供しています。これは <code>&lt;script&gt;</code> タグによる埋め込みと、iframe 的な挙動を組み合わせた仕組みです。</p>
+
+<h3>6.1 Embed 用コード</h3>
+<pre><code>&lt;script src="https://gist.github.com/&lt;ユーザー名&gt;/&lt;GistID&gt;.js"&gt;&lt;/script&gt;</code></pre>
+
+<h3>6.2 Embed の挙動</h3>
+<ul>
+  <li>指定した Gist の全ファイルが、スタイリングされたコードブロックとしてレンダリングされます</li>
+  <li>デフォルトでは全ファイルが表示されますが、<code>?file=foo.py</code> パラメータで特定ファイルのみに絞れます</li>
+  <li>CSS は GitHub がホストするスタイルシートが自動で適用されます</li>
+  <li>JavaScript が無効な環境では、リンクテキストにフォールバックします</li>
+</ul>
+
+<h3>6.3 ファイル指定 Embed の例</h3>
+<pre><code>&lt;!-- 特定ファイルのみ埋め込み --&gt;
+&lt;script src="https://gist.github.com/user/abc123.js?file=config.json"&gt;&lt;/script&gt;</code></pre>
+
+<div class="callout">
+<strong>用途:</strong> 技術ブログやドキュメントで「実行可能なサンプルコード」を読者に提示する際、コピペしやすく、かつ見た目も整うため広く使われています。
+</div>
+</section>
+
+<section>
+<h2>7. 複数ファイル Gist（Multi-file Gist）</h2>
+<p>1 つの Gist に複数のファイルを含めることができます。これは「スニペット集」や「設定ファイル一式」の共有に便利です。</p>
+
+<h3>7.1 制限事項</h3>
+<ul>
+  <li>各ファイルは独立して言語判定・ハイライトされます</li>
+  <li>ファイル間のディレクトリ構造（フォルダ階層）は<strong>保持されません</strong>。すべてフラットに並びます</li>
+  <li>空のファイル名は作成時に拒否されるか、自動的に名前が付けられます</li>
+  <li>同一 Gist 内で同名ファイルは基本的に作成できません</li>
+</ul>
+
+<h3>7.2 典型的な使い方</h3>
+<ul>
+  <li><code>README.md</code> + <code>main.py</code> + <code>requirements.txt</code> で「動かせる最小構成」を示す</li>
+  <li><code>.bashrc</code> や <code>.vimrc</code> などの設定ファイルをバックアップ・共有する</li>
+  <li>エラーログ（<code>error.log</code>）と対応するコード（<code>server.py</code>）をセットで載せる</li>
+</ul>
+</section>
+
+<section>
+<h2>8. バージョン管理と Diff</h2>
+<p>Gist は Git リポジトリとして裏で管理されています。そのため、編集履歴（リビジョン）の差分表示が可能です。</p>
+
+<h3>8.1 リビジョンの仕様</h3>
+<ul>
+  <li>各保存（Edit → Update）が新しいコミットとして記録されます</li>
+  <li>Revisions タブから過去のバージョンを確認できます</li>
+  <li>Diff 表示は行単位の追加・削除を色分けして表示します</li>
+  <li>画像などのバイナリファイルの Diff は「バイナリファイルが変更されました」と表示されるのみです</li>
+</ul>
+
+<h3>8.2 Git 操作</h3>
+<p>Gist は Git リポジトリなので、SSH または HTTPS で clone し、ローカルで編集後に push することも可能です。</p>
+
+<pre><code># Gist を clone
+git clone <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="f6919f82b6919f8582d8919f829e8394d895999b">[email&#160;protected]</a>:&lt;GistID&gt;.git
+
+# 編集後に push
+git add .
+git commit -m "update config"
+git push origin main</code></pre>
+</section>
+
+<section>
+<h2>9. 非公開・公開の設定と可視性</h2>
+
+<table>
+<thead>
+<tr><th>設定</th><th>意味</th><th>検索結果</th><th>URL 共有</th></tr>
+</thead>
+<tbody>
+<tr><td><strong>Public</strong></td><td>誰でも閲覧可能</td><td>検索エンジン・GitHub 検索に表示</td><td>URL を知っていれば誰でもアクセス</td></tr>
+<tr><td><strong>Secret</strong></td><td>URL を知っている人のみ閲覧可能</td><td>検索結果には表示されない</td><td>URL を共有した相手は閲覧可能</td></tr>
+</tbody>
+</table>
+
+<div class="callout danger">
+<strong>重要:</strong> Secret Gist は「検索に出ない」だけで、URL が漏れると誰でも閲覧できます。パスワードや API キー、機密情報の保存には絶対に使用しないでください。
+</div>
+</section>
+
+<section>
+<h2>10. まとめとベストプラクティス</h2>
+
+<h3>10.1 ファイル形式選択の指針</h3>
+<ul>
+  <li>説明文が必要なら <span class="ext md">README.md</span> を必ず同梱する</li>
+  <li>コードは必ず適切な拡張子（<span class="ext py">.py</span>、<span class="ext js">.js</span> など）を付ける</li>
+  <li>設定ファイルは対応する拡張子（<span class="ext json">.json</span>、<span class="ext yml">.yml</span>）を使う</li>
+  <li>ログやダンプは <span class="ext txt">.log</span> または <span class="ext txt">.txt</span> とする</li>
+</ul>
+
+<h3>10.2 セキュリティ</h3>
+<ul>
+  <li>機密情報は Gist に保存しない</li>
+  <li>誤って公開設定にしないよう、作成時の Public / Secret 選択を確認する</li>
+  <li>Raw URL は予測可能ではないが、公開後はキャッュや検索エンジンに残る可能性がある</li>
+</ul>
+
+<h3>10.3 活用シーン</h3>
+<ul>
+  <li>Stack Overflow やブログへの回答としてコードスニペットを共有</li>
+  <li>設定ファイル（<code>.gitconfig</code>, <code>.bash_profile</code> など）のバックアップ</li>
+  <li>小規模なスクリプトの配布（Raw URL から <code>curl</code> で直接実行可能）</li>
+  <li>一時的なメモ帳としての利用（Markdown で書いて後から整理）</li>
+</ul>
+
+<div class="callout">
+<strong>結論:</strong> Gist は「軽量なコード・テキスト共有ツール」として非常に強力です。ファイル形式と拡張子を正しく使いこなすことで、シンタックスハイライト、Markdown レンダリング、Embed などの機能を最大限に活用できます。
+</div>
+</section>
+
+</main>
+
+<footer>
+  <div class="container">
+    <p>GitHub Gist ファイル形式 詳細解説</p>
+    <p style="margin-top:0.5em; opacity:0.7;">Reference Document &middot; Generated for technical sharing</p>
+  </div>
+</footer>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script></body>
+</html>
