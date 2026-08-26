@@ -182,9 +182,11 @@ README.md に以下のマーカーを追加してください：
 
 ```
 .
+|-- index.html
     |-- architecture.html
     |-- github-pages-actions-complete-guide.html
     |-- github-pages-actions-guide.html
+    |-- github_gist_file_formats.html
     |-- index-html-auto-generate-lp.html
     |-- index.html
     |-- ogp-auto-generate-lp.html
@@ -194,7 +196,7 @@ README.md に以下のマーカーを追加してください：
     `-- pppt-machinery-lp.html
 ```
 
-*10 HTML files indexed*
+*12 HTML files indexed*
 
 <!-- HTML-INDEX:END -->
 ```
