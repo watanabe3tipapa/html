@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mercury Editor Lite — LP & Tutorial 実装案</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f7f7f5;
+  --surface: #ffffff;
+  --ink: #1c1c1e;
+  --muted: #6e6e73;
+  --accent: #005bb5;
+  --accent-weak: color-mix(in oklab, var(--accent) 10%, var(--surface));
+  --line: color-mix(in oklab, var(--ink) 10%, transparent);
+  --step-0: clamp(0.95rem, 0.92rem + 0.2vw, 1.05rem);
+  --step-1: clamp(1.1rem, 1rem + 0.5vw, 1.35rem);
+  --step-2: clamp(1.5rem, 1.3rem + 1vw, 2rem);
+  --step-3: clamp(2.2rem, 1.8rem + 2vw, 3.2rem);
+  --space: clamp(1.5rem, 1.2rem + 1.5vw, 2.5rem);
+  --radius: 12px;
+  --shadow: 0 1px 2px rgba(0,0,0,0.04), 0 10px 30px -8px rgba(0,0,0,0.12);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: "Noto Sans JP", "Hiragino Sans", "Yu Gothic", "Noto Sans JP", sans-serif;
+  font-size: var(--step-0);
+  line-height: 1.85;
+  color: var(--ink);
+  background: var(--bg);
+  overflow-x: hidden;
+}
+
+/* Typography */
+h1, h2, h3, h4 {
+  font-weight: 900;
+  line-height: 1.3;
+  letter-spacing: -0.02em;
+  font-feature-settings: "palt";
+}
+
+h1 { font-size: var(--step-3); }
+h2 { font-size: var(--step-2); }
+h3 { font-size: var(--step-1); font-weight: 700; }
+
+p, ul, ol { margin-bottom: 1.2em; }
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+a:hover { text-decoration: underline; }
+
+/* Layout */
+.container {
+  max-width: 76ch;
+  margin: 0 auto;
+  padding: 0 var(--space);
+}
+
+.section {
+  padding: calc(var(--space) * 2.5) 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.section:last-child { border-bottom: none; }
+
+/* Signature element: section label with left bar */
+.section-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6em;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.8rem;
+  color: var(--accent);
+  font-weight: 700;
+  margin-bottom: 0.8em;
+  letter-spacing: 0.08em;
+}
+
+.section-label::before {
+  content: "";
+  display: block;
+  width: 3px;
+  height: 1.4em;
+  background: var(--accent);
+  border-radius: 2px;
+}
+
+/* Cards */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: calc(var(--space) * 1.1);
+  box-shadow: var(--shadow);
+  margin-bottom: var(--space);
+}
+
+.card h3 {
+  margin-bottom: 0.6em;
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+}
+
+/* Hero */
+.hero {
+  padding: calc(var(--space) * 3.5) 0 calc(var(--space) * 2.5);
+  text-align: center;
+  position: relative;
+}
+
+.hero-badge {
+  display: inline-block;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.75rem;
+  color: var(--accent);
+  border: 1px solid color-mix(in oklab, var(--accent) 30%, transparent);
+  padding: 0.3em 0.9em;
+  border-radius: 999px;
+  margin-bottom: 1.2em;
+  font-weight: 700;
+}
+
+.hero h1 {
+  margin-bottom: 0.4em;
+  font-weight: 900;
+}
+
+.hero-sub {
+  font-size: var(--step-1);
+  color: var(--muted);
+  max-width: 52ch;
+  margin: 0 auto 1.5em;
+  line-height: 1.7;
+}
+
+/* Editor mockup in hero */
+.editor-mockup {
+  max-width: 720px;
+  margin: 2.5em auto 0;
+  background: #1e1e1e;
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: 0 20px 60px -20px rgba(0,0,0,0.35);
+  font-family: "JetBrains Mono", monospace;
+  text-align: left;
+}
+
+.editor-header {
+  background: #252526;
+  padding: 0.6em 1em;
+  display: flex;
+  gap: 0.5em;
+  align-items: center;
+  border-bottom: 1px solid #333;
+}
+
+.dot { width: 10px; height: 10px; border-radius: 50%; }
+.dot-r { background: #ff5f56; }
+.dot-y { background: #ffbd2e; }
+.dot-g { background: #27c93f; }
+
+.editor-tab {
+  margin-left: 0.8em;
+  font-size: 0.75rem;
+  color: #cccccc;
+  background: #1e1e1e;
+  padding: 0.3em 0.9em;
+  border-radius: 6px 6px 0 0;
+  border-top: 2px solid var(--accent);
+}
+
+.editor-body {
+  padding: 1.2em 1.5em;
+  color: #d4d4d4;
+  font-size: 0.85rem;
+  line-height: 1.7;
+}
+
+.editor-body .token-h1 { color: #569cd6; font-weight: 700; }
+.editor-body .token-text { color: #d4d4d4; }
+.editor-body .token-bold { color: #ce9178; font-weight: 700; }
+.editor-body .token-link { color: #4fc1ff; }
+
+/* Tables */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.2em 0 2em;
+  font-size: 0.95em;
+}
+
+th, td {
+  padding: 0.75em 1em;
+  text-align: left;
+  border-bottom: 1px solid var(--line);
+  vertical-align: top;
+}
+
+th {
+  font-weight: 700;
+  background: var(--accent-weak);
+  color: var(--ink);
+  font-size: 0.85em;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+tr:last-child td { border-bottom: none; }
+
+/* Code blocks */
+pre {
+  background: #1e1e1e;
+  color: #d4d4d4;
+  padding: 1.2em 1.5em;
+  border-radius: var(--radius);
+  overflow-x: auto;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.85em;
+  line-height: 1.6;
+  margin: 1em 0 1.5em;
+  box-shadow: inset 0 0 0 1px #333;
+}
+
+code {
+  font-family: "JetBrains Mono", monospace;
+  background: var(--accent-weak);
+  padding: 0.15em 0.4em;
+  border-radius: 4px;
+  font-size: 0.9em;
+  color: var(--accent);
+}
+
+pre code {
+  background: transparent;
+  padding: 0;
+  color: inherit;
+}
+
+/* File tree */
+.file-tree {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.85em;
+  line-height: 1.7;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 1em 1.5em;
+  margin: 1em 0 1.5em;
+  box-shadow: var(--shadow);
+}
+
+.file-tree .dir { color: var(--accent); font-weight: 700; }
+.file-tree .file { color: var(--ink); }
+.file-tree .comment { color: var(--muted); }
+
+/* Lists */
+ul { padding-left: 1.5em; }
+li { margin-bottom: 0.5em; }
+
+/* Roadmap phases */
+.phase {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 1.2em;
+  margin-bottom: 1.5em;
+  align-items: start;
+}
+
+.phase-num {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--accent);
+  line-height: 1;
+  padding-top: 0.1em;
+}
+
+.phase-body h3 {
+  margin-bottom: 0.3em;
+  font-size: 1.15rem;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .fade-in { opacity: 1 !important; transform: none !important; }
+}
+
+/* Print */
+@media print {
+  body { background: #fff; }
+  .no-print { display: none; }
+  .card { box-shadow: none; border: 1px solid #ddd; }
+  .editor-mockup { box-shadow: none; border: 1px solid #333; }
+}
+@page { size: A4; margin: 16mm; }
+
+/* Mobile */
+@media (max-width: 600px) {
+  .phase { grid-template-columns: 1fr; gap: 0.3em; }
+  .phase-num { font-size: 1.3rem; }
+  th, td { padding: 0.6em 0.7em; font-size: 0.9em; }
+}
+
+/* Fade in animation */
+.fade-in {
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+.fade-in.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+</style>
+</head>
+<body>
+
+<main class="container">
+
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-badge">v0.2.0 → 次のリリース向け設計書</div>
+  <h1>Mercury Editor Lite<br>LP & Tutorial 実装案</h1>
+  <p class="hero-sub">
+    ランディングページの訴求力を高め、初めてのユーザーが迷わず執筆を始められるチュートリアル導線を設計する。
+  </p>
+
+  <div class="editor-mockup no-print">
+    <div class="editor-header">
+      <span class="dot dot-r"></span>
+      <span class="dot dot-y"></span>
+      <span class="dot dot-g"></span>
+      <span class="editor-tab">implementation-plan.md</span>
+    </div>
+    <div class="editor-body">
+      <span class="token-h1"># 思考を、途切れさせない。</span><br>
+      <span class="token-text">Mercury Editor Lite は、Markdownの柔軟性と</span><br>
+      <span class="token-text">リッチキスト編集の手軽さをひとつにした、</span><br>
+      <span class="token-text">ローカルファーストの執筆環境です。</span><br>
+      <span class="token-link">→ /editor で今すぐ試す</span>
+    </div>
+  </div>
+</section>
+
+<!-- Project Overview -->
+<section class="section fade-in">
+  <div class="section-label">§00 OVERVIEW</div>
+  <h2>プロジェクトの現在地</h2>
+  <p>v0.2.0 では、ランディングページ（<code>/</code>）と編集画面（<code>/editor</code>）の分離、保存状態の可視化、初回ガイド、アクセシビリティ改善が行われた。次のリリースでは「導入率」と「初回体験の定着率」を上げるため、LP の訴求構造とチュートリアルの深さを強化する。</p>
+
+  <table>
+    <thead>
+      <tr><th>領域</th><th>v0.2.0 状態</th><th>次の改善目標</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>LP</td>
+        <td>価値・デモ・機能・手順を伝える基本構成</td>
+        <td>エモーショナルな訴求、Pain→Gain の対比、ライブデモ埋め込み</td>
+      </tr>
+      <tr>
+        <td>初回体験</td>
+        <td>「案内文から始める / 新規文書」ガイド</td>
+        <td>ステップツアー、サンプル文書、いつでも開けるヘルプ</td>
+      </tr>
+      <tr>
+        <td>コンポーネント</td>
+        <td>Landing/ Editor/ Settings/ Sidebar/ Toolbar/</td>
+        <td>Onboarding/ HelpModal/ Tutorial/ LPセクション群の追加</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- LP Plan -->
+<section class="section fade-in">
+  <div class="section-label">§01 LANDING PAGE</div>
+  <h2>LP リニューアル案</h2>
+  <p>現在の LP は情報を網羅的に並べているが、訪問者が「このツールで自分の課題が解決する」と感じるまでの感情移入がもう一段階必要。スクロールスパイ型の1ページに再構成し、視覚的な対比と実際の UI を交えて訴求する。</p>
+
+  <h3>セクション構成</h3>
+  <table>
+    <thead>
+      <tr><th>#</th><th>セクション</th><th>役割</th><th>主要要素</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>1</td><td>Hero</td><td>0秒で価値を伝える</td><td>キャッチコピー、擬似エディタ UI、2つの CTA</td></tr>
+      <tr><td>2</td><td>Pain → Gain</td><td>共感と解決の対比</td><td>課題リスト ↔ Mercury の対応、ビフォーアフター</td></tr>
+      <tr><td>3</td><td>Feature Cards</td><td>機能の具体化</td><td>スクリーンショット付き4カード、実際の UI</td></tr>
+      <tr><td>4</td><td>Live Demo</td><td>使う前から体験</td><td>軽量デモ or /editor への誘導 iframe</td></tr>
+      <tr><td>5</td><td>Export</td><td>出力形式の信頼性</td><td>Markdown/HTML/PDF/DOCX/Modelfile アイコン一覧</td></tr>
+      <tr><td>6</td><td>Getting Started</td><td>導入摩擦の低減</td><td>コピペ可能な3ステップのコードブロック</td></tr>
+      <tr><td>7</td><td>FAQ</td><td>不安の先取り</td><td>保存先、クラウド同期、セキュリティ</td></tr>
+      <tr><td>8</td><td>Footer</td><td>信頼の補強</td><td>GitHub、謝辞、ライセンス</td></tr>
+    </tbody>
+  </table>
+
+  <h3>ファイル構成案</h3>
+  <div class="file-tree">
+<span class="dir">Landing/</span><br>
+├── <span class="file">LandingPage.tsx</span>　　　　<span class="comment"># 全体レイアウト・スクロールスパイ</span><br>
+├── <span class="file">HeroSection.tsx</span>　　　<span class="comment"># キャッチコピー + CTA + 擬似エディタ</span><br>
+├── <span class="file">PainGainSection.tsx</span>　<span class="comment"># 課題と解決の対比</span><br>
+├── <span class="file">FeatureGrid.tsx</span>　　　<span class="comment"># 4機能カード</span><br>
+├── <span class="file">DemoEmbed.tsx</span>　　　　<span class="comment"># /editor 誘導 or 軽量デモ</span><br>
+├── <span class="file">GettingStartedSection.tsx</span> <span class="comment"># クイックスタート</span><br>
+├── <span class="file">FAQSection.tsx</span>　　　 <span class="comment"># 折りたたみ式 Q&A</span><br>
+└── <span class="file">LandingFooter.tsx</span>　　<span class="comment"># フッター
+  </div>
+
+  <h3>HeroSection の実装イメージ</h3>
+  <div class="card">
+    <p>背景にぼかしたエディタスクリーンショット（<code>public/hero-bg.jpg</code>）を配置し、中央に大きなタイポグラフィ。「思考を、途切れさせない。」の下に2つのボタンを配置する。</p>
+    <ul>
+      <li><strong>Primary CTA:</strong> 「Web で試す」→ <code>/editor</code> へ遷移</li>
+      <li><strong>Secondary CTA:</strong> 「デスクトップ版をダウンロード」→ GitHub Releases へ</li>
+    </ul>
+    <p>擬似エディタ UI（Hero 内に表示する軽量な CSS コンポーネント）は、実際のエディタの雰囲気を即座に伝え、技術的な信頼感を醸成する。</p>
+  </div>
+
+  <h3>PainGainSection のコピー案</h3>
+  <div class="card">
+    <table>
+      <thead>
+        <tr><th>執筆時の課題（Before）</th><th>Mercury Editor Lite（After）</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>ツールの切替で思考が止まる</td><td>書く・整える・確認する・保存するが同一空間</td></tr>
+        <tr><td>Markdown の書式が思い通りにならない</td><td>リッチテキストと Markdown を即座に切り替え</td></tr>
+        <tr><td>保存されているか不安</td><td>保存状態を常に表示、失敗時は再試行</td></tr>
+        <tr><td>クラウドに預けるのが気になる</td><td>IndexedDB / ローカルファイルで完結</td></tr>
+        <tr><td>AI やノートブックは別アプリ</td><td>同一ワークスペースから Hermes / Marimo を起動</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- Tutorial Plan -->
+<section class="section fade-in">
+  <div class="section-label">§02 TUTORIAL</div>
+  <h2>チュートリアル導入案</h2>
+  <p>「初回ガイド」だけでは、ユーザーがエディタの可能性を十分に把握できない。3本柱で定着率を上げる。</p>
+
+  <div class="card">
+    <h3>A. 初回オンボーディング（インタラクティブツアー）</h3>
+    <p><code>/editor</code> を初めて開いたユーザーに対し、ステップバイステップで UI を案内する。Zustand で <code>hasCompletedOnboarding</code> を永続化し、再訪時には自動でスキップ。</p>
+    <table>
+      <thead><tr><th>Step</th><th>内容</th><th>ハイライト</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>サイドバーで書の作成・切替・削除ができます</td><td>Sidebar</td></tr>
+        <tr><td>2</td><td>リッチテキストと Markdown を切り替えられます</td><td>モード切替ボタン</td></tr>
+        <tr><td>3</td><td>プレビューを並べて確認できます</td><td>プレビュー切替</td></tr>
+        <tr><td>4</td><td>Ctrl+S で保存。状態はステータスバーに表示</td><td>StatusBar</td></tr>
+        <tr><td>5</td><td>では最初の文書を書いてみましょう</td><td>Editor 領域</td></tr>
+      </tbody>
+    </table>
+    <p><strong>実装:</strong> <code>react-joyride</code> を使うか、独自の Overlay + Spotlight コンポーネント（<code>packages/editor/src/components/Onboarding/</code>）を作成。軽量さを重視するなら後者。</p>
+  </div>
+
+  <div class="card">
+    <h3>B. サンプル文書「チュートリアル」</h3>
+    <p>v0.2.0 の「案内文から始める」を発展させ、チュートリアル専用のサンプル文書を1つ用意する。ユーザーが実際にカーソルを動かしながら学べる。</p>
+    <p><strong>文書タイトル:</strong> <code>🎓 Mercury Editor Lite を使いこなす</code></p>
+    <p><strong>含める内容:</strong></p>
+    <ul>
+      <li>見出し・リスト・引用の書き方（リッチテキスト / Markdown 両方）</li>
+      <li>プレビュー確認の流れ</li>
+      <li>ショートカット一覧（エディタ内チートシートとして機能）</li>
+      <li>AI チャットの開き方（設定済みの場合のみ表示）</li>
+      <li>エクスポートの試し方</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h3>C. いつでも開ける「ヘルプ & ショートカット」モーダル</h3>
+    <p><code>?</code> キーまたはツールバーの <code>?</code> アイコンで即座に開く。初回だけでなく、使っている途中でも参照できる。</p>
+    <div class="file-tree">
+<span class="dir">HelpModal/</span><br>
+├── <span class="file">HelpModal.tsx</span>　　　　<span class="comment"># タブ切り替えコンテナ</span><br>
+├── <span class="file">ShortcutTable.tsx</span>　　<span class="comment"># キーボードショートカット一覧</span><br>
+├── <span class="file">QuickStartTab.tsx</span>　　<span class="comment"># 3ステップクイックスタート</span><br>
+├── <span class="file">MarkdownCheatsheet.tsx</span> <span class="comment"># Markdown 記法早見表</span><br>
+└── <span class="file">FAQTab.tsx</span>　　　　　 <span class="comment"># よくある質問
+    </div>
+  </div>
+</section>
+
+<!-- State Design -->
+<section class="section fade-in">
+  <div class="section-label">§03 STATE DESIGN</div>
+  <h2>Zustand への追加設計</h2>
+  <p>既存の <code>stores/</code> に以下の2つのストアを追加する。</p>
+
+  <h3>onboardingStore.ts</h3>
+  <pre><code>interface OnboardingState {
+  hasCompletedOnboarding: boolean;
+  isOnboardingActive: boolean;
+  currentStep: number;
+  completeOnboarding: () => void;
+  restartOnboarding: () => void;
+  setStep: (step: number) => void;
+}</code></pre>
+
+  <h3>tutorialStore.ts</h3>
+  <pre><code>interface TutorialState {
+  showHelpModal: boolean;
+  toggleHelpModal: () => void;
+  activeTutorialDocId: string | null;
+  setActiveTutorialDoc: (id: string | null) => void;
+}</code></pre>
+
+  <p>両ストアとも <code>persist</code> ミドルウェアで localStorage に保存し、ブラウザ更新後も状態を復元する。</p>
+</section>
+
+<!-- Roadmap -->
+<section class="section fade-in">
+  <div class="section-label">§04 ROADMAP</div>
+  <h2>実装ロードマップ</h2>
+
+  <div class="phase">
+    <div class="phase-num">01</div>
+    <div class="phase-body">
+      <h3>Phase 1 — 設計と原稿（今すぐできる）</h3>
+      <ul>
+        <li>LP 各セクションのコピー（日本語テキスト）を確定</li>
+        <li>サンプルチュートリアル文書を Markdown で作成</li>
+        <li>ヘルプモーダルの UI モックのみ実装（中身は後から）</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="phase-num">02</div>
+    <div class="phase-body">
+      <h3>Phase 2 — コンポーネント実装</h3>
+      <ul>
+        <li><code>Landing/</code> コンポーネント群の実装（スクリーンショットは仮画像で可）</li>
+        <li><code>Onboarding/</code> ツアーコンポーネントの実装</li>
+        <li>Zustand ストアに onboarding / tutorial 状態を追加</li>
+        <li><code>HelpModal/</code> のタブ実装</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="phase-num">03</div>
+    <div class="phase-body">
+      <h3>Phase 3 — 磨きと検証</h3>
+      <ul>
+        <li>実際のスクリーンショット・GIF を撮影して LP に差し替え</li>
+        <li>モバイル表示の確認（375px 幅でのレイアウト崩れ）</li>
+        <li>アクセシビリティ：フォーカストラップ、aria-label、色のコントラスト</li>
+        <li>Tauri 版でも LP とチュートリアルが正常に動作するか検証</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- Closing -->
+<section class="section fade-in" style="border-bottom:none;">
+  <div class="section-label">§05 NEXT STEP</div>
+  <h2>次に決めること</h2>
+  <div class="card">
+    <ol>
+      <li><strong>LP のトーン:</strong> エンジニア向けの技術的な信頼感を重視するか、ライター向けのシンプルさ・美しさを重視するか。</li>
+      <li><strong>ツアー実装方式:</strong> <code>react-joyride</code> を使うか、独自実装で軽量化するか。</li>
+      <li><strong>サンプル文書の内容:</strong> チュートリアル文書に含める Markdown サンプルを具体化する。</li>
+      <li><strong>スクリーンショット:</strong> Feature Cards 用の実際の UI キャプチャを用意する。</li>
+    </ol>
+    <p style="margin-bottom:0; color:var(--muted);">この HTML は設計書としてブラウザで開くか、印刷 → PDF 保存して共有できます。</p>
+  </div>
+</section>
+
+</main>
+
+<script>
+// Simple intersection observer for fade-in
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('is-visible');
+    }
+  });
+}, { threshold: 0.1 });
+
+document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>

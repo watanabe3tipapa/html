@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>リトマス紙からプリズムへ — 縛らない色づけの思想</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;600;700&family=Noto+Sans+JP:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0f0f12;
+  --surface: #18181f;
+  --surface-2: #22222c;
+  --ink: #e8e6f0;
+  --muted: #8a8799;
+  --line: rgba(255,255,255,0.08);
+  --accent-red: #e85d5d;
+  --accent-orange: #f0a050;
+  --accent-yellow: #e8d55d;
+  --accent-green: #5dd68a;
+  --accent-cyan: #5dc4d6;
+  --accent-blue: #5d7ce8;
+  --accent-violet: #a85de8;
+  --radius: 16px;
+  --shadow: 0 4px 24px rgba(0,0,0,0.4);
+  --step-0: clamp(1rem, 0.92rem + 0.4vw, 1.15rem);
+  --step-1: clamp(1.15rem, 1.05rem + 0.5vw, 1.4rem);
+  --step-2: clamp(1.5rem, 1.3rem + 1vw, 2.2rem);
+  --step-3: clamp(2rem, 1.6rem + 2vw, 3.5rem);
+  --space: clamp(2rem, 1.5rem + 2.5vw, 4rem);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: "Noto Sans JP", "Hiragino Sans", "Yu Gothic", sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  font-size: var(--step-0);
+  line-height: 1.85;
+  overflow-x: hidden;
+}
+
+/* Hero */
+.hero {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: var(--space);
+  position: relative;
+  overflow: hidden;
+}
+
+.hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(93,124,232,0.15), transparent),
+    radial-gradient(ellipse 60% 40% at 80% 80%, rgba(232,93,93,0.08), transparent);
+  pointer-events: none;
+}
+
+.prism-icon {
+  width: 80px;
+  height: 80px;
+  margin-bottom: 2rem;
+  position: relative;
+  z-index: 1;
+}
+
+.prism-icon svg {
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 0 20px rgba(93,124,232,0.3));
+}
+
+.hero h1 {
+  font-family: "Noto Serif JP", "Hiragino Mincho ProN", serif;
+  font-size: var(--step-3);
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  margin-bottom: 1.5rem;
+  position: relative;
+  z-index: 1;
+}
+
+.hero .subtitle {
+  font-size: var(--step-1);
+  color: var(--muted);
+  font-weight: 300;
+  max-width: 36ch;
+  position: relative;
+  z-index: 1;
+}
+
+.hero .scroll-hint {
+  position: absolute;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  color: var(--muted);
+  font-size: 0.85rem;
+  animation: float 2s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50% { transform: translateX(-50%) translateY(6px); }
+}
+
+/* Spectrum bar */
+.spectrum-bar {
+  height: 4px;
+  width: 100%;
+  background: linear-gradient(90deg,
+    var(--accent-red),
+    var(--accent-orange),
+    var(--accent-yellow),
+    var(--accent-green),
+    var(--accent-cyan),
+    var(--accent-blue),
+    var(--accent-violet)
+  );
+  opacity: 0.6;
+}
+
+/* Main */
+main {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: var(--space) 1.5rem;
+}
+
+/* Sections */
+section {
+  margin-bottom: calc(var(--space) * 1.5);
+}
+
+section h2 {
+  font-family: "Noto Serif JP", serif;
+  font-size: var(--step-2);
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  line-height: 1.3;
+  position: relative;
+  padding-left: 1.2rem;
+}
+
+section h2::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.5em;
+  bottom: 0.5em;
+  width: 4px;
+  background: linear-gradient(180deg, var(--accent-blue), var(--accent-violet));
+  border-radius: 2px;
+}
+
+section h3 {
+  font-family: "Noto Serif JP", serif;
+  font-size: var(--step-1);
+  font-weight: 600;
+  color: var(--ink);
+  margin: 2rem 0 1rem;
+  opacity: 0.95;
+}
+
+p {
+  margin-bottom: 1.2rem;
+  color: var(--ink);
+  opacity: 0.9;
+}
+
+/* Cards */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  margin: 1.5rem 0;
+  box-shadow: var(--shadow);
+}
+
+.card h4 {
+  font-family: "Noto Serif JP", serif;
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin-bottom: 0.8rem;
+  color: var(--ink);
+}
+
+.card p {
+  margin-bottom: 0;
+  font-size: 0.95rem;
+  color: var(--muted);
+  line-height: 1.8;
+}
+
+/* Lists */
+ul.refraction-list {
+  list-style: none;
+  padding: 0;
+  margin: 1.5rem 0;
+}
+
+ul.refraction-list li {
+  padding: 1rem 1rem 1rem 3rem;
+  margin-bottom: 0.8rem;
+  background: var(--surface);
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  position: relative;
+  font-size: 0.95rem;
+  line-height: 1.7;
+}
+
+ul.refraction-list li::before {
+  content: attr(data-wave);
+  position: absolute;
+  left: 1rem;
+  top: 1rem;
+  font-size: 1.2rem;
+}
+
+/* Quote blocks */
+.blockquote {
+  background: var(--surface-2);
+  border-left: 3px solid var(--accent-cyan);
+  padding: 1.5rem 1.8rem;
+  margin: 2rem 0;
+  border-radius: 0 var(--radius) var(--radius) 0;
+  font-family: "Noto Serif JP", serif;
+  font-style: italic;
+  color: var(--muted);
+  line-height: 1.9;
+}
+
+.blockquote strong {
+  color: var(--ink);
+  font-style: normal;
+}
+
+/* Question box */
+.question-box {
+  background: linear-gradient(135deg, var(--surface), var(--surface-2));
+  border: 1px solid rgba(93,124,232,0.2);
+  border-radius: var(--radius);
+  padding: 2rem;
+  margin: 2.5rem 0;
+  position: relative;
+}
+
+.question-box::before {
+  content: "問い";
+  position: absolute;
+  top: -0.7rem;
+  left: 1.5rem;
+  background: var(--bg);
+  padding: 0.2rem 0.8rem;
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  color: var(--accent-blue);
+  border: 1px solid rgba(93,124,232,0.3);
+  border-radius: 4px;
+}
+
+.question-box p {
+  font-family: "Noto Serif JP", serif;
+  font-size: var(--step-1);
+  color: var(--ink);
+  margin-bottom: 0;
+  line-height: 1.9;
+}
+
+/* Label pills */
+.pill {
+  display: inline-block;
+  padding: 0.2rem 0.7rem;
+  border-radius: 100px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  margin-right: 0.4rem;
+  margin-bottom: 0.4rem;
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+  color: var(--muted);
+}
+
+/* Comparison table */
+.compare-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.5rem 0;
+  font-size: 0.95rem;
+}
+
+.compare-table th,
+.compare-table td {
+  padding: 1rem;
+  text-align: left;
+  border-bottom: 1px solid var(--line);
+}
+
+.compare-table th {
+  color: var(--muted);
+  font-weight: 500;
+  font-size: 0.85rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.compare-table td:first-child {
+  font-weight: 500;
+  color: var(--ink);
+  width: 30%;
+}
+
+/* Footer */
+footer {
+  text-align: center;
+  padding: calc(var(--space) * 2) 1.5rem calc(var(--space) * 1.5);
+  color: var(--muted);
+  font-size: 0.85rem;
+  border-top: 1px solid var(--line);
+  margin-top: calc(var(--space) * 2);
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .hero .scroll-hint { animation: none; }
+}
+
+/* Print */
+@media print {
+  body { background: #fff; color: #000; }
+  .hero { min-height: auto; padding: 3rem 1rem; }
+  .hero::before { display: none; }
+  .spectrum-bar { display: none; }
+  .card, .question-box, ul.refraction-list li {
+    background: #f5f5f5;
+    border-color: #ddd;
+    box-shadow: none;
+  }
+  .scroll-hint { display: none; }
+}
+
+@page { size: A4; margin: 18mm; }
+</style>
+</head>
+<body>
+
+<!-- Hero -->
+<header class="hero">
+  <div class="prism-icon">
+    <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <!-- Prism triangle -->
+      <path d="M50 15 L85 75 L15 75 Z" stroke="url(#prismGrad)" stroke-width="2" fill="rgba(93,124,232,0.05)"/>
+      <!-- Incoming light -->
+      <line x1="5" y1="45" x2="40" y2="45" stroke="rgba(255,255,255,0.4)" stroke-width="1.5" stroke-dasharray="4 2"/>
+      <!-- Refracted rays -->
+      <line x1="55" y1="55" x2="90" y2="35" stroke="var(--accent-red)" stroke-width="1.5" opacity="0.7"/>
+      <line x1="58" y1="60" x2="92" y2="50" stroke="var(--accent-orange)" stroke-width="1.5" opacity="0.7"/>
+      <line x1="60" y1="65" x2="93" y2="65" stroke="var(--accent-green)" stroke-width="1.5" opacity="0.7"/>
+      <line x1="58" y1="70" x2="90" y2="80" stroke="var(--accent-blue)" stroke-width="1.5" opacity="0.7"/>
+      <defs>
+        <linearGradient id="prismGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#5d7ce8;stop-opacity:1" />
+          <stop offset="100%" style="stop-color:#a85de8;stop-opacity:1" />
+        </linearGradient>
+      </defs>
+    </svg>
+  </div>
+  <h1>リトマス紙から<br>プリズムへ</h1>
+  <p class="subtitle">縛らない色づけの思想<br>物事性質を測るのではなく、見る人と物事の関係を分光する</p>
+  <div class="scroll-hint">↓ スクロールして読む</div>
+</header>
+
+<div class="spectrum-bar"></div>
+
+<main>
+
+<!-- Section 1 -->
+<section>
+  <h2>はじまり：リトマス紙としての発想</h2>
+  <p>物事、とりわけメディアで報道される情報に対して、リトマス紙のように酸性・アルカリ性を判定する。あるいはグラデーションをつけることのできるツールやLPを作りたい、という発想からこの対話は始まりました。</p>
+  <p>リトマス紙は、触れたものの性質を受け入れ、自己を変容させることで測定を行います。しかし、情報の世界では対象が常に流れ、読む人によって見え方が変わります。リトマス紙の不可逆性は、この世界にはまらない、という違和感が生じました。</p>
+</section>
+
+<!-- Section 2 -->
+<section>
+  <h2>不可逆性の問題</h2>
+  <p>リトマス紙は一度赤くなれば、元の青色には戻りません。この不可逆性は、対象の性質を「固定化」してしまう危険を孕んでいます。</p>
+
+  <div class="card">
+    <h4>判定が対象を縛る三つの構造</h4>
+    <p>① 二値化の暴力 — 酸性かアルカリかという強制が、中間の複雑さを消し去る。<br>② 色の重さ — 赤や青は感情や価値判断と結びつき、見る人の反応を先取りしてしまう。<br>③ 記録の権威 — 「ツールがそう言ったのだから」と、人は自分の目を疑うことをやめる。</p>
+  </div>
+
+  <p>「一度判定されたら、その判定が対象を縛ってしまう」という危機感は、ツール設計の根本を揺るがすものでした。</p>
+</section>
+
+<!-- Section 3 -->
+<section>
+  <h2>代替のメタファー</h2>
+  <p>不可逆な「染み」ではなく、別の性質を持つツールを探しました。</p>
+
+  <table class="compare-table">
+    <tr>
+      <th>メタファー</th>
+      <th>性質</th>
+    </tr>
+    <tr>
+      <td>指示薬溶液</td>
+      <td>一滴加えれば色は変わるが、別の液が混ざればまた別の色になる。変化を記録するのではなく、変化に従う。</td>
+    </tr>
+    <tr>
+      <td>分光器</td>
+      <td>白い光をプリズムで分けるように、一見単色に見える情報を複数の波長に分解する。色は「付与」されるのではなく「発見」される。</td>
+    </tr>
+    <tr>
+      <td>水面</td>
+      <td>石を投げれば波紋が生じるが、やがて静かに戻る。反応の履歴ではなく、反応のパターンを読む。</td>
+    </tr>
+  </table>
+</section>
+
+<!-- Section 4 -->
+<section>
+  <h2>プリズムへの転換</h2>
+  <p>リトマス紙が「触れて変わる」ものだったのに対し、プリズムは「通して見える」ものです。対象を染めない。対象を縛らない。ただ、入射した光が持っていた「あり得た色の全て」を、空間に解放するだけです。</p>
+
+  <h3>プリズムが分ける波長</h3>
+  <p>一見「こうい記事だ」と思えるものの中にも、複数の波長が重なっています。</p>
+
+  <ul class="refraction-list">
+    <li data-wave="🔴">動機の波長 — 誰のために書かれたか。誰の利益になるか。</li>
+    <li data-wave="🟠">時間の波長 — 過去の因縁か、未来の予兆か。</li>
+    <li data-wave="🟡">情動の波長 — 恐怖か、希望か、怒りか。</li>
+    <li data-wave="🟢">論理の波長 — 帰納か、演繹か、類推か。</li>
+    <li data-wave="🔵">関係性の波長 — 読む人を敵にするか、味方にするか、無関心にするか。</li>
+  </ul>
+
+  <h3>決定的に違う三つのこと</h3>
+  <p><strong>接触しない。</strong> ツールは対象に「判定」や「ラベル」を貼り付けない。対象はそのまま、そこにあり続けます。</p>
+  <p><strong>分離する。</strong> 「この記事には赤（情動）も青（論理）も紫（権力）も含まれている」と示す。色は一つではなく、同時にあり得る複数の層として現れます。</p>
+  <p><strong>観測者の位置を露呈する。</strong> 虹は、見る人の角度によって見え方が変わります。ツールが「これが正しい色だ」と言うのではなく、「あなたがここに立つと、こう見える」と示します。</p>
+</section>
+
+<!-- Section 5 -->
+<section>
+  <h2>観測者の相対性</h2>
+  <p>ただし、人によって観測が異なる。同じ光でも、見る場所によって虹は違う形で見える。これは物理的な事実であり、同時に認識論的な宣言です。</p>
+
+  <div class="card">
+    <h4>「位置」の違い</h4>
+    <p>価値観の位置、知識の位置、情動の位置、時間の位置、関係性の位置。ツールはこれらの「位置」を明示的なパラメータとして扱います。観測者の位置を隠さず、むしろ操作可能にすることで、「私がこう見えるのは私の立ち位置のせいでもある」という自覚を促します。</p>
+  </div>
+
+  <p>もし人によって観測が異なるなら、「この記事の正しい色」という概念は崩壊します。ツールが示すべきは「正解」ではなく、分布や可能性の場になります。</p>
+
+  <div class="blockquote">
+    「光は一つでも、虹は億千万。あなたの立つ場所が、見える真実を決める。」
+  </div>
+</section>
+
+<!-- Section 6 -->
+<section>
+  <h2>ツールとしてのプリズムの形</h2>
+
+  <h3>入力欄</h3>
+  <p>ユーザーがテキストやURLを入力する。これが「白い光」です。</p>
+
+  <h3>分光の仕方</h3>
+  <p>テキストを複数の「屈折率」で読み解きます。情動的語彙の密度（赤）、具体的事実・数値の密度（青）、予測・未来を語る表現（黄）、対立を煽る修飾語（紫）。</p>
+
+  <h3>表示の仕方</h3>
+  <p>結果を「スペクトル」として横一列に並べるのではなく、虹の弧として表示する。強度が高い波長ほど太く、鮮やかに。そして、その虹の下に小さく書く：</p>
+
+  <div class="blockquote">
+    「この虹は、あなたが『現在の関心』という角度から見た時の姿です。角度変えると、別の色が強くなります。」
+  </div>
+
+  <h3>角度のスライダー</h3>
+  <p>ユーザーが自分の「立ち位置」を調整できる。「感情への共感度」を上げると赤の成分が強調される。「論理的厳密さ」を重視すると青の成分が際立つ。これは、対象を測るのではなく、自分の見方の屈折率を調整する行為です。</p>
+</section>
+
+<!-- Section 7 -->
+<section>
+  <h2>さらに深い問い</h2>
+  <p>プリズムは「光の中にある真の色」を分け出す、と物理学では教えられます。しかし、このツールにおいて「真の色」など存在しないことを前提にしたい、という思いがあります。</p>
+
+  <p>プリズムを通したからと言って、「この記事の本質が暴かれた」とは限りません。プリズムはただ、一つの解釈装置です。別のプリズム（別のアルゴリズム、別の文脈）を通せば、全く別の虹が見えるかしれません。</p>
+
+  <p>もしそれを徹底するなら、ツールは「この記事のスペクトル分析結果」とは言わず、「このプリズムを通した時の屈折パターン」と言うべきでしょう。</p>
+
+  <div class="question-box">
+    <p>観測者が情報（光）を見る時、観測者自身もまた一つの光ではないか。あなたが持っている過去の経験、価値観、傷、知識。それらは観測者であるあなたの内にある「内発光」のようなものです。外部の情報（光）と、内部の経験（内発光）が、ツール（プリズム）の中で出会って、初めて虹が生まれる。</p>
+  </div>
+
+  <p>ツールが分光しているのは「記事そのもの」ではなく、「記事とあなたの交響」なのかもしれません。記事は鏡のような役割を果たし、プリズムを通した時に現れる虹は、実はあなたの内面のスペクトルでもある。</p>
+</section>
+
+<!-- Section 8 -->
+<section>
+  <h2>設計上の決断</h2>
+
+  <h3>保存と共有の仕方</h3>
+  <p>「この記事の分析結果」を共有するのではなく、「私はこの記事をこう見た」という主観的な観測記録として共有する。同じ記事でも異なる虹へのリンクを作れるようにする。</p>
+
+  <h3>スコアリングの放棄</h3>
+  <p>「酸性度70%」のような数値化をやめる。数値は「正解」の幻覚を生みます。代わりに、「この波長が相対的に強い」という定性的な表示に留める。</p>
+
+  <h3>比較の美学</h3>
+  <p>「正しい虹」と「間違った虹」を比較するのではなく、「虹A」と「虹B」の並置として提示する。どちらが優れているかではなく、どちらがどの位置から見たものか、という情報を重視する。</p>
+</section>
+
+<!-- Section 9 -->
+<section>
+  <h2>結論：縛らない色づけ</h2>
+  <p>トマス紙は対象に触れて自己を変容させ、不可逆な判定を残します。プリズムは対象に触れず、光を通すだけです。対象をそのままに、見る人と対象の関係の中に生まれる虹を映し出します。</p>
+
+  <p>「人によって観測が異なる」を徹底すると、このツールは「情報の性質を測る装置」から、「人間の認識の相対性を体験する装置」へと変容します。</p>
+
+  <div class="blockquote">
+    「判定はしない。分光する。」
+  </div>
+
+  <div class="card" style="margin-top: 2rem;">
+    <h4>LPの言葉として</h4>
+    <p>「物事に色をつけるのではない。物事が持っていた色を、見えるようにする。」<br>
+    「白く見えていた情報の中に、虹を見つける。」<br>
+    「同じ記事を読んで、誰かが泣き、誰かが怒る。どちらも間違いではない。位置が違うだけだ。」<br>
+    「このツールは、あなたの偏りを暴く。そして、それが悪いことではないと教える。」</p>
+  </div>
+</section>
+
+</main>
+
+<div class="spectrum-bar"></div>
+
+<footer>
+  <p>リトマス紙からプリズムへ — 縛らない色づけの思想</p>
+  <p style="margin-top: 0.5rem; opacity: 0.6;">対話を通じて紡がれた思考の記録</p>
+</footer>
+
+</body>
+</html>

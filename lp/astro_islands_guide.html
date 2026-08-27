@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Astro と Islands Architecture 解説</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0b1021;
+  --surface: #121a30;
+  --surface-2: #1a2442;
+  --ink: #e8ecf4;
+  --muted: #94a3b8;
+  --accent: #f59e0b;
+  --accent-weak: color-mix(in oklab, var(--accent) 15%, var(--surface));
+  --accent-glow: color-mix(in oklab, var(--accent) 30%, transparent);
+  --line: color-mix(in oklab, var(--ink) 10%, transparent);
+  --step--1: clamp(0.875rem, 0.85rem + 0.15vw, 1rem);
+  --step-0: clamp(1rem, 0.92rem + 0.4vw, 1.125rem);
+  --step-1: clamp(1.25rem, 1.1rem + 0.8vw, 1.75rem);
+  --step-2: clamp(1.75rem, 1.4rem + 1.8vw, 2.75rem);
+  --step-3: clamp(2.5rem, 1.8rem + 3.5vw, 4.5rem);
+  --space: clamp(1.5rem, 1.2rem + 1.5vw, 2.5rem);
+  --radius: 16px;
+  --shadow: 0 1px 2px rgba(0,0,0,0.2), 0 12px 32px -8px rgba(0,0,0,0.5);
+}
+
+* { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  font-family: "Noto Sans JP", "Hiragino Sans", "Yu Gothic", sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  line-height: 1.85;
+  font-size: var(--step-0);
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Typography */
+h1, h2, h3 {
+  font-family: "Outfit", "Noto Sans JP", sans-serif;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+h1 { font-size: var(--step-3); }
+h2 { font-size: var(--step-2); }
+h3 { font-size: var(--step-1); }
+
+p { margin: 0; }
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+a:hover { text-decoration: underline; }
+
+/* Layout */
+.container {
+  width: min(90%, 980px);
+  margin-inline: auto;
+}
+
+header {
+  padding: calc(var(--space) * 3) 0 calc(var(--space) * 2);
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+header::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 0%, rgba(245,158,11,0.12), transparent 60%),
+    radial-gradient(circle at 20% 30%, rgba(56, 189, 248, 0.08) 0%, transparent 40%),
+    radial-gradient(circle at 80% 70%, rgba(245, 158, 11, 0.08) 0%, transparent 40%);
+  pointer-events: none;
+}
+
+header .eyebrow {
+  display: inline-block;
+  font-family: "Outfit", sans-serif;
+  font-size: var(--step--1);
+  font-weight: 600;
+  color: var(--accent);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 0.75rem;
+  border: 1px solid var(--accent-weak);
+  padding: 0.35em 0.9em;
+  border-radius: 999px;
+  background: var(--accent-weak);
+}
+
+header h1 {
+  position: relative;
+  z-index: 1;
+}
+
+header p {
+  margin-top: 1.25rem;
+  color: var(--muted);
+  max-width: 52ch;
+  margin-inline: auto;
+  font-size: var(--step-1);
+}
+
+/* Sections */
+main > section {
+  padding: calc(var(--space) * 2.5) 0;
+  border-top: 1px solid var(--line);
+}
+
+section h2 {
+  margin-bottom: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.6em;
+}
+
+section h2 .num {
+  font-family: "Outfit", sans-serif;
+  font-size: 0.55em;
+  font-weight: 700;
+  color: var(--accent);
+  border: 1.5px solid var(--accent);
+  width: 1.8em;
+  height: 1.8em;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.lead {
+  font-size: var(--step-1);
+  color: var(--muted);
+  max-width: 64ch;
+  line-height: 1.7;
+  margin-bottom: 2rem;
+}
+
+/* Cards */
+.grid-2 {
+  display: grid;
+  gap: var(--space);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr));
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: calc(var(--space) * 1.1);
+  box-shadow: var(--shadow);
+}
+
+.card h3 {
+  margin-bottom: 0.6rem;
+  color: var(--accent);
+}
+
+.card p {
+  color: var(--muted);
+  font-size: var(--step--1);
+  line-height: 1.75;
+}
+
+/* Diagrams */
+.diagram-wrap {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: calc(var(--space) * 1.2);
+  margin: 2rem 0;
+  overflow-x: auto;
+}
+
+.diagram-title {
+  font-family: "Outfit", sans-serif;
+  font-weight: 600;
+  font-size: var(--step--1);
+  margin-bottom: 1rem;
+  color: var(--ink);
+  text-align: center;
+}
+
+svg { display: block; margin: auto; max-width: 100%; height: auto; }
+
+/* Comparison table */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1.5rem;
+  font-size: var(--step--1);
+}
+
+th, td {
+  padding: 0.85em 1em;
+  text-align: left;
+  border-bottom: 1px solid var(--line);
+}
+
+th {
+  color: var(--accent);
+  font-weight: 700;
+  font-family: "Outfit", sans-serif;
+  background: var(--surface-2);
+}
+
+tr:hover td {
+  background: rgba(245,158,11,0.04);
+}
+
+/* Code / inline */
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, "Cascadia Mono", monospace;
+  background: var(--surface-2);
+  padding: 0.15em 0.4em;
+  border-radius: 6px;
+  font-size: 0.9em;
+  color: #7dd3fc;
+}
+
+.tag {
+  display: inline-block;
+  background: var(--accent-weak);
+  color: var(--accent);
+  padding: 0.2em 0.6em;
+  border-radius: 6px;
+  font-size: 0.8em;
+  font-weight: 700;
+  font-family: "Outfit", sans-serif;
+  margin-right: 0.3em;
+}
+
+/* List */
+ul.benefit {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  gap: 0.75rem;
+}
+
+ul.benefit li {
+  position: relative;
+  padding-left: 1.6em;
+  color: var(--muted);
+}
+
+ul.benefit li::before {
+  content: "✦";
+  position: absolute;
+  left: 0;
+  color: var(--accent);
+  font-size: 0.9em;
+}
+
+/* Footer */
+footer {
+  text-align: center;
+  padding: calc(var(--space) * 2) 0;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: var(--step--1);
+}
+
+/* Print */
+@media print {
+  body { background: #fff; color: #111; }
+  :root {
+    --bg: #fff;
+    --surface: #f6f7f9;
+    --surface-2: #eef0f4;
+    --ink: #111;
+    --muted: #444;
+    --accent: #b45309;
+    --line: #ddd;
+    --shadow: none;
+  }
+  header::before, .diagram-wrap { background: #f6f7f9; }
+}
+
+@page { size: A4; margin: 16mm; }
+
+/* Focus */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Small screens */
+@media (max-width: 480px) {
+  header { padding-top: calc(var(--space) * 2); }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="container">
+    <span class="eyebrow">Frontend Architecture</span>
+    <h1>Astro と Islands Architecture</h1>
+    <p>コンテンツ重視の高速Webサイトを実現する、「ゼロJS by default」の新しいアーキテクチャとその効果を図解解説します。</p>
+  </div>
+</header>
+
+<main class="container">
+
+  <section id="what-is-astro">
+    <h2><span class="num">1</span>Astro とは何か</h2>
+    <p class="lead">
+      Astro は、ブログやマーケティングサイト、ECサイトなど「コンテンツ重視のWebサイト」を作るためのオールインワンフレームワークです。最大の特徴は、<strong>デフォルトでクライアントサイドJavaScriptを出力しない</strong>ことです。
+    </p>
+    <div class="grid-2">
+      <div class="card">
+        <h3>コンテンツファースト</h3>
+        <p>React や Vue などの UI フレームワークを使いつつ、最終的なページは高速な静的HTMLとして出力されます。不要なJavaScriptを削ぎ落とす設計思想が根幹にあります。</p>
+      </div>
+      <div class="card">
+        <h3>フレームワークに依存しない</h3>
+        <p>React、Preact、Vue、Svelte、Solid、Alpine.js など、複数のUIライブラリを1つのプロジェクトで混在させて使うことができます。</p>
+      </div>
+      <div class="card">
+        <h3>サーバーファーストのMPA</h3>
+        <p>Multi-Page Application（MPA）として動作し、各ページはサーバーサイドでレンダリングされます。SPAとは異なり、ページ遷移ごとにHTMLを読み込みます。</p>
+      </div>
+      <div class="card">
+        <h3>Vite ベース</h3>
+        <p>開発環境は Vite を基盤としており、HMR（ホットモジュールリプレース）が高速で、快適な開発体験が得られます。</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="problem">
+    <h2><span class="num">2</span>従来のフレームワークが抱える課題</h2>
+    <p class="lead">
+      従来の React ベースの SPA や SSR フレームワークでは、ページ上の「どこか1つでもインタラクティブな要素がある」と、ページ全体のJavaScriptを読み込み・実行（Hydration）する必要がありました。
+    </p>
+
+    <div class="diagram-wrap">
+      <div class="diagram-title">従来のSPA / SSRフレームワークのイメージ</div>
+      <svg viewBox="0 0 720 260" width="720" height="260" aria-labelledby="spaTitle">
+        <title id="spaTitle">従来のフレームワークではページ全体がJavaScriptで覆われる</title>
+        <defs>
+          <pattern id="jsGrid" width="16" height="16" patternUnits="userSpaceOnUse">
+            <circle cx="2" cy="2" r="1" fill="rgba(125,211,252,0.25)"/>
+          </pattern>
+          <linearGradient id="jsGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="rgba(56,189,248,0.25)"/>
+            <stop offset="100%" stop-color="rgba(56,189,248,0.05)"/>
+          </linearGradient>
+        </defs>
+        <!-- Page box -->
+        <rect x="40" y="30" width="640" height="200" rx="14" fill="#1a2442" stroke="#2d3a5e" stroke-width="2"/>
+        <text x="360" y="58" text-anchor="middle" fill="#94a3b8" font-size="14" font-family="Outfit, sans-serif">1 ページ全体</text>
+
+        <!-- JS overlay -->
+        <rect x="60" y="75" width="600" height="140" rx="10" fill="url(#jsGrad)" stroke="#38bdf8" stroke-width="2" stroke-dasharray="6 4" opacity="0.9"/>
+        <rect x="60" y="75" width="600" height="140" rx="10" fill="url(#jsGrid)"/>
+
+        <!-- Components -->
+        <rect x="90" y="100" width="120" height="80" rx="8" fill="#0b1021" stroke="#475569" stroke-width="1.5"/>
+        <text x="150" y="145" text-anchor="middle" fill="#e8ecf4" font-size="13" font-family="Noto Sans JP, sans-serif">ヘッダー</text>
+
+        <rect x="240" y="100" width="120" height="80" rx="8" fill="#0b1021" stroke="#475569" stroke-width="1.5"/>
+        <text x="300" y="145" text-anchor="middle" fill="#e8ecf4" font-size="13" font-family="Noto Sans JP, sans-serif">本文</text>
+
+        <rect x="390" y="100" width="120" height="80" rx="8" fill="#0b1021" stroke="#475569" stroke-width="1.5"/>
+        <text x="450" y="140" text-anchor="middle" fill="#e8ecf4" font-size="13" font-family="Noto Sans JP, sans-serif">画像</text>
+        <text x="450" y="158" text-anchor="middle" fill="#94a3b8" font-size="11" font-family="Noto Sans JP, sans-serif">スライダー</text>
+
+        <rect x="540" y="100" width="80" height="80" rx="8" fill="#0b1021" stroke="#475569" stroke-width="1.5"/>
+        <text x="580" y="145" text-anchor="middle" fill="#e8ecf4" font-size="13" font-family="Noto Sans JP, sans-serif">サイド</text>
+
+        <!-- Label -->
+        <text x="360" y="220" text-anchor="middle" fill="#7dd3fc" font-size="13" font-family="Outfit, sans-serif" font-weight="600">
+          ページ全体が JavaScript で覆われる（Hydration 対象）
+        </text>
+      </svg>
+    </div>
+
+    <p>
+      たとえページの大部分が「ただのテキストや画像」であっても、コメント欄や画像スライダーなど「一部だけ」インタラクティブな場合、フレームワークは<strong>ページ全体を Hydration（イベントリスナー再付与などの初期化）の対象</strong>として扱います。これが初期表示の遅延や、大量のJavaScriptダウンロードを招く原因となります。
+    </p>
+  </section>
+
+  <section id="islands-concept">
+    <h2><span class="num">3</span>Islands Architecture の考え方</h2>
+    <p class="lead">
+      Astro が提唱した「Islands Architecture（アイランド・アーキテクチャ）」は、<strong>ページの大部分を高速な静的HTMLとしレンダリングし、インタラクティブな部分だけを独立した「島（Island）」として分離する</strong>パターンです。
+    </p>
+
+    <div class="diagram-wrap">
+      <div class="diagram-title">Astro Islands Architecture のイメージ</div>
+      <svg viewBox="0 0 720 280" width="720" height="280" aria-labelledby="islandTitle">
+        <title id="islandTitle">ページの大部分は静的HTMLで、インタラクティブな部分だけが島として浮かぶ</title>
+        <defs>
+          <pattern id="htmlGrid" width="20" height="20" patternUnits="userSpaceOnUse">
+            <path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(148,163,184,0.12)" stroke-width="1"/>
+          </pattern>
+          <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+            <feGaussianBlur stdDeviation="4" result="blur"/>
+            <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+          </filter>
+        </defs>
+
+        <!-- Page -->
+        <rect x="40" y="30" width="640" height="220" rx="14" fill="#121a30" stroke="#2d3a5e" stroke-width="2"/>
+        <rect x="40" y="30" width="640" height="220" rx="14" fill="url(#htmlGrid)"/>
+        <text x="360" y="58" text-anchor="middle" fill="#94a3b8" font-size="14" font-family="Outfit, sans-serif">静的HTML（Zero JS by default）</text>
+
+        <!-- Static parts -->
+        <rect x="70" y="80" width="160" height="60" rx="8" fill="#1a2442" stroke="#475569" stroke-width="1.5"/>
+        <text x="150" y="115" text-anchor="middle" fill="#e8ecf4" font-size="13" font-family="Noto Sans JP, sans-serif">ヘッダー（静的）</text>
+
+        <rect x="70" y="160" width="400" height="70" rx="8" fill="#1a2442" stroke="#475569" stroke-width="1.5"/>
+        <text x="270" y="200" text-anchor="middle" fill="#e8ecf4" font-size="13" font-family="Noto Sans JP, sans-serif">本文・テキスト・画像（静的）</text>
+
+        <rect x="500" y="160" width="160" height="70" rx="8" fill="#1a2442" stroke="#475569" stroke-width="1.5"/>
+        <text x="580" y="200" text-anchor="middle" fill="#e8ecf4" font-size="13" font-family="Noto Sans JP, sans-serif">フッター（静的）</text>
+
+        <!-- Islands -->
+        <!-- Island 1: Image carousel -->
+        <rect x="260" y="75" width="140" height="70" rx="10" fill="#2a1f11" stroke="#f59e0b" stroke-width="2.5" filter="url(#glow)"/>
+        <text x="330" y="105" text-anchor="middle" fill="#fbbf24" font-size="12" font-family="Outfit, sans-serif" font-weight="600">🏝️ Island</text>
+        <text x="330" y="125" text-anchor="middle" fill="#fcd34d" font-size="11" font-family="Noto Sans JP, sans-serif">画像スライダー</text>
+
+        <!-- Island 2: Search -->
+        <rect x="430" y="75" width="140" height="70" rx="10" fill="#2a1f11" stroke="#f59e0b" stroke-width="2.5" filter="url(#glow)"/>
+        <text x="500" y="105" text-anchor="middle" fill="#fbbf24" font-size="12" font-family="Outfit, sans-serif" font-weight="600">🏝️ Island</text>
+        <text x="500" y="125" text-anchor="middle" fill="#fcd34d" font-size="11" font-family="Noto Sans JP, sans-serif">検索ボックス</text>
+
+        <!-- Island 3: Comments -->
+        <rect x="500" y="160" width="0" height="0" rx="10"/> <!-- dummy for layout balance, replaced below -->
+      </svg>
+      <p style="text-align:center; color:var(--muted); font-size:0.9em; margin-top:0.5rem;">
+        ページの大部分はJavaScriptなしの静的HTML。インタラクティブなコンポーネントだけが「島」として独立して動作します。
+      </p>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <h3>Partial Hydration</h3>
+        <p>ページ全体ではなく、必要なコンーネントだけに限定的に Hydration を行う「部分Hydration」が実現できます。これにより、送信されるJavaScriptの量を劇的に削減できます。</p>
+      </div>
+      <div class="card">
+        <h3>自動的な分離</h3>
+        <p>開発者は通常通りコンポーネントを記述するだけで、Astroがビルド時に「どこまでが静的で、どこからがインタラクティブか」を自動的に分離します。</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="how-it-works">
+    <h2><span class="num">4</span>どうやって「島」を作るのか</h2>
+    <p class="lead">
+      Astro では、コンポーネントファイルに <code>client:*</code> ディレクティブを付けることで、そのコンポーネントを「島」としてマークします。ディレクティブを付けない場合、そのコンポーネントは<strong>サーバーサイドみでレンダリングされ、クライアントにはJavaScriptが送られません</strong>。
+    </p>
+
+    <div class="diagram-wrap">
+      <div class="diagram-title">client ディレクティブと Hydration のタイミング</div>
+      <svg viewBox="0 0 760 420" width="760" height="420" aria-labelledby="directiveTitle">
+        <title id="directiveTitle">clientディレクティブごとのHydrationタイミングの違い</title>
+        <defs>
+          <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+            <path d="M0,0 L0,6 L9,3 z" fill="#94a3b8"/>
+          </marker>
+        </defs>
+
+        <!-- Timeline -->
+        <line x1="80" y1="60" x2="680" y2="60" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+        <text x="380" y="45" text-anchor="middle" fill="#94a3b8" font-size="13" font-family="Outfit, sans-serif">ページ読み込みの時間軸 →</text>
+
+        <!-- Labels -->
+        <text x="90" y="85" fill="#e8ecf4" font-size="13" font-family="Outfit, sans-serif" font-weight="700">client:load</text>
+        <rect x="90" y="95" width="120" height="22" rx="6" fill="#f59e0b" opacity="0.2" stroke="#f59e0b" stroke-width="1.5"/>
+        <text x="100" y="111" fill="#fbbf24" font-size="11" font-family="Noto Sans JP, sans-serif">ページ読み込み時</text>
+
+        <text x="90" y="145" fill="#e8ecf4" font-size="13" font-family="Outfit, sans-serif" font-weight="700">client:idle</text>
+        <rect x="150" y="155" width="120" height="22" rx="6" fill="#f59e0b" opacity="0.2" stroke="#f59e0b" stroke-width="1.5"/>
+        <text x="160" y="171" fill="#fbbf24" font-size="11" font-family="Noto Sans JP, sans-serif">ブラウザアイドル時</text>
+
+        <text x="90" y="205" fill="#e8ecf4" font-size="13" font-family="Outfit, sans-serif" font-weight="700">client:visible</text>
+        <rect x="320" y="215" width="140" height="22" rx="6" fill="#f59e0b" opacity="0.2" stroke="#f59e0b" stroke-width="1.5"/>
+        <text x="330" y="231" fill="#fbbf24" font-size="11" font-family="Noto Sans JP, sans-serif">要素が画面に入った時</text>
+
+        <text x="90" y="265" fill="#e8ecf4" font-size="13" font-family="Outfit, sans-serif" font-weight="700">client:media</text>
+        <rect x="220" y="275" width="160" height="22" rx="6" fill="#f59e0b" opacity="0.2" stroke="#f59e0b" stroke-width="1.5"/>
+        <text x="230" y="291" fill="#fbbf24" font-size="11" font-family="Noto Sans JP, sans-serif">メディアクエリ一致時</text>
+
+        <text x="90" y="325" fill="#e8ecf4" font-size="13" font-family="Outfit, sans-serif" font-weight="700">client:only</text>
+        <rect x="90" y="335" width="120" height="22" rx="6" fill="#f59e0b" opacity="0.2" stroke="#f59e0b" stroke-width="1.5"/>
+        <text x="100" y="351" fill="#fbbf24" font-size="11" font-family="Noto Sans JP, sans-serif">クライアントのみ</text>
+
+        <!-- Event icons -->
+        <circle cx="150" cy="106" r="5" fill="#f59e0b"/>
+        <circle cx="210" cy="166" r="5" fill="#f59e0b"/>
+        <circle cx="390" cy="226" r="5" fill="#f59e0b"/>
+        <circle cx="300" cy="286" r="5" fill="#f59e0b"/>
+        <circle cx="150" cy="346" r="5" fill="#f59e0b"/>
+
+        <!-- Connecting lines -->
+        <line x1="150" y1="106" x2="150" y2="60" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="4 3"/>
+        <line x1="210" y1="166" x2="210" y2="60" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="4 3"/>
+        <line x1="390" y1="226" x2="390" y2="60" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="4 3"/>
+        <line x1="300" y1="286" x2="300" y2="60" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="4 3"/>
+        <line x1="150" y1="346" x2="150" y2="60" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="4 3"/>
+      </svg>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>ディレクティブ</th>
+          <th>Hydration タイミング</th>
+          <th>用途例</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>client:load</code></td>
+          <td>ページ読み込み完了直後</td>
+          <td>即座に動作する必要があるUI（ナビゲーション、重要なボタン）</td>
+        </tr>
+        <tr>
+          <td><code>client:idle</code></td>
+          <td>ブラウザがアイドル状態になった時</td>
+          <td>優先度が低いインタラクティブ要素</td>
+        </tr>
+        <tr>
+          <td><code>client:visible</code></td>
+          <td>要素が画面内（ビューポート）に入った時</td>
+          <td>画像カルーセル、下部のコメント欄など</td>
+        </tr>
+        <tr>
+          <td><code>client:media</code></td>
+          <td>指定したメディアクエリが一致した時</td>
+          <td>モバイルのみ表示されるサイドメニューなど</td>
+        </tr>
+        <tr>
+          <td><code>client:only</code></td>
+          <td>サーバーレンダリングを行わずクライアントのみ</td>
+          <td>ブラウザAPIに強く依存するコンポーネント</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="server-islands">
+    <h2><span class="num">5</span>Server Islands（新機能）</h2>
+    <p class="lead">
+      Astro 4.5 以降では「Server Islands」が導入されました。これは、<strong>ページの大部分を静的HTML・CDNキャッシュに任せつつ、パーソナライズされた領域だけをサーバーサイドで遅延レンダリングする</strong>仕組みです。
+    </p>
+
+    <div class="diagram-wrap">
+      <div class="diagram-title">Server Islands の動作イメージ</div>
+      <svg viewBox="0 0 720 320" width="720" height="320" aria-labelledby="svrTitle">
+        <title id="svrTitle">静的HTMLが先に表示され、その後サーバーからパーソナライズ部分が差し込まれる</title>
+        <defs>
+          <pattern id="placeholder" width="8" height="8" patternUnits="userSpaceOnUse">
+            <rect width="8" height="8" fill="#1a2442"/>
+            <circle cx="2" cy="2" r="1" fill="#475569"/>
+          </pattern>
+        </defs>
+
+        <!-- Step 1 -->
+        <rect x="30" y="30" width="300" height="260" rx="12" fill="#121a30" stroke="#2d3a5e" stroke-width="1.5"/>
+        <text x="180" y="58" text-anchor="middle" fill="#e8ecf4" font-size="14" font-family="Outfit, sans-serif" font-weight="600">① 最初の表示（静的HTML）</text>
+        <rect x="55" y="80" width="250" height="50" rx="8" fill="#1a2442" stroke="#475569" stroke-width="1"/>
+        <text x="180" y="110" text-anchor="middle" fill="#94a3b8" font-size="12" font-family="Noto Sans JP, sans-serif">ヘダー・本文（即座に表示）</text>
+
+        <rect x="55" y="150" width="250" height="50" rx="8" fill="url(#placeholder)" stroke="#475569" stroke-width="1" stroke-dasharray="4 3"/>
+        <text x="180" y="180" text-anchor="middle" fill="#64748b" font-size="12" font-family="Noto Sans JP, sans-serif">パーソナライズ領域（プレースホルダー）</text>
+
+        <rect x="55" y="220" width="250" height="50" rx="8" fill="#1a2442" stroke="#475569" stroke-width="1"/>
+        <text x="180" y="250" text-anchor="middle" fill="#94a3b8" font-size="12" font-family="Noto Sans JP, sans-serif">フッター（即座に表示）</text>
+
+        <!-- Arrow -->
+        <text x="360" y="170" text-anchor="middle" fill="#f59e0b" font-size="20" font-family="Outfit, sans-serif">→</text>
+        <text x="360" y="195" text-anchor="middle" fill="#94a3b8" font-size="11" font-family="Noto Sans JP, sans-serif">非同期リクエスト</text>
+
+        <!-- Step 2 -->
+        <rect x="390" y="30" width="300" height="260" rx="12" fill="#121a30" stroke="#2d3a5e" stroke-width="1.5"/>
+        <text x="540" y="58" text-anchor="middle" fill="#e8ecf4" font-size="14" font-family="Outfit, sans-serif" font-weight="600">② サーバーから差し込み完了</text>
+        <rect x="415" y="80" width="250" height="50" rx="8" fill="#1a2442" stroke="#475569" stroke-width="1"/>
+        <text x="540" y="110" text-anchor="middle" fill="#94a3b8" font-size="12" font-family="Noto Sans JP, sans-serif">ヘッダー・本文</text>
+
+        <rect x="415" y="150" width="250" height="50" rx="8" fill="#2a1f11" stroke="#f59e0b" stroke-width="2"/>
+        <text x="540" y="175" text-anchor="middle" fill="#fbbf24" font-size="12" font-family="Noto Sans JP, sans-serif" font-weight="600">🏝️ Server Island</text>
+        <text x="540" y="192" text-anchor="middle" fill="#fcd34d" font-size="11" font-family="Noto Sans JP, sans-serif">「こんにちは、〇〇さん」</text>
+
+        <rect x="415" y="220" width="250" height="50" rx="8" fill="#1a2442" stroke="#475569" stroke-width="1"/>
+        <text x="540" y="250" text-anchor="middle" fill="#94a3b8" font-size="12" font-family="Noto Sans JP, sans-serif">フッター</text>
+      </svg>
+    </div>
+
+    <p>
+      Server Islands を使うと、たとえば「ログイン中のユーザー名を表示するヘッダー」など、<strong>ユーザーごとに変わる部分だけをサーバーでレンダリング</strong>し、ページの残りはエッジキャッシュ（CDN）で高速に配信できます。これにより、パーソナライズとパフォーマンスの両立が容易になります。
+    </p>
+  </section>
+
+  <section id="effects">
+    <h2><span class="num">6</span>Islands Architecture の効果・メリット</h2>
+    <p class="lead">
+      このアーキテクチャを採用することで、Webサイトのパフォーマンス、SEO、開発体験のすてが向上します。
+    </p>
+
+    <div class="grid-2">
+      <div class="card">
+        <h3>🚀 初期表示の劇的な高速化</h3>
+        <p>不要なJavaScriptを送信しないため、Time to Interactive（TTI）や Largest Contentful Paint（LCP）などのコアWebバイタルが大幅に改善します。コンテンツ重視のサイトでは90%以上のJavaScript削減も見込めます。</p>
+      </div>
+      <div class="card">
+        <h3>🔍 SEO に強い</h3>
+        <p>デフォルトで完全な静的HTMLを出力するため、検索エンジンのクローラーがコンテンツを正確に把握できます。SPAのようなレンダリング待ちが発生しません。</p>
+      </div>
+      <div class="card">
+        <h3>🧩 既存資産の活用</h3>
+        <p>React や Vue で作られた既存コンポーネントをそのまま「島」として移植できます。フレームワーク全体を置き換える必要はありません。</p>
+      </div>
+      <div class="card">
+        <h3>🐢 低い端末でも快適</h3>
+        <p>JavaScriptの実行量が少ないため、スマートフォンや低スペック端末でもスムーズに動作します。アクセシビリティの観点からも有利です。</p>
+      </div>
+      <div class="card">
+        <h3>🛠️ シンプルな思考モデル</h3>
+        <p>「静的か、インタラクティブか」という2値の選択だけで、パフォーマンス最適化の判断ができます。複雑なコード分割設定を自分で行う必要がありません。</p>
+      </div>
+      <div class="card">
+        <h3>⚡ エッジキャッシュとの親和性</h3>
+        <p>Server Islands を組み合わせることで、パーソナライズ部分を除いたページ全体をCDNでキャッシュでき、グローバルな高速化が実現します。</p>
+      </div>
+    </div>
+
+    <div class="diagram-wrap" style="margin-top:2.5rem;">
+      <div class="diagram-title">従来アプローチと Astro Islands の比較</div>
+      <svg viewBox="0 0 720 240" width="720" height="240" aria-labelledby="compareTitle">
+        <title id="compareTitle">従来のフレームワークとAstro IslandsのJavaScript送信量と表示速度の比較</title>
+
+        <!-- Left: Traditional -->
+        <text x="170" y="35" text-anchor="middle" fill="#e8ecf4" font-size="14" font-family="Outfit, sans-serif" font-weight="600">従来の SPA / SSR</text>
+        <rect x="50" y="55" width="240" height="40" rx="8" fill="#38bdf8" opacity="0.25" stroke="#38bdf8" stroke-width="1.5"/>
+        <rect x="50" y="55" width="200" height="40" rx="8" fill="#38bdf8" opacity="0.45"/>
+        <text x="170" y="80" text-anchor="middle" fill="#e0f2fe" font-size="12" font-family="Outfit, sans-serif">JavaScript 量大</text>
+
+        <rect x="50" y="115" width="240" height="40" rx="8" fill="#f87171" opacity="0.25" stroke="#f87171" stroke-width="1.5"/>
+        <rect x="50" y="115" width="180" height="40" rx="8" fill="#f87171" opacity="0.45"/>
+        <text x="170" y="140" text-anchor="middle" fill="#fee2e2" font-size="12" font-family="Outfit, sans-serif">Hydration 時間 長</text>
+
+        <rect x="50" y="175" width="240" height="40" rx="8" fill="#a78bfa" opacity="0.25" stroke="#a78bfa" stroke-width="1.5"/>
+        <rect x="50" y="175" width="160" height="40" rx="8" fill="#a78bfa" opacity="0.45"/>
+        <text x="170" y="200" text-anchor="middle" fill="#ede9fe" font-size="12" font-family="Outfit, sans-serif">TTI 遅め</text>
+
+        <!-- Right: Astro -->
+        <text x="550" y="35" text-anchor="middle" fill="#e8ecf4" font-size="14" font-family="Outfit, sans-serif" font-weight="600">Astro Islands</text>
+        <rect x="430" y="55" width="240" height="40" rx="8" fill="#f59e0b" opacity="0.2" stroke="#f59e0b" stroke-width="1.5"/>
+        <rect x="430" y="55" width="50" height="40" rx="8" fill="#f59e0b" opacity="0.6"/>
+        <text x="550" y="80" text-anchor="middle" fill="#fef3c7" font-size="12" font-family="Outfit, sans-serif">JavaScript 量 小</text>
+
+        <rect x="430" y="115" width="240" height="40" rx="8" fill="#34d399" opacity="0.2" stroke="#34d399" stroke-width="1.5"/>
+        <rect x="430" y="115" width="70" height="40" rx="8" fill="#34d399" opacity="0.5"/>
+        <text x="550" y="140" text-anchor="middle" fill="#d1fae5" font-size="12" font-family="Outfit, sans-serif">Hydration 時間 短</text>
+
+        <rect x="430" y="175" width="240" height="40" rx="8" fill="#34d399" opacity="0.2" stroke="#34d399" stroke-width="1.5"/>
+        <rect x="430" y="175" width="90" height="40" rx="8" fill="#34d399" opacity="0.5"/>
+        <text x="550" y="200" text-anchor="middle" fill="#d1fae5" font-size="12" font-family="Outfit, sans-serif">TTI 速い</text>
+      </svg>
+    </div>
+  </section>
+
+  <section id="summary">
+    <h2><span class="num">7</span>まとめ</h2>
+    <p class="lead">
+      Astro の Islands Architecture は、「Webページの大部分は静コンテンツである」という事実に立ち返り、<strong>必要な場所にだけインタラクティブ性を配置する</strong>ことで、圧倒的なパフォーマンスを実現します。
+    </p>
+    <ul class="benefit">
+      <li>デフォルトでゼロクライアントJS。必要なコンポーネントだけが島として Hydration される。</li>
+      <li><code>client:*</code> ディレクティブで、Hydration のタイミングを宣言的に制御できる。</li>
+      <li>Server Islands により、パーソナライズ領域とキャッシュ可能な領域を分離できる。</li>
+      <li>React / Vue / Svelte など既存のUIコンポーネント資産をそのまま活用可能。</li>
+      <li>コンテンツ重視のWebサイト（ブログ、ドキュメント、マーケティングサイト）に特に適している。</li>
+    </ul>
+    <p style="margin-top:1.5rem; color:var(--muted);">
+      高速でSEOに強く、既存資産も活かせる Astro の Islands Architecture は、現代のWebフロントエンドにおける重要な選択肢の一つです。
+    </p>
+  </section>
+
+</main>
+
+<footer>
+  <div class="container">
+    <p>参考: Astro Docs - Islands Architecture / Server Islands / Why Astro</p>
+    <p style="margin-top:0.5rem; opacity:0.7;">この資料は解説用に作成されたものです。</p>
+  </div>
+</footer>
+
+</body>
+</html>
