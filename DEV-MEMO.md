@@ -149,6 +149,13 @@ GitHub Pages に 2 つのデプロイワークフローが存在し競合して�
 
 Pagefind の Default UI は CSS 変数と `!important` オーバーライドで同テーマに統一（角丸なし・黒枠・イエローボタン）。
 
+#### 実施内容 8: デザインをダークテーマに戻す
+
+- Neo-Brutalism リデザインを撤回し、元のダークテーマ（`#0b0f19` 背景）に復帰
+- コンテンツ一覧機能は引き続き維持（`.content-section` / `.content-list` をダークテーマ用スタイルで再実装）
+- 自動生成マーカー `<!-- CONTENT:START -->` / `<!-- CONTENT:END -->` の方式は変更なし
+- pagefind インデックスも再構築済み
+
 #### 今後の URL 構造（デプロイ後）
 
 ```
