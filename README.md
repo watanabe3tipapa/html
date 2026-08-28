@@ -71,7 +71,6 @@ README.md に以下のマーカーを追加してください：
 
 ```
 .
-|-- index.html
     |-- architecture.html
     |-- astro_islands_guide.html
     |-- astro_islands_neo_brutalism.html
@@ -79,7 +78,6 @@ README.md に以下のマーカーを追加してください：
     |-- github-pages-actions-guide.html
     |-- github_gist_file_formats.html
     |-- index-html-auto-generate-lp.html
-    |-- index.html
     |-- mercury-editor-lite-実装案.html
     |-- meta_disaster_support_hub.html
     |-- meta_disaster_support_hub_deepdive.html
@@ -95,10 +93,11 @@ README.md に以下のマーカーを追加してください：
     |-- pppt-machinery-lp.html
     |-- self_support_empowerment.html
     |-- sip4d_gai_effectiveness_risks.html
-    `-- リトマス紙からプリズムへ.html
+    |-- リトマス紙からプリズムへ.html
+`-- index.html
 ```
 
-*25 HTML files indexed*
+*24 HTML files indexed*
 
 <!-- HTML-INDEX:END -->
 ```
