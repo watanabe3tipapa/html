@@ -119,20 +119,24 @@ README.md に以下のマーカーを追加してください：
 ├── index.html
 ├── lp
 │   ├── architecture.html
+│   ├── astro_islands_guide.html
+│   ├── astro_islands_neo_brutalism.html
 │   ├── github-pages-actions-complete-guide.html
 │   ├── github-pages-actions-guide.html
 │   ├── github_gist_file_formats.html
 │   ├── index-html-auto-generate-lp.html
 │   ├── index.html
+│   ├── mercury-editor-lite-実装案.html
 │   ├── ogp-auto-generate-lp.html
 │   ├── pagefind-setup-guide.html
 │   ├── pagefind.yml
 │   ├── pppt-casual-lp.html
 │   ├── pppt-darkweb-lp.html
-│   └── pppt-machinery-lp.html
+│   ├── pppt-machinery-lp.html
+│   └── リトマス紙からプリズムへ.html
 └── pagefind.yml
 ```
 
-*17 items indexed*
+*21 items indexed*
 
 <!-- STRUCTURE:END -->
