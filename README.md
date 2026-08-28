@@ -137,6 +137,7 @@ README.md に以下のマーカーを追加してください：
 │   ├── github-pages-actions-guide.html
 │   ├── github_gist_file_formats.html
 │   ├── index-html-auto-generate-lp.html
+│   ├── litmus-paper-to-prism.html
 │   ├── mercury-editor-lite-実装案.html
 │   ├── meta_disaster_support_hub.html
 │   ├── meta_disaster_support_hub_deepdive.html
@@ -151,8 +152,7 @@ README.md に以下のマーカーを追加してください：
 │   ├── pppt-darkweb-lp.html
 │   ├── pppt-machinery-lp.html
 │   ├── self_support_empowerment.html
-│   ├── sip4d_gai_effectiveness_risks.html
-│   └── リトマス紙からプリズムへ.html
+│   └── sip4d_gai_effectiveness_risks.html
 ├── index.html
 └── pagefind.yml
 ```
