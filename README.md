@@ -73,19 +73,32 @@ README.md に以下のマーカーを追加してください：
 .
 |-- index.html
     |-- architecture.html
+    |-- astro_islands_guide.html
+    |-- astro_islands_neo_brutalism.html
     |-- github-pages-actions-complete-guide.html
     |-- github-pages-actions-guide.html
     |-- github_gist_file_formats.html
     |-- index-html-auto-generate-lp.html
     |-- index.html
+    |-- mercury-editor-lite-実装案.html
+    |-- meta_disaster_support_hub.html
+    |-- meta_disaster_support_hub_deepdive.html
+    |-- meta_official_hypothetical_analysis.html
+    |-- next_pfif_tech_stack.html
+    |-- next_pfif_vc_kg_deep_dive.html
     |-- ogp-auto-generate-lp.html
     |-- pagefind-setup-guide.html
+    |-- pfif_guide.html
+    |-- pfif_recent_trends.html
     |-- pppt-casual-lp.html
     |-- pppt-darkweb-lp.html
-    `-- pppt-machinery-lp.html
+    |-- pppt-machinery-lp.html
+    |-- self_support_empowerment.html
+    |-- sip4d_gai_effectiveness_risks.html
+    `-- リトマス紙からプリズムへ.html
 ```
 
-*12 HTML files indexed*
+*25 HTML files indexed*
 
 <!-- HTML-INDEX:END -->
 ```
