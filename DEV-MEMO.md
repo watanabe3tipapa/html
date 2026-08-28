@@ -156,6 +156,13 @@ Pagefind の Default UI は CSS 変数と `!important` オーバーライドで�
 - 自動生成マーカー `<!-- CONTENT:START -->` / `<!-- CONTENT:END -->` の方式は変更なし
 - pagefind インデックスも再構築済み
 
+#### 実施内容 9: デプロイ時のコンテンツ一覧の即時反映
+
+- `pagefind.yml` のビルドステップに "Generate Content Index" を追加
+- `pagefind` 実行前に Python スクリプトで `content/*.html` の一覧を index.html に注入
+- これにより、デプロイされたページの Contents 一覧が常に最新になる（`[skip ci]` による反映遅延を解消）
+- `update-content-index.yml` はリポジトリ上の index.html を最新に保つ役割として継続
+
 #### 今後の URL 構造（デプロイ後）
 
 ```
