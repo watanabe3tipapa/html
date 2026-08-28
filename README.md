@@ -128,9 +128,9 @@ README.md に以下のマーカーを追加してください：
 
 ```
 .
+├── DEV-MEMO.md
 ├── README.md
-├── index.html
-├── lp
+├── content
 │   ├── architecture.html
 │   ├── astro_islands_guide.html
 │   ├── astro_islands_neo_brutalism.html
@@ -138,18 +138,26 @@ README.md に以下のマーカーを追加してください：
 │   ├── github-pages-actions-guide.html
 │   ├── github_gist_file_formats.html
 │   ├── index-html-auto-generate-lp.html
-│   ├── index.html
 │   ├── mercury-editor-lite-実装案.html
+│   ├── meta_disaster_support_hub.html
+│   ├── meta_disaster_support_hub_deepdive.html
+│   ├── meta_official_hypothetical_analysis.html
+│   ├── next_pfif_tech_stack.html
+│   ├── next_pfif_vc_kg_deep_dive.html
 │   ├── ogp-auto-generate-lp.html
 │   ├── pagefind-setup-guide.html
-│   ├── pagefind.yml
+│   ├── pfif_guide.html
+│   ├── pfif_recent_trends.html
 │   ├── pppt-casual-lp.html
 │   ├── pppt-darkweb-lp.html
 │   ├── pppt-machinery-lp.html
+│   ├── self_support_empowerment.html
+│   ├── sip4d_gai_effectiveness_risks.html
 │   └── リトマス紙からプリズムへ.html
+├── index.html
 └── pagefind.yml
 ```
 
-*21 items indexed*
+*29 items indexed*
 
 <!-- STRUCTURE:END -->
