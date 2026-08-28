@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Verifiable Credentials × 知識グラフ：NEXT-PFIFの信頼・推論基盤</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f4f6f8;
+  --surface: #ffffff;
+  --ink: #1a1d23;
+  --muted: #5a6270;
+  --accent: #1e5aa8;
+  --accent-weak: color-mix(in oklab, var(--accent) 10%, var(--surface));
+  --accent-strong: #143d75;
+  --warning: #c27a1e;
+  --warning-weak: #fdf3e3;
+  --danger: #b23a2e;
+  --danger-weak: #fdeeed;
+  --success: #2d7a3e;
+  --success-weak: #e8f5e9;
+  --line: color-mix(in oklab, var(--ink) 10%, transparent);
+  --code-bg: #f0f3f7;
+  --step-0: clamp(1rem, 0.95rem + 0.3vw, 1.125rem);
+  --step-1: clamp(1.15rem, 1.05rem + 0.5vw, 1.4rem);
+  --step-2: clamp(1.5rem, 1.3rem + 1vw, 2rem);
+  --step-3: clamp(2rem, 1.6rem + 2vw, 3rem);
+  --space: clamp(1.5rem, 1.2rem + 1.5vw, 2.5rem);
+  --radius: 12px;
+  --shadow: 0 1px 2px rgba(0,0,0,0.04), 0 8px 24px -10px rgba(0,0,0,0.12);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: "Noto Sans JP", "Hiragino Sans", "Yu Gothic", "Noto Sans JP", sans-serif;
+  font-size: var(--step-0);
+  line-height: 1.85;
+  color: var(--ink);
+  background: var(--bg);
+  overflow-wrap: anywhere;
+}
+
+/* Header */
+header {
+  background: linear-gradient(135deg, var(--accent-strong) 0%, var(--accent) 100%);
+  color: #fff;
+  padding: calc(var(--space) * 2.5) var(--space);
+  text-align: center;
+}
+header h1 {
+  font-size: var(--step-3);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  margin-bottom: 0.6rem;
+}
+header .subtitle {
+  font-size: var(--step-0);
+  font-weight: 300;
+  opacity: 0.9;
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+/* Layout */
+.container {
+  max-width: 820px;
+  margin: 0 auto;
+  padding: var(--space);
+}
+
+/* Cards */
+.card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: calc(var(--space) * 1.2);
+  margin-bottom: var(--space);
+}
+
+/* Typography */
+h2 {
+  font-size: var(--step-2);
+  font-weight: 700;
+  color: var(--accent-strong);
+  margin-bottom: 0.8rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 2px solid var(--accent-weak);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+h2 .sec-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2em;
+  height: 2em;
+  background: var(--accent);
+  color: #fff;
+  font-size: 0.55em;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+h3 {
+  font-size: var(--step-1);
+  font-weight: 700;
+  color: var(--ink);
+  margin-top: 1.6rem;
+  margin-bottom: 0.5rem;
+}
+h4 {
+  font-size: 1.05em;
+  font-weight: 700;
+  color: var(--accent-strong);
+  margin-top: 1.2rem;
+  margin-bottom: 0.4rem;
+}
+p {
+  margin-bottom: 1rem;
+}
+
+/* Lists */
+ul, ol {
+  margin-left: 1.5rem;
+  margin-bottom: 1rem;
+}
+li {
+  margin-bottom: 0.4rem;
+}
+
+/* Table */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0 1.5rem;
+  font-size: 0.95em;
+}
+th, td {
+  border: 1px solid var(--line);
+  padding: 0.6rem 0.8rem;
+  text-align: left;
+  vertical-align: top;
+}
+th {
+  background: var(--accent-weak);
+  font-weight: 600;
+  color: var(--accent-strong);
+}
+tr:nth-child(even) td {
+  background: #fafbfc;
+}
+
+/* Code blocks */
+pre {
+  background: var(--code-bg);
+  border: 1px solid var(--line);
+  border-radius: calc(var(--radius) / 1.5);
+  padding: 1rem;
+  overflow-x: auto;
+  font-family: "JetBrains Mono", "Noto Sans JP", monospace;
+  font-size: 0.85em;
+  line-height: 1.6;
+  margin: 1rem 0 1.5rem;
+}
+code {
+  font-family: "JetBrains Mono", "Noto Sans JP", monospace;
+  background: var(--code-bg);
+  padding: 0.15rem 0.35rem;
+  border-radius: 4px;
+  font-size: 0.9em;
+  color: var(--accent-strong);
+}
+pre code {
+  padding: 0;
+  background: none;
+  color: inherit;
+}
+
+/* Alert boxes */
+.alert {
+  border-radius: var(--radius);
+  padding: 1rem 1.2rem;
+  margin: 1rem 0 1.5rem;
+}
+.alert-warning {
+  background: var(--warning-weak);
+  border-left: 4px solid var(--warning);
+}
+.alert-danger {
+  background: var(--danger-weak);
+  border-left: 4px solid var(--danger);
+}
+.alert-success {
+  background: var(--success-weak);
+  border-left: 4px solid var(--success);
+}
+.alert p:last-child {
+  margin-bottom: 0;
+}
+
+/* Info box */
+.info-box {
+  background: var(--accent-weak);
+  border-left: 4px solid var(--accent);
+  padding: 1rem 1.2rem;
+  border-radius: 0 var(--radius) var(--radius) 0;
+  margin: 1rem 0 1.5rem;
+}
+.info-box p:last-child {
+  margin-bottom: 0;
+}
+
+/* Concept box */
+.concept-box {
+  background: linear-gradient(135deg, #f8f9fb 0%, #eef1f6 100%);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 1.2rem;
+  margin: 1rem 0 1.5rem;
+}
+.concept-box h4 {
+  margin-top: 0;
+}
+
+/* Architecture diagram text */
+.arch-diagram {
+  background: #f8f9fb;
+  border: 1px dashed var(--line);
+  border-radius: var(--radius);
+  padding: 1.2rem;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.82em;
+  line-height: 1.7;
+  color: var(--muted);
+  margin: 1rem 0 1.5rem;
+  white-space: pre;
+  overflow-x: auto;
+}
+
+/* Links */
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
+
+/* Print */
+@media print {
+  body { background: #fff; }
+  .card { box-shadow: none; border: 1px solid var(--line); }
+  header { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
+@page { size: A4; margin: 18mm; }
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Verifiable Credentials × 知識グラフ</h1>
+  <p class="subtitle">NEXT-PFIFの信頼・推論基信頼・推論基盤：災害時行方不明者検索における検証可能性と知識統合の技術的深掘り</p>
+</header>
+
+<div class="container">
+
+  <div class="card">
+    <h2><span class="sec-num">1</span> はじめに：なぜこの2技術が「非常に重要」なのか</h2>
+    <p>PFIF 1.4の最大の設計思想は「データの追跡可能性」と「オリジナルリポジトリの権威」でした。しかし、AIが自動的に被災者レコードを生成する時代において、「誰が」「どのような根拠で」「の程度信頼できる情報」を生成したかを、<strong>機械的に検証・追跡する仕組み</strong>が不可欠です。</p>
+    <p>ここで中心的役割を果たすのが、<strong>Verifiable Credentials（検証可能な証明書、VC）</strong>と<strong>知識グラフ（Knowledge Graph, KG）</strong>です。VCは「情報の信頼性を数学的に保証」し、KGは「断片的な情報を意味的に統合・推論」します。両者は独立した技術ですが、NEXT-PFIFでは<strong>VCで検証された事実をKGのノードとして組み込み、推論の信頼性を担保する</strong>という形で深く連携します。</p>
+    <div class="info-box">
+      <p><strong>本稿の狙い：</strong>VCとKGを、W3C標準・実装技術・災害時ユースケースの3軸から深く掘り下げ、NEXT-PFIFのアーキテクチャにどう組み込むかを技術的に具体化します。</p>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <div class="card">
+    <h2><span class="sec-num">2</span> Verifiable Credentials（VC）の技術的深掘り</h2>
+
+    <h3>2.1 W3C標準の全体構造</h3>
+    <p>VCはW3C勧告（Verifiable Credentials Data Model 2.0、2024年）として標準化されています。核心的なデータ構造は以下の3要素です。</p>
+
+    <table>
+      <tr><th>要素</th><th>役割</th><th>NEXT-PFIFでの具体例</th></tr>
+      <tr>
+        <td><strong>Credential Subject</strong><br>（証明対象）</td>
+        <td>「誰について」「何を」主張しているか</td>
+        <td><code>id: did:pfif:person/abc123</code><br><code>status: believed_alive</code><br><code>location: geo:35.6,139.7</code></td>
+      </tr>
+      <tr>
+        <td><strong>Issuer</strong><br>（発行者）</td>
+        <td>誰がこの主張を保証しているか</td>
+        <td><code>id: did:web:firedept.tokyo.gov</code><br>（東京消防庁のDID）</td>
+      </tr>
+      <tr>
+        <td><strong>Proof</strong><br>（証明）</td>
+        <td>改ざん検知・発行者の真正性を数学的に保証</td>
+        <td>EdDSA署名、またはZK-Proof</td>
+      </tr>
+    </table>
+
+    <h3>2.2 VCのJSON-LD表現（具体例）</h3>
+    <p>以下は、救助隊が被災者の所在を確認したことをVCとして発行した場合の具体例です。</p>
+
+<pre><code>{
+  "@context": [
+    "https://www.w3.org/ns/credentials/v2",
+    "https://pfif.example/ns/disaster-vocab/v1"
+  ],
+  "id": "urn:uuid:7e76fdd7-6c1c-4b3c-82e0-9f1c8f9f7c3e",
+  "type": ["VerifiableCredential", "DisasterStatusCredential"],
+  "issuer": {
+    "id": "did:web:firedept.tokyo.gov",
+    "name": "東京消防庁 救助隊A"
+  },
+  "validFrom": "2026-08-28T09:14:00Z",
+  "credentialSubject": {
+    "id": "did:pfif:person/abc123",
+    "type": "DisasterVictim",
+    "fullName": "山田太郎",
+    "currentStatus": "believed_alive",
+    "location": {
+      "type": "GeoCoordinates",
+      "latitude": 35.6586,
+      "longitude": 139.7454,
+      "accuracyMeters": 15
+    },
+    "confirmedBy": "did:web:firedept.tokyo.gov",
+    "confirmationMethod": "visual_contact_drone_thermal",
+    "confidenceScore": 0.94
+  },
+  "proof": {
+    "type": "Ed25519Signature2020",
+    "created": "2026-08-28T09:14:30Z",
+    "proofPurpose": "assertionMethod",
+    "verificationMethod": "did:web:firedept.tokyo.gov#keys-1",
+    "proofValue": "z58D...xYf2Q"
+  }
+}</code></pre>
+
+    <div class="alert alert-success">
+      <p><strong>ポイント：</strong><code>confirmationMethod</code> と <code>confidenceScore</code> はPFIFには存在しなかったフィールドです。AIやセンサー由来の情報に対して、「どの方法で」「どの程度の確信をもって」確認したかを、発行者が明示的に記述できます。</p>
+    </div>
+
+    <h3>2.3 DID（分散識別子）：VCの発行者・対象者を特定する鍵</h3>
+    <p>VCの <code>issuer.id</code> や <code>credentialSubject.id</code> には<strong>DID（Decentralized Identifier）</strong>が使われます。DIDは中央管理型のID（メールアドレスやURL）とは異なり、以下の特徴を持ちます。</p>
+    <ul>
+      <li><strong>自己主権性</strong>：個人・組織が自分のIDを生成・理できる。</li>
+      <li><strong>検証可能性</strong>：DID Document（DIDドキュメント）に公開鍵・サービスエンドポイントが記録され、ブロックチェーンや分散型台帳（DID Method）から解決できる。</li>
+      <li><strong>Methodの多様性</strong>：<code>did:web</code>（Webサーバー上のDID Document）、<code>did:key</code>（自己完結型、オフライン検証可能）、<code>did:ion</code>（Bitcoin上のSidetree）等。</li>
+    </ul>
+
+    <h4>NEXT-PFIFにおけるDID設計案</h4>
+    <table>
+      <tr><th>DID Method</th><th>用途</th><th>災害時の利点</th></tr>
+      <tr>
+        <td><code>did:web</code></td>
+        <td>自治体・防・警察等の組織ID</td>
+        <td>既存のWebインフラで運用可能。DNS+HTTPSで検証。</td>
+      </tr>
+      <tr>
+        <td><code>did:key</code></td>
+        <td>救助隊員・ドローン・エッジデバイス</td>
+        <td>オフラインで完全に検証可能。外部インフラ不要。</td>
+      </tr>
+      <tr>
+        <td><code>did:pfif:...</code><br>（カスタムMethod）</td>
+        <td>被災者個人の一時ID</td>
+        <td>プライバシー保護（本名と紐付けずにVCを発行可能）。</td>
+      </tr>
+    </table>
+
+    <h3>2.4 オフライン検証：災害時の最重要要件</h3>
+    <p>通信インフラが破壊された被災地では、VCを「オンラインで発行者のサーバーに問い合わせて検証する」ことはできません。ここで重要になるが<strong>オフライン検証可能なVC</code>の設計です。</p>
+
+    <h4>オフライン検証の技術的実現方法</h4>
+    <ol>
+      <li><strong>事前配布された発行者公開鍵</strong>：救助隊の端末に、信頼する発行者（消防庁・警察等）の公開等）の公開鍵を災害前にキャッシュしておく。<code>did:web</code>のDID Documentを事前にダウンロードし、有効期限（cacheUntil）を設定。</li>
+      <li><strong>自己完結型Proof（did:key + 埋め込み公開鍵）</strong>：<code>did:key</code>はDIDそのものが公開鍵のハッシュであるため、DID Documentを外部から取得する必要がありません。DID文字列だけで公開鍵が復元でき、完全にオフラインで署名検証が可能です。</li>
+      <li><strong>VCの持ち運び（QRコード・NFC・BLE）</strong>：被災者が自身のVC（避難所受入証明等）をスマートフォンに保存し、救助隊員の端末にQRコード・NFC・Bluetooth Low Energyで提示。端末内で署名検証を完結。</li>
+      <li><strong>ステートメント証明（Status Listのオフラインキャッシュ）</strong>：VCの失効状態を示すStatus List（W3C VC Bitstring Status List）も、定期的に端末に同期しておくことで、オフラインで「このVCは失効していないか」を確認できます。</li>
+    </ol>
+
+    <div class="concept-box">
+      <h4>具体シナリオ：避難所での本人確認</h4>
+      <p>1. 被災者がスマホに保存したVC（避難所Aで受け入れた証明）を表示。</p>
+      <p>2. 避避難所Bの職員が端末でQRコードをスキャン。</p>
+      <p>3. 端末内のキャッシュされた公開鍵で署名を検証（オフライン完結）。</p>
+      <p>4. 「避難所Aで生存確認済み・要介護度2・食物アレルギーあり」が検証済み事実として取得。</p>
+      <p>5. この事実をKGに登録し、他の避難所・救助隊と共有。</p>
+    </div>
+
+    <h3>2.5 ゼロ知識証明（ZKP）との融合：プライバシー保護検証</h3>
+    <p>VCは「内容をそのまま開示」する形式ですが、災害時には「年齢が65歳以上であること」のみを証明したいが、「正確な生年月日」は開示したくない、という場面があります。ここで<strong>BBS+署名やCoconut credentials</strong>などのZKP対応VCが活きます。</p>
+
+    <table>
+      <tr><th>技術</th><th>仕組み</th><th>NEXT-PFIFでの用途</th></tr>
+      <tr>
+        <td><strong>BBS+ Signatures</strong></td>
+        <td>1つの署名から、開示する属性を選択的に「切り出して」ZK-Proofを生成できる。</td>
+        <td>「要支援者（高齢・障害・妊婦）」であるとを証明しつつ、具体的な疾患名や住所は秘匿。</td>
+      </tr>
+      <tr>
+        <td><strong>Coconut Credentials</strong></td>
+        <td>複数の発行者の閾値署名による分散発行。単一発行者への依存を排除。</td>
+        <td>「消防+警察+自治体」の3者中2者の署名があれば有効なVCを発行。単独組織の compromise に強い。</td>
+      </tr>
+      <tr>
+        <td><strong>Idemix</strong></td>
+        <td>IBM開発の匿名認証プロトコル。発行者に対しても開示属性を制御できる。</td>
+        <td>避難所間の移動履歴を追跡されずに、受援資格を証明。</td>
+      </tr>
+    </table>
+
+    <div class="alert alert-warning">
+      <p><strong>注意：</strong>ZKP対応VCの検証は、従来のEdDSA署名より計算コストが高いです。エッジデイス（救助隊員のスマホ）での検証には、WASMやGPUアクセラレーション、あるいは検証をクラウドにオフロードする設計が必要です。</p>
+    </div>
+
+    <h3>2.6 VCの信頼フレームワーク：Trust Registry</h3>
+    <p>「署名が数学的に正しい」ことと「発行者を信頼する」ことは別問題です。災害時に突然現れた「自称救助隊」のVCを受け入れるべきか？　ここで<strong>Trust Registry（信頼レジストリ）</strong>が必要です。</p>
+    <ul>
+      <li><strong>階層的Trust Model</strong>：内閣官房がTrust Registryのルートを管理し、各都道府県・消防本部・警察署のDIDを登録。救助隊員のDIDは消防本部のVCで認証されたもののみ有効。</li>
+      <li><strong>災害時の動的Trust Onboarding</strong>：隣接県からの応援隊や自衛隊、海外救援隊（USAR等）のDIDを、災害発生時に緊急登録する仕組み。事前登に加えて、災害宣言時の動的追加が必要です。</li>
+      <li><strong>Trust Registryのオフライン配布</strong>：Trust Registry自体を、災害前に全国の端末に分散キャッシュ（CRDT等で同期）しておく。</li>
+    </ul>
+
+    <h3>2.7 VCの失効・更新・履歴管理</h3>
+    <p>災害時の状況は刻一刻と変わります。「生存確認済み」のVCが、後に「死亡確認」のVCで上書きされることもあります。</p>
+    <ul>
+      <li><strong>Bitstring Status List（W3C標準）</strong>：VCの失効状態をビット列で管理。1つのStatus List VCで数万件のVCの失効状態を表現でき、帯域を節約。</li>
+      <li><strong>履歴VCチェーン</strong>：同一被災者に対するVCを、<code>previousVersion</code> リンクで連鎖させる。KG側で「最新の有効なVC」を追跡。</li>
+      <li><strong>有効期限の短縮化</strong>：災害時はVCの <code>validUntil</code> を24時間〜72時間に設定し、陳旧情報の蔓延を防ぐ。</li>
+    </ul>
+  </div>
+
+  <!-- ============================================================ -->
+  <div class="card">
+    <h2><span class="sec-num">3</span> 知識グラフ（KG）の技術的深掘り</h2>
+
+    <h3>3.1 RDF/OWL vs Property Graph：どちらを選ぶか</h3>
+    <p>知識グラフには大きく2つのパラダイムがあります。NEXT-PFIFでは、<strong>両者を使い分けるハイブリッドアーキテクチャ</strong>が現実的です。</p>
+
+    <table>
+      <tr><th>側面</th><th>RDF/OWL（Semantic Web）</th><th>Property Graph（Neo4j等）</th></tr>
+      <tr>
+        <td><strong>データモデル</strong></td>
+        <td>Subject-Predicate-Objectのトリプル。スキーマ（オントロジー）を厳密に定義。</td>
+        <td>ノード・リレーションシップ・プロパティ。柔軟なスキーマ。</td>
+      </tr>
+      <tr>
+        <td><strong>推論能力</strong></td>
+        <td>OWL Reasonerによる論理的推論（三段論法、包含関係等）。</td>
+        <td>グラフアルゴリズム（最短経路、コミュニティ検出等）に強い。</td>
+      </tr>
+      <tr>
+        <td><strong>標準化</strong></td>
+        <td>W3C標準（RDF, RDFS, OWL, SPARQL）。</td>
+        <td>デファクト標準（OpenCypher, GQL標準化進行中）。</td>
+      </tr>
+      <tr>
+        <td><strong>スケーラビリティ</strong></td>
+        <td>トリプルストア（Apache Jena, GraphDB等）。億トリプル級。</td>
+        <td>Neo4j, Amazon Neptune等。数十億ノード級。</td>
+      </tr>
+      <tr>
+        <td><strong>NEXT-PFIFでの用途</strong></td>
+        <td><strong>「意味的整合性の担保」</strong>：オントロジーに基づく検証、矛盾検出。</td>
+        <td><strong>「関係性の探索・最適化」</strong>：救助ルート、重複検出、影響範囲。</td>
+      </tr>
+    </table>
+
+    <div class="info-box">
+      <p><strong>推奨アーキテクチャ：</strong>RDF/OWLで「意味的に正しいデータ」を定義し、Property Graphで「高速な関係性探索」を実行。両者間の同期は、RDF→Property Graphの変換マッピング（Neo4jのneosemantics等）で実現。</p>
+    </div>
+
+    <h3>3.2 災害救援ドメインのオントロジー設計</h3>
+    <p>NEXT-PFIFのKGを支えるオントロジーは、以下の主要クラス・プロパティで構成されます。</p>
+
+<pre><code>@prefix pfif: &lt;https://pfif.example/ontology/v1/&gt; .
+@prefix sio: &lt;http://semanticscience.org/resource/&gt; .
+@prefix geo: &lt;http://www.w3.org/2003/01/geo/wgs84_pos#&gt; .
+@prefix foaf: &lt;http://xmlns.com/foaf/0.1/&gt; .
+
+pfif:DisasterVictim a owl:Class ;
+  rdfs:subClassOf foaf:Person ;
+  rdfs:label "災害被者" .
+
+pfif:RescueTeam a owl:Class ;
+  rdfs:label "救助隊" .
+
+pfif:Shelter a owl:Class ;
+  rdfs:label "避難所" .
+
+pfif:confirmedAt a owl:ObjectProperty ;
+  rdfs:domain pfif:DisasterVictim ;
+  rdfs:range pfif:Shelter ;
+  rdfs:label "確認された場所" .
+
+pfif:hasStatus a owl:DatatypeProperty ;
+  rdfs:domain pfif:DisasterVictim ;
+  rdfs:range xsd:string ;
+  rdfs:label "安否状態" .
+
+pfif:requiresAssistance a owl:DatatypeProperty ;
+  rdfs:domain pfif:DisasterVictim ;
+  rdfs:range xsd:boolean ;
+  rdfs:label "支援要否" .
+
+pfif:hasFamilyMember a owl:ObjectProperty ;
+  rdfs:domain pfif:DisasterVictim ;
+  rdfs:range pfif:DisasterVictim ;
+  rdfs:label "家族関係" .
+
+pfif:locatedAt a owl:ObjectProperty ;
+  rdfs:domain pfif:DisasterVictim ;
+  rdfs:range geo:Point ;
+  rdfs:label "所在位置" .
+
+pfif:confirmedBy a owl:ObjectProperty ;
+  rdfs:domain pfif:DisasterVictim ;
+  rdfs:range pfif:RescueTeam ;
+  rdfs:label "確認者" .
+
+pfif:hasCredential a owl:ObjectProperty ;
+  rdfs:domain pfif:DisasterVictim ;
+  rdfs:range &lt;https://www.w3.org/2018/credentials#VerifiableCredential&gt; ;
+  rdfs:label "関連VC" .</code></pre>
+
+    <h3>3.3 推論エンジン（Reasoner）の役割</h3>
+    <p>OWL Reasoner（Pellet, HermiT, RDFox等）は、明示的に記述されていない事実を<strong>論理的に導出</strong>します。</p>
+
+    <h4>推論の具体例</h4>
+    <table>
+      <tr><th>推論タイプ</th><th>入力事実</th><th>導出事実</th></tr>
+      <tr>
+        <td><strong>包含関係</strong></td>
+        <td>Aさんは「要介護5」である。<br>「要介護5」は「要支援者」のサブクラス。</td>
+        <td>Aさんは「要支援者」である。</td>
+      </tr>
+      <tr>
+        <td><strong>推移性</strong></td>
+        <td>AさんはBさんの家族。<br>BさんはCさんの家族。</td>
+        <td>AさんとCさんは同じ家族単位に属する（救助優先度の集団評価に利用）。</td>
+      </tr>
+      <tr>
+        <td><strong>矛盾検出</strong></td>
+        <td>VC1: Aさんは「避難所Xに所在」（2026-08-28 08:00）<br>VC2: Aさんは「避難所Yに所在」（2026-08-28 08:30）<br>避難所XとYは30km離れている。</td>
+        <td>物理的に移動不可能 → 少なくとも一方のVCに問題あり（信頼度再評価）。</td>
+      </tr>
+      <tr>
+        <td><strong>制約違反</strong></td>
+        <td>Aさんの <code>hasStatus</code> = "believed_dead"<br>かつ <code>confirmedBy</code> = ドローンAI（信頼度0.6）</td>
+        <td>「死亡確認」は人間（医師・消防）のみが発行可能な制約違反を検出。</td>
+      </tr>
+    </table>
+
+    <h3>3.4 時空間推論：災害KGの核心</h3>
+    <p>災害KGの最も重要な特徴は、<strong>「時間」と「空間」がファーストクラス概念</strong>であることです。</p>
+
+    <h4>時間オントロジー（OWL-Timeの拡張）</h4>
+    <p>W3C OWL-Timeを拡張し、災害特有の時間概念を表現します。</p>
+<ul>
+  <li><strong>ValidTime（有効時間）</strong>：「Aさんが避難所Xにいた」という事実が成り立つ時間区間。</li>
+  <li><strong>TransactionTime（記録時間）</strong>：その事実がシステムに登録された時間。</li>
+  <li><strong>DisasterPhase（災害フェーズ）</strong>：発災直後・避難期・復旧期等のフェーズ概念。同じ行動でもフェーズによって解釈が変わる（例：発災直後の「建物内」は要救助、復旧期の「建物内」は自主避難）。</li>
+</ul>
+
+    <h4>空間推論（GeoSPARQL）</h4>
+    <p>OGC GeoSPARQL標準を用い、以下の空間推論を実行します。</p>
+    <ul>
+      <li><strong>sfWithin（包含）</strong>：Aさんの位置が「浸水区域」内にあるか。</li>
+      <li><strong>sfIntersects（交差）</strong>：救助隊の進行ルートと土砂崩れ区域が交差するか。</li>
+      <li><strong>sfBuffer（バッファ）</strong>：Aさんの最後の確認位置から半径500mの探索範囲を生成。</li>
+      <li><strong>sfDistance（距離）</strong>：被災者と最も近い救助隊の距離を計算し、優先順位付け。</li>
+    </ul>
+
+    <div class="concept-box">
+      <h4>具体例：時空間推論による救助優先度計算</h4>
+      <p>1. Aさん（80歳・要介護5）の最終確認：2026-08-27T14:00、位置(35.6, 139.7)。</p>
+      <p>2. 現在時刻：2026-08-28T09:00（19時間経過）。</p>
+      <p>3. その位置はGeoSPARQLで「浸水深度1m以上区域」に含まれると判定。</p>
+      <p>4. OWL推論：「高齢・要介護・浸水区域・長時間未確認」→ 最高救助優先度。</p>
+      <p>5. 最も近い救助隊（B隊）との離をGeoSPARQL sfDistanceで計算 → 2.3km。</p>
+      <p>6. B隊の現在の任務完了予定時刻と合わせて、動的ルート再計算。</p>
+    </div>
+
+    <h3>3.5 大規模KGの実装技術スタック</h3>
+    <table>
+      <tr><th>レイヤー</th><th>技術候補</th><th>選定理由</th></tr>
+      <tr>
+        <td><strong>ストレージ</strong></td>
+        <td>Neo4j（Property Graph）<br>or Amazon Neptune（RDF+PG両対応）</td>
+        <td>Neo4jはグラフアルゴリズムに強く、災害時の高速探索に最適。Neptuneは2024年にRDFとPGの統合サポートを強化。</td>
+      </tr>
+      <tr>
+        <td><strong>推論エンジン</strong></td>
+        <td>RDFox（インメモリ）<br>or GraphDB</td>
+        <td>RDFoxはDatalogベースの高速推。災害時のリアルタイム推論に適する。GraphDBはGeoSPARQLフルサポート。</td>
+      </tr>
+      <tr>
+        <td><strong>分散処理</strong></td>
+        <td>JanusGraph + Cassandra/ScyllaDB</td>
+        <td>億ノード規模の分散グラフ。全国規模の災害データを扱う場合に検討。</td>
+      </tr>
+      <tr>
+        <td><strong>検索・可視化</strong></td>
+        <td>Elasticsearch（全文検索）<br>+ Kibana/Grafana（可視化）</td>
+        <td>「山田太郎」のような名前検索と、地理的可視化の両方をカバー。</td>
+      </tr>
+      <tr>
+        <td><strong>キャッシュ</strong></td>
+        <td>RedisGraph or KeyDB</td>
+        <td>頻繁にアクセスされる被災者・避難所のサブグラフをキャッシュ。</td>
+      </tr>
+    </table>
+
+    <h3>3.6 LLM + KG：RAGの強化と「幻覚」対策</h3>
+    <p>生成AI（LLM）をKGと組み合わせることで、以下の強化が可能です。</p>
+
+    <h4>KG-augmented RAG（GraphRAG）</h4>
+    <p>従来のRAGは「文書をベクトル化して類似検索」でしたが、GraphRAGではKGの構造を検索に活用します。</p>
+    <ul>
+      <li><strong>Entity Linking</strong>：LLMの出力中の「山田太郎」をKGのノード <code>pfif:DisasterVictim/abc123</code> に紐付け。</li>
+      <li><strong>Subgraph Retrieval</strong>：質問「山田太郎の家族はどこにいるか？」に対し、KGから「山田太郎」ノードの1-hop（家族関係）サブグラフを抽出し、LLMのコンテキストに注入。</li>
+      <li><strong>Fact Checking</strong>：LLMが生成した回答がKGのトリプルと矛盾しないかを、推論エンジン検証。</li>
+    </ul>
+
+    <h4>LLMによるKG構築（Inverse Direction）</h4>
+    <p>逆に、LLMを使って非構造化テキスト（SNS投稿・119通報・ニュース記事）からKGのトリプルを自動抽出することも可能です。</p>
+    <div class="concept-box">
+      <h4>具体例：119通報テキストからのトリプル抽出</h4>
+      <p>入力：「〇〇町3丁目のマンション2階に、車椅子の高齢女性が取り残されています。階段が崩れています。」</p>
+      <p>LLM抽出トリプル：</p>
+      <ul>
+        <li><code>(_:victim1, rdf:type, pfif:DisasterVictim)</code></li>
+        <li><code>(_:victim1, pfif:hasDisability, "wheelchair")</code></li>
+        <li><code>(_:victim1, pfif:estimatedAge, "elderly")</code></li>
+        <li><code>(_:victim1, pfif:locatedAt, geo:Point(35.6,139.7))</code> ← 住所ジオコーディング</li>
+        <li><code>(_:victim1, pfif:hasAccessConstraint, "stairs_collapsed")</code></li>
+        <li><code>(_:victim1, pfif:requiresAssistance, true)</code></li>
+      </ul>
+      <p>→ これらのトリプルは、VCの検証済み事実と区別して「信頼度0.7（未確認）」としてKGに登録。</p>
+    </div>
+
+    <div class="alert alert-danger">
+      <p><strong>リスク：</strong>LLMが生成したトリプルは、幻覚の可能性があります。必ず「信頼度スコア」と「出典（LLMモデル名・入力テキストID）」を付与し、人間または推論エンジンによる検証を経て、信頼度を更新するワークフローが必要です。</p>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <div class="card">
+    <h2><span class="sec-num">4</span> VC × KG の連携アーキテクチャ</h2>
+
+    <h3>4.1 連携の基本概念</h3>
+    <p>VCとKGは以下のように連携します。</p>
+    <div class="arch-diagram">┌─────────────────────────────────────────────────────────────┐
+│  VC層：「検証された事実」の発行・検証・失効管理              │
+│  - 発行者：消防・警察・自治体・ドローン・医療機関            │
+│  - 検証：署名検証 + Trust Registry確認 + Status List確認     │
+│  - 出力：検証済みトリプル（信頼度1.0）                       │
+└──────────────────────┬──────────────────────────────────────┘
+                       │ 検証済みトリプルの投入
+                       ▼
+┌─────────────────────────────────────────────────────────────┐
+│  KG層：「意味的統合・推論・探索」の実行                      │
+│  - ノード：被災者・避難所・救助隊・災害区域                  │
+│  - エッジ：所在・家族関係・確認関係・移動履歴                │
+│  - 推論：OWL Reasoner + GeoSPARQL + 時空間推論              │
+│  - 出力：救助優先度・探索範囲・重複検出結果                  │
+└──────────────────────┬──────────────────────────────────────┘
+                       │ 推論結果のフィードバック
+                       ▼
+┌─────────────────────────────────────────────────────────────┐
+│  AI/LLM層：「意思決支援・自然言語インターフェース」        │
+│  - GraphRAG：KGサブグラフをコンテキストとしてLLMに提供       │
+│  - 生成：救助計画・安否通知・多言語翻訳                      │
+│  - 検証：LLM出力をKGと照合して幻覚検出                       │
+└─────────────────────────────────────────────────────────────┘</div>
+
+    <h3>4.2 VCをKGの「信頼付きエッジ」として扱う</h3>
+    <p>KGのエッジ（例：<code>Aさん --[confirmedAt]--> 避難所X</code>）に、VCのURIをプロパティとして付与することで、「この関係はどのVCによって裏付けられているか」を追跡できます。</p>
+
+<pre><code>pfif:DisasterVictim/abc123 pfif:confirmedAt pfif:Shelter/shinjuku-01 ;
+  pfif:hasEvidence &lt;urn:vc:7e76fdd7-6c1c-4b3c-82e0-9f1c8f9f7c3e&gt; .
+
+&lt;urn:vc:7e76fdd7...&gt; a &lt;https://www.w3.org/2018/credentials#VerifiableCredential&gt; ;
+  pfif:issuerTrustScore 0.98 ;
+  pfif:verificationMethod "Ed25519Signature2020" ;
+  pfif:verifiedAt "2026-08-28T09:14:30Z"^^xsd:dateTime .</code></pre>
+
+    <p>これにより、KGの推論エンジンは「信頼度0.98の消防庁VCによる確認」と「信頼度0.45のSNS投稿由来の未確認情報」を区別して扱えます。</p>
+
+    <h3>4.3 信頼度の伝播（Trust Propagation）</h3>
+    <p>KG上で、VCの信頼度が関係性を通じて伝播するモデルを設計きます。</p>
+
+    <h4>伝播ルールの例（Datalog表現）</h4>
+<pre><code>(1) trust(person, "location", T) :- 
+      VC verifies person.location,
+      VC.issuerTrustScore >= T.
+
+(2) trust(person, "family", 0.8 * T) :-
+      trust(person, "location", T),
+      person.hasFamilyMember(family),
+      family.lastConfirmedAt == person.lastConfirmedAt.
+
+(3) inferredRisk(person, "high") :-
+      trust(person, "location", T), T > 0.7,
+      person.locatedAt geo:within DisasterZone.flooded,
+      person.hasStatus "believed_alive",
+      person.requiresAssistance true,
+      now - person.lastConfirmed > 12 hours.</code></pre>
+
+    <p>ルール(2)は「Aさんの所在が高信頼度で確認されていれば、同じ場所にいる家族の所在も間接的に信頼できる（ただし信だし信頼度は減衰）」という推論を表します。</p>
+
+    <h3>4.4 プライバシー保護されたままのKG推論</h3>
+    <p>VCにZKP（BBS+等）を用いる場合、KG側で「属性の存在」を知りたいが「属性の値」を知りたくない、という要求が生じます。</p>
+    <ul>
+      <li><strong>匿名化ノード</strong>：KG上では <code>pfif:DisasterVictim/_anon_001</code> のような匿名IDで管理。実名・生年月日はVC内にのみ保持。</li>
+      <li><strong>選択的開示トリプル</strong>：ZKPで「65歳以上でる」という証明だけをKGに提出し、「正確な年齢」は開示しない。</li>
+      <li><strong>安全な推論（Secure Multi-Party Computation, SMPC）</strong>：複数の組織（自治体A・自治体B・医療機関）が、データを開示せずに共同でKG推論を実行。例えば「避難所Aと避難所Bの重複被災者数」を、個人情報を開示せずに計算。</li>
+    </ul>
+  </div>
+
+  <!-- ============================================================ -->
+  <div class="card">
+    <h2><span class="sec-num">5</span> 実装上の課題と推奨アーキテクチャ</h2>
+
+    <h3>5.1 技術スタックの統合提案</h3>
+    <table>
+      <tr><th>コンポーネント</th><th>推奨技術</th><th>理由</th></tr>
+      <tr>
+        <td><strong>VC発行・検証</strong></td>
+        <td>Veramo（TypeScript）<br>or ACA-Py（Python）</td>
+        <td>VeramoはWeb標準に親和性が高い。ACA-PyはAriesフレームワークの実装で、政府系プロジェクトに実績あり。</td>
+      </tr>
+      <tr>
+        <td><strong>DID解決</strong></td>
+        <td>Universal Resolver</td>
+        <td>W3C CCWGの参照実装。複数DID Methodを統一的に解決。</td>
+      </tr>
+      <tr>
+        <td><strong>Trust Registry</strong></td>
+        <td>OIDF Trust Mark + 分散Git</td>
+        <td>OpenID FoundationのTrust Mark仕様をベースに、災害時の動的更新はGitの分散性を活用。</td>
+      </tr>
+      <tr>
+        <td><strong>KGストア</strong></td>
+        <td>Neo4j（PG）+ RDFox推論）</td>
+        <td>Neo4jで高速な関係性探索、RDFoxで厳密なOWL推。neosemanticsで同期。</td>
+      </tr>
+      <tr>
+        <td><strong>時空間索引</strong></td>
+        <td>GeoWave or PostGIS</td>
+        <td>GeoSPARQLの完全実装と、大規模時空間データの索引。</td>
+      </tr>
+      <tr>
+        <td><strong>LLM連携</strong></td>
+        <td>LangChain + GraphRAG</td>
+        <td>KGをLangChainのRetrieverとして統合。GraphRAGでサブグラフ抽出。</td>
+      </tr>
+      <tr>
+        <td><strong>ZKP検証</strong></td>
+        <td>Mattr BBS+ Library<br>or Idemix Go</td>
+        <td>BBS+署名の生成・検証ライブラリ。WASMでブラウザ/モバイル対応。</td>
+      </tr>
+    </table>
+
+    <h3>5.2 災害時の運用フロー（統合シナリオ）</h3>
+    <div class="concept-box">
+      <h4>シナリオ：大規模地震発生後の統合運用</h4>
+      <p><strong>T+0〜1時間（発災直後）：</strong></p>
+      <ul>
+        <li>ドローン隊が出動。エッジAIで熱画像から人影を検知。</li>
+        <li>検知位置・時刻を <code>did:key</code> で署名したVCを生成（オフライン完結）。</li>
+        <li>救助隊員の端末にメッシュWi-Fi/LoRaでVCを配布。</li>
+      </ul>
+      <p><strong>T+1〜6時間（避難所運営）：</strong></p>
+      <ul>
+        <li>避難所で被災者のVC（避難所受入証明・医療初診記録）を発行。</li>
+        <li>VCをKGに投入。GeoSPARQLで「避難所の収容率・要支援者数」をリアルタイム集計。</li>
+        <li>OWL推論で「避難所Xは満杯→新規被災者は避難所Yへ誘導」を自動導出。</li>
+      </ul>
+      <p><strong>T+6〜48時間（重複解消・家族再会）：</strong></p>
+      <ul>
+        <li>複数避難所のKGをクラウドに集約。</li>
+        <li>フェイス認識AI + NLPファジーマッチングで重複被災者を検出。</li>
+        <li>GraphRAGで「山田太郎の家族」のサブグラフを抽出し、LLMが自然言語で安否通知を生成。</li>
+        <li>家族再会後、VCで「再会確認」を発行し、KG上で家族ノードを統合。</li>
+      </ul>
+      <p><strong>T+48時間〜（復旧・プライバシー保護）：</strong></p>
+      <ul>
+        <li><code>expiry_date</code>に相当するVC失効をStatus Listで管理。</li>
+        <li>差分プライバシーで統計データ（年齢分布・障害別支援数等）を公開。</li>
+        <li>個人識別可能なKGサブグラフは暗号化し、一定期間後に削除。</li>
+      </ul>
+    </div>
+
+    <h3>5.3 課題と対策のまとめ</h3>
+    <table>
+      <tr><th>課題</th><th>対策</th></tr>
+      <tr>
+        <td>VC検証の計算コスト（ZKP等）</td>
+        <td>エッジでは軽量検証（did:key + EdDSA）、クラウドで厳密検証（BBS+等）の2段階設計。</td>
+      </tr>
+      <tr>
+        <td>KGのスケーラビリティ</td>
+        <td>地域単位のシャーディング + 災害フェーズごとのサブグラフ切り出し。</td>
+      </tr>
+      <tr>
+        <td>オントロジーの進化</td>
+        <td>Semantic Versioning + マイグレーションスクリプト。災害種別ごとの拡張モジュール化。</td>
+      </tr>
+      <tr>
+        <td>組織間の信頼構築</td>
+        <td>Trust Registryの事前登録 + 災害時の動的オンボーディング。国際救援隊にはWISeID等の既存枠組みを活用。</td>
+      </tr>
+      <tr>
+        <td>LLMの幻覚によるKG汚染</td>
+        <td>「LLM生成トリプル」は必ず「信頼度0.5以下 + 人間検証待ち」としてKGに登録。推論エンジンでは未検証トリプルを除外。</td>
+      </tr>
+      <tr>
+        <td>オフライン完全性</td>
+        <td>CRDT（Conflict-free Replicated Data Type）でエッジ間のKG断片を非同期同期。VCはQRコードで物理的持ち運び。</td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- ============================================================ -->
+  <div class="card">
+    <h2><span class="sec-num">6</span> まとめ：VC × KG が NEXT-PFIF にもたらすもの</h2>
+    <table>
+      <tr><th>PFIF 1.4の課題</th><th>VC × KG による解決</th></tr>
+      <tr>
+        <td>「source_name/source_url」は人間が読むためのテキスト</td>
+        <td>VCのProofは<strong>機械的に検証可能な数学的保証</strong>。発行者・時刻・内容の真正性を自動確認。</td>
+      </tr>
+      <tr>
+        <td>「同じ人の複数レコード」をマージしない推奨</td>
+        <td>KGの推論エンジンが<strong>自動重複検出・信頼度付き統合ビュー</strong>を生成。</td>
+      </tr>
+      <tr>
+        <td>位置情報は住所テキストのみ</td>
+        <td>GeoSPARQLによる<strong>時空間推論</strong>。浸水区域・救助範囲・移動可能性を自動判定。</td>
+      </tr>
+      <tr>
+        <td>プライバシー保護は「期限切れ削除」のみ</td>
+        <td>ZKP-VC + 差分プライバシー + SMPCで、<strong>開示せずに推論・集計</strong>が可能。</td>
+      </tr>
+      <tr>
+        <td>AI生成情報の信頼性管理がない</td>
+        <td>VCの<code>confidenceScore</code> + KGの信頼度伝播 + LLM出力のKG検証で、<strong>検証可能なAI</strong>を実現。</td>
+      </tr>
+      <tr>
+        <td>オフライン・分散環境での動作が未設計</td>
+        <td><code>did:key</code> + オフラインVC検証 + CRDTベースKG同期で、<strong>通信インフラ非依存</strong>を実現。</td>
+      </tr>
+    </table>
+
+    <div class="alert alert-success">
+      <p><strong>結論：</strong>Verifiable Credentialsは「検証可能な信頼の単位」を供し、知識グラフは「意味的に統合された世界モデル」を提供します。両者の連携により、NEXT-PFIFは「人間が手動で入力した静的レコードの交換」から、「AI・センサー・人間が協調して生成・検証・推論する動的な信頼インフラ」へと進化します。これは単なるフォーマットの更新ではなく、<strong>災害情報管理のパラダイムそのものの転換</strong>です。</p>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top: 2rem;">
+    <h2>参考文献・技術仕様</h2>
+    <ul>
+      <li><a href="https://www.w3.org/TR/vc-data-model-2.0/" target="_blank">W3C Verifiable Credentials Data Model 2.0</a> — VCの公式標準</li>
+      <li><a href="https://www.w3.org/TR/did-core/" target="_blank">W3C Decentralized Identifiers (DID) 1.0</a> — DIDの公式標準</li>
+      <li><a href="https://www.w3.org/TR/owl2-overview/" target="_blank">W3C OWL 2 Web Ontology Language</a> — OWLオントロジー標準</li>
+      <li><a href="https://opengeospatial.github.io/ogc-geosparql/" target="_blank">OGC GeoSPARQL</a> — 地理空間推論標準</li>
+      <li><a href="https://www.w3.org/TR/owl-time/" target="_blank">W3C OWL-Time</a> — 時間オントロジー</li>
+      <li><a href="https://identity.foundation/bbs-signature/" target="_blank">BBS+ Signatures (DIF)</a> — ZKP対応署名</li>
+      <li><a href="https://veramo.io/" target="_blank">Veramo</a> — VC発行・検証フレームワーク</li>
+      <li><a href="https://github.com/openwallet-foundation/acapy" target="_blank">ACA-Py</a> — Aries Cloud Agent Python</li>
+      <li><a href="https://neo4j.com/labs/neosemantics/" target="_blank">neosemantics (n10s)</a> — RDF→Neo4j連携</li>
+      <li><a href="https://www.oxfordsemantic.tech/" target="_blank">RDFox</a> — インメモリ高速推論エンジン</li>
+      <li><a href="https://microsoft.github.io/graphrag/" target="_blank">Microsoft GraphRAG</a> — KG-augmented RAG</li>
+    </ul>
+  </div>
+
+</div>
+
+</body>
+</html>

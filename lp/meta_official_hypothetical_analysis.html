@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>仮説的考察：Meta災害支援ハブが「官製」だった場合のメリット・デメリット</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Noto+Serif+JP:wght@600;700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f4f5f7;
+  --surface: #ffffff;
+  --surface-2: #f0f1f3;
+  --ink: #1c1e21;
+  --ink-secondary: #3c4043;
+  --muted: #65676b;
+  --primary: #1e3a5f;
+  --primary-weak: color-mix(in oklab, var(--primary) 8%, var(--bg));
+  --accent: #c75c1a;
+  --accent-weak: color-mix(in oklab, var(--accent) 10%, var(--surface));
+  --pro: #2d6a4f;
+  --pro-weak: color-mix(in oklab, var(--pro) 10%, var(--surface));
+  --con: #8b2635;
+  --con-weak: color-mix(in oklab, var(--con) 10%, var(--surface));
+  --neutral: #6c5b7b;
+  --line: color-mix(in oklab, var(--ink) 8%, transparent);
+  --step--2: clamp(0.75rem, 0.72rem + 0.15vw, 0.875rem);
+  --step--1: clamp(0.875rem, 0.84rem + 0.2vw, 1rem);
+  --step-0: clamp(1rem, 0.95rem + 0.3vw, 1.125rem);
+  --step-1: clamp(1.2rem, 1.08rem + 0.7vw, 1.6rem);
+  --step-2: clamp(1.6rem, 1.3rem + 1.6vw, 2.6rem);
+  --step-3: clamp(2.2rem, 1.6rem + 3.2vw, 4rem);
+  --space: clamp(1.5rem, 1.2rem + 1.5vw, 3rem);
+  --radius: 14px;
+  --shadow: 0 1px 3px rgba(0,0,0,0.05), 0 8px 24px -10px rgba(0,0,0,0.18);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: "Noto Sans JP", "Hiragino Sans", "Yu Gothic", "Noto Sans JP", sans-serif;
+  font-size: var(--step-0);
+  line-height: 1.9;
+  color: var(--ink);
+  background: var(--bg);
+}
+
+/* Hero */
+.hero {
+  background: var(--primary);
+  color: #fff;
+  padding: calc(var(--space) * 3) var(--space);
+  position: relative;
+  overflow: hidden;
+}
+
+.hero::before {
+  content: "";
+  position: absolute;
+  top: -40%;
+  left: -10%;
+  width: 60%;
+  height: 180%;
+  background: radial-gradient(circle, rgba(255,255,255,0.08), transparent 55%);
+  pointer-events: none;
+}
+
+.hero::after {
+  content: "";
+  position: absolute;
+  bottom: -30%;
+  right: -5%;
+  width: 45%;
+  height: 120%;
+  background: radial-gradient(circle, rgba(199,92,26,0.2), transparent 50%);
+  pointer-events: none;
+}
+
+.hero-inner {
+  position: relative;
+  z-index: 1;
+  max-width: 860px;
+  margin: 0 auto;
+}
+
+.hero-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: var(--step--2);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.7);
+  margin-bottom: 1.25rem;
+}
+
+.hero h1 {
+  font-family: "Noto Serif JP", "Hiragino Mincho ProN", "Yu Mincho", "Noto Serif JP", serif;
+  font-size: var(--step-3);
+  font-weight: 900;
+  line-height: 1.18;
+  letter-spacing: -0.03em;
+  margin-bottom: 1.25rem;
+}
+
+.hero-lead {
+  font-size: var(--step-1);
+  color: rgba(255,255,255,0.88);
+  max-width: 720px;
+  line-height: 1.7;
+  margin-bottom: 2rem;
+}
+
+.hero-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  font-size: var(--step--2);
+  color: rgba(255,255,255,0.6);
+  letter-spacing: 0.05em;
+}
+
+.hero-meta span { display: flex; align-items: center; gap: 0.4rem; }
+
+/* Container */
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0 var(--space);
+}
+
+/* Section */
+.section {
+  padding: calc(var(--space) * 2) 0;
+}
+
+.section + .section {
+  border-top: 1px solid var(--line);
+}
+
+.section-header {
+  margin-bottom: calc(var(--space) * 0.9);
+}
+
+.section-num {
+  display: inline-block;
+  font-family: "Noto Serif JP", serif;
+  font-size: var(--step--1);
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 0.1em;
+  margin-bottom: 0.5rem;
+}
+
+.section-title {
+  font-family: "Noto Serif JP", "Hiragino Mincho ProN", "Yu Mincho", "Noto Serif JP", serif;
+  font-size: var(--step-2);
+  font-weight: 700;
+  color: var(--primary);
+  line-height: 1.25;
+  margin-bottom: 0.6rem;
+}
+
+.section-desc {
+  color: var(--muted);
+  font-size: var(--step--1);
+  max-width: 680px;
+}
+
+/* Prose */
+.prose {
+  max-width: 740px;
+}
+
+.prose p {
+  margin-bottom: 1.25rem;
+  text-align: justify;
+  word-break: normal;
+  overflow-wrap: anywhere;
+}
+
+.prose p:last-child { margin-bottom: 0; }
+
+.prose strong { color: var(--ink-secondary); font-weight: 700; }
+
+/* Hypothesis box */
+.hypothesis {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: calc(var(--space) * 0.9);
+  margin: calc(var(--space) * 0.8) 0;
+  box-shadow: var(--shadow);
+}
+
+.hypothesis-label {
+  display: inline-block;
+  font-size: var(--step--2);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--accent);
+  text-transform: uppercase;
+  margin-bottom: 0.75rem;
+}
+
+.hypothesis h3 {
+  font-family: "Noto Serif JP", serif;
+  font-size: var(--step-1);
+  font-weight: 700;
+  color: var(--primary);
+  margin-bottom: 0.75rem;
+  line-height: 1.35;
+}
+
+.hypothesis p {
+  font-size: var(--step--1);
+  color: var(--muted);
+  line-height: 1.85;
+}
+
+/* Two column pros/cons */
+.comparison-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: calc(var(--space) * 0.7);
+  margin-top: calc(var(--space) * 0.8);
+}
+
+.comparison-box {
+  border-radius: var(--radius);
+  padding: calc(var(--space) * 0.85);
+  box-shadow: var(--shadow);
+  border: 1px solid var(--line);
+}
+
+.comparison-box.pro {
+  background: var(--pro-weak);
+  border-left: 4px solid var(--pro);
+}
+
+.comparison-box.con {
+  background: var(--con-weak);
+  border-left: 4px solid var(--con);
+}
+
+.comparison-box.neutral {
+  background: color-mix(in oklab, var(--neutral) 8%, var(--surface));
+  border-left: 4px solid var(--neutral);
+}
+
+.comparison-box h4 {
+  font-size: var(--step-0);
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.comparison-box.pro h4 { color: var(--pro); }
+.comparison-box.con h4 { color: var(--con); }
+.comparison-box.neutral h4 { color: var(--neutral); }
+
+.comparison-box ul {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.comparison-box li {
+  font-size: var(--step--1);
+  color: var(--ink-secondary);
+  line-height: 1.75;
+  padding-left: 1.2rem;
+  position: relative;
+}
+
+.comparison-box.pro li::before {
+  content: "+";
+  position: absolute;
+  left: 0;
+  color: var(--pro);
+  font-weight: 700;
+}
+
+.comparison-box.con li::before {
+  content: "−";
+  position: absolute;
+  left: 0;
+  color: var(--con);
+  font-weight: 700;
+}
+
+.comparison-box.neutral li::before {
+  content: "●";
+  position: absolute;
+  left: 0;
+  color: var(--neutral);
+  font-size: 0.6em;
+  top: 0.3em;
+}
+
+/* Detail cards */
+.detail-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: calc(var(--space) * 0.85);
+  margin-bottom: calc(var(--space) * 0.7);
+  box-shadow: var(--shadow);
+}
+
+.detail-card h4 {
+  font-size: var(--step-0);
+  font-weight: 700;
+  color: var(--primary);
+  margin-bottom: 0.6rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.detail-card p, .detail-card li {
+  font-size: var(--step--1);
+  color: var(--muted);
+  line-height: 1.85;
+}
+
+.detail-card ul { padding-left: 1.3rem; margin-top: 0.4rem; }
+
+/* Balance meter */
+.balance-bar {
+  display: flex;
+  height: 8px;
+  border-radius: 4px;
+  overflow: hidden;
+  margin: 1rem 0 0.5rem;
+}
+
+.balance-bar .pro-seg { background: var(--pro); flex: 1; }
+.balance-bar .con-seg { background: var(--con); flex: 1; }
+.balance-bar .neutral-seg { background: var(--neutral); flex: 1; }
+
+.balance-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--step--2);
+  color: var(--muted);
+}
+
+/* Table */
+.table-wrap {
+  overflow-x: auto;
+  margin-top: calc(var(--space) * 0.8);
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow);
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--surface);
+  font-size: var(--step--1);
+  min-width: 640px;
+}
+
+.data-table th,
+.data-table td {
+  padding: 0.9rem 1rem;
+  text-align: left;
+  border-bottom: 1px solid var(--line);
+  vertical-align: top;
+}
+
+.data-table thead th {
+  background: var(--primary);
+  color: #fff;
+  font-weight: 700;
+}
+
+.data-table tbody tr:last-child td { border-bottom: none; }
+
+.data-table td:first-child {
+  font-weight: 700;
+  color: var(--primary);
+  white-space: nowrap;
+}
+
+.tag {
+  display: inline-block;
+  font-size: var(--step--2);
+  font-weight: 700;
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+  letter-spacing: 0.05em;
+}
+
+.tag-pro { background: var(--pro-weak); color: var(--pro); }
+.tag-con { background: var(--con-weak); color: var(--con); }
+.tag-neutral { background: color-mix(in oklab, var(--neutral) 12%, var(--surface)); color: var(--neutral); }
+
+/* Subsection */
+.subsection-title {
+  font-size: var(--step-1);
+  font-weight: 700;
+  color: var(--ink-secondary);
+  margin: calc(var(--space) * 0.9) 0 0.6rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid var(--line);
+}
+
+/* Insight / warning boxes */
+.insight {
+  background: var(--primary-weak);
+  border-left: 4px solid var(--primary);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  padding: calc(var(--space) * 0.7) calc(var(--space) * 0.9);
+  margin: calc(var(--space) * 0.8) 0;
+}
+
+.insight p {
+  font-size: var(--step-0);
+  color: var(--ink);
+  font-weight: 500;
+  line-height: 1.75;
+}
+
+.insight strong { color: var(--primary); }
+
+.warning {
+  background: color-mix(in oklab, var(--accent) 8%, var(--surface));
+  border-left: 4px solid var(--accent);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  padding: calc(var(--space) * 0.7) calc(var(--space) * 0.9);
+  margin: calc(var(--space) * 0.8) 0;
+}
+
+.warning p {
+  font-size: var(--step--1);
+  color: var(--ink-secondary);
+  line-height: 1.8;
+}
+
+.warning strong { color: var(--accent); }
+
+/* Sources */
+.sources {
+  background: var(--surface);
+  border-top: 1px solid var(--line);
+  padding: calc(var(--space) * 1.5) 0;
+  margin-top: calc(var(--space) * 1.5);
+}
+
+.sources h2 {
+  font-size: var(--step-1);
+  color: var(--primary);
+  margin-bottom: 1rem;
+}
+
+.source-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.source-list li {
+  font-size: var(--step--2);
+  color: var(--muted);
+  padding-left: 1rem;
+  text-indent: -1rem;
+}
+
+.source-list a {
+  color: var(--primary);
+  text-decoration: none;
+  word-break: break-all;
+}
+
+.source-list a:hover { text-decoration: underline; }
+
+/* Print */
+@media print {
+  body { background: #fff; }
+  .hero { background: var(--primary); -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .comparison-box, .detail-card, .hypothesis, .table-wrap, .insight, .warning { box-shadow: none; border: 1px solid #ddd; }
+}
+@page { size: A4; margin: 14mm; }
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+/* Reveal */
+.reveal { opacity: 1; transform: translateY(0); transition: opacity 0.6s ease, transform 0.6s ease; }
+@media (prefers-reduced-motion: no-preference) {
+  .reveal { opacity: 0; transform: translateY(20px); }
+  .reveal.is-visible { opacity: 1; transform: translateY(0); }
+}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="hero-inner">
+    <div class="hero-eyebrow">Hypothetical Analysis / 仮説的考察</div>
+    <h1>Meta災害支援ハブが「官製」だった場合の<br>メリット・デメリット</h1>
+    <p class="hero-lead">民間企業主導の災害対応インフラと、政府（デジタル庁）主導のインフラ。両者の構造的違いを中立的に比較し、レードオフの関係を明らかにする。</p>
+    <div class="hero-meta">
+      <span>調査日：2026年8月28日</span>
+      <span>前提：Meta災害支援ハブと同等の機能を政府が提供する仮定</span>
+    </div>
+  </div>
+</header>
+
+<main class="container">
+
+<!-- Section 1: Premise -->
+<section class="section reveal">
+  <div class="section-header">
+    <span class="section-num">00</span>
+    <h2 class="section-title">考察の前提と問い</h2>
+    <p class="section-desc">本資料は、現状のMeta災害支援ハブと同等の機能（安否確認・支援マッチング・情報集約・募金）を、日本政府（デジタル庁等）が主体となって提供していた場合を仮定した考察である。</p>
+  </div>
+
+  <div class="hypothesis">
+    <span class="hypothesis-label">仮説設定</span>
+    <h3>「統合型災害支援ハブ」を民間（Meta）ではなく政府（デジタル庁）が運営していた場合、何が変わるか？</h3>
+    <p>本考察は、「政府の方が優れている」あるいは「民間の方が優れている」という結論を導くものではない。インフラの性質上、民間主導と政府主導にはそれぞれ構造的なメリットとデメリットが存在し、トレードオフの関係にあることを中立的に整理することを目的とする。</p>
+  </div>
+
+  <div class="warning">
+    <p><strong>注意：</strong> 本資料は仮説的考察であり、デジタル庁が実際にMetaと同等の災害支援ハブを開発・運営する計画があることを示すものではない。また、現状のデジタル庁の施策（マイナンバーカード、災害用伝言ダイヤル等）との比較も含むが、いずれも「機能の等価性を仮定した上での構造比較」である。</p>
+  </div>
+</section>
+
+<!-- Section 2: Merits -->
+<section class="section reveal">
+  <div class="section-header">
+    <span class="section-num">01</span>
+    <h2 class="section-title">官製化のメリット</h2>
+    <p class="section-desc">政府主導の災害対応インフラが持つ、民間プラットフォームにはない構造的優位性を整理する。</p>
+  </div>
+
+  <div class="comparison-grid">
+    <div class="comparison-box pro">
+      <h4>持続可能性と恒久性</h4>
+      <ul>
+        <li>民間企業の災害対応機能は、経営体制の変化や事業戦略の変更で容易に縮小・廃止される（Metaの寄付ボタン廃止2023年、Google Person Finderアーカイブ化2025年）</li>
+        <li>政府インフラは、政権交代や予算変動があっても「国民の安全」という憲法的責務の下で維持される</li>
+        <li>災害対応インフラは「平時には不要だが有事に必須」という性質上、市場原理だけでは供給が不安定になりやすい</li>
+      </ul>
+    </div>
+    <div class="comparison-box pro">
+      <h4>法的強制力と標準化</h4>
+      <ul>
+        <li>政府が提供する場合、自治体・省庁・通信事業者・NPOとのデータ連携に法的根拠を持たせられる</li>
+        <li>「災害時の情報共有に関する標準プトコル」を法令・ガイドラインとして定め、プラットフォーム間の相互運用性を確保できる可能性</li>
+        <li>民間主導では各社のビジネス上の利害が連携を阻害しやすい</li>
+      </ul>
+    </div>
+    <div class="comparison-box pro">
+      <h4>個人情報保護とプライバシー</h4>
+      <ul>
+        <li>Metaのような広告収益モデルを持つ企業と異なり、政府は安否情報・位置情報・支援ニーズデータを商業利用しない</li>
+        <li>災害時の個人情報の取り扱いについて、個人情報保護法や災害対策基本法に基づく明確な法的枠組みの下で運用できる</li>
+        <li>被災者のデータが国外サーバーに保存されるリスクを、国内法で規制できる</li>
+      </ul>
+    </div>
+    <div class="comparison-box pro">
+      <h4>全人口への到達性と公平性</h4>
+      <ul>
+        <li>Meta（Facebook）は日本国内でも若年層の離れが進み、高齢者層への浸透も限定的である</li>
+        <li>政府インフラはマイナンバーカードや住民票との連携により、SNS非利用者・高齢者・障害者を含む全人口への到達を目指せる</li>
+        <li>デジタルデバイド（情報格差）を生じさせにくい設計が可能</li>
+      </ul>
+    </div>
+    <div class="comparison-box pro">
+      <h4>行政データとの連携</h4>
+      <ul>
+        <li>避難所の開設状況・物資備蓄・医療機関の受入体制など、行政が保有するリアルタイムデータと直接連携できる</li>
+        <li>被災者の安否情報を自治体の被災者名簿や支援申請システムと自動連携し、行政手続きの効率化が期待できる</li>
+        <li>自衛隊・警察・消防などの公的救助機関への情報共有パイプを構築やすい</li>
+      </ul>
+    </div>
+    <div class="comparison-box pro">
+      <h4>国際協調と外交的信用</h4>
+      <ul>
+        <li>政府が主体となれば、国連OCHA（国連人道問題調整室）やIFRC（赤十字社）との国際的な災害対応フレームワークへの統合が容易</li>
+        <li>海外被災時における日本政府の支援活動と連携した情報収集・提供が可能</li>
+        <li>民間企業の「善意」に依存しない、国際的に信頼される公式情報源としての位置づけ</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- Section 3: Demerits -->
+<section class="section reveal">
+  <div class="section-header">
+    <span class="section-num">02</span>
+    <h2 class="section-title">官製化のデメリット</h2>
+    <p class="section-desc">政府主導のインフラが持つ構造的な弱点と、民間主導にはないリスクを整理する。</p>
+  </div>
+
+  <div class="comparison-grid">
+    <div class="comparison-box con">
+      <h4>開発・改善スピードの低下</h4>
+      <ul>
+        <li>民間企業はユーザーフィードバックを即座に反映できるアジャイル開発が可能だが、政府システムは予算執行・調達・監査のプロセスをる必要がある</li>
+        <li>Metaの災害支援ハブは2014年から10年以上にわたり継続的に改善されたが、政府システムの同等の改善サイクルを維持することは困難</li>
+        <li>「有事に必須だが平時には使われない」システムは、予算獲得の優先度が低くなりやすい</li>
+      </ul>
+    </div>
+    <div class="comparison-box con">
+      <h4>ユーザー体験（UX）の質</h4>
+      <ul>
+        <li>民間企業は「ユーザーが使い続けるか」が生死を分けるため、UX設計への投資が徹底的である</li>
+        <li>政府システムは「使わなければならない」性質が強く、UXへのインセンティブが弱い傾向がある（マイナンバーカードアプリ等の評価を参照）</li>
+        <li>災害時はストレス下での利用が前提となるため、UXの質は命に関わる可能性がある</li>
+      </ul>
+    </div>
+    <div class="comparison-box con">
+      <h4>イノベーションの欠如</h4>
+      <ul>
+        <li>Metaの「コミュニティヘルプ」や「ソーシャルグラフによる安否情報の拡散」は、民間ならではの発想である</li>
+        <li>政府は既存の制度や法令に縛られやすく、破壊的イノベーションを生み出しにくい</li>
+        <li>災害対応の「常識」を疑い、新しいパラダイムを提示するのは民間の強み</li>
+      </ul>
+    </div>
+    <div class="comparison-box con">
+      <h4>政治的要因による運用の不安定性</h4>
+      <ul>
+        <li>政府システムは政権交代・政策変更・スキャンダルにより予算削減や機能変更を受けやすい</li>
+        <li>災害対応の「成功」は政治的成果として利用され、「失敗」は政治責任の対象となりやすい</li>
+        <li>民間企業の「事業戦略変更」と異なり、政治的判断によるインフラ縮小は国民の合意形成プロセスを経ない場合がある</li>
+      </ul>
+    </div>
+    <div class="comparison-box con">
+      <h4>技術人材の確保と組織文化</h4>
+      <ul>
+        <li>民間IT企業と比較して、政府の技術人材の確保・育成は構造的に不利</li>
+        <li>災害対応インフラの運用には、クラウド技術・AI・セキュリティの高度な専門性が必要だが、民間との競争で人材を確保するのは困難</li>
+        <li>失敗を許容しない組織文化は、技術的リスクを伴うイノベーションを阻害する</li>
+      </ul>
+    </div>
+    <div class="comparison-box con">
+      <h4>プライバシーと監視のジレンマ</h4>
+      <ul>
+        <li>政府が安否情報・位置情報・支援ニーズを一元管理することは、災害時には有用だが、平時における「監視国家」への懸念を生む</li>
+        <li>マイナンバーカードとの連携は利便性を高める一方、個人の行動追跡の可能性も生じる</li>
+        <li>民間企業に対する不信は「データの商業利用」に向けられるが、政府に対する不信は「権力の濫用」に向けられるため、本質的に異なる</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- Section 4: Structural comparison -->
+<section class="section reveal">
+  <div class="section-header">
+    <span class="section-num">03</span>
+    <h2 class="section-title">構造比較：民間主導 vs 政府主導</h2>
+    <p class="section-desc">両モデルを多角的に比較し、トレードオフの構造を可視化する。</p>
+  </div>
+
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>評価軸</th>
+          <th>民間主導（Meta型）</th>
+          <th>政府主導（デジタル庁型）</th>
+          <th>構造的要因</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>持続可能性</td>
+          <td><span class="tag tag-con">不安定</span></td>
+          <td><span class="tag tag-pro">高い</span></td>
+          <td>事業戦略 vs 憲法的責務</td>
+        </tr>
+        <tr>
+          <td>開発スピード</td>
+          <td><span class="tag tag-pro">高速</span></td>
+          <td><span class="tag tag-con">低速</span></td>
+          <td>アジャイル vs 調達・監査</td>
+        </tr>
+        <tr>
+          <td>UX品質</td>
+          <td><span class="tag tag-pro">高い</span></td>
+          <td><span class="tag tag-con">低め</span></td>
+          <td>競争原理 vs 使わざるを得ない</td>
+        </tr>
+        <tr>
+          <td>全人口到達</td>
+          <td><span class="tag tag-con">限的</span></td>
+          <td><span class="tag tag-pro">原理的に可能</span></td>
+          <td>SNS利用者限定 vs 住民票連携</td>
+        </tr>
+        <tr>
+          <td>データ連携</td>
+          <td><span class="tag tag-con">社内・パートナー限定</span></td>
+          <td><span class="tag tag-pro">政機関横断</span></td>
+          <td>ビジネス上の利害 vs 法的根拠</td>
+        </tr>
+        <tr>
+          <td>イノベーション</td>
+          <td><span class="tag tag-pro">活発</span></td>
+          <td><span class="tag tag-con">保守的</span></td>
+          <td>競争・利益の駆動 vs 制度慣性</td>
+        </tr>
+        <tr>
+          <td>プライバシー</td>
+          <td><span class="tag tag-con">商業利用のリスク</span></td>
+          <td><span class="tag tag-pro tag-neutral">監視のリスク</span></td>
+          <td>データ収益化 vs 権力濫用</td>
+        </tr>
+        <tr>
+          <td>国際連携</td>
+          <td><span class="tag tag-neutral">企業レベル</span></td>
+          <td><span class="tag tag-pro">国家レベル</span></td>
+          <td>CSR vs 外交・国際協定</td>
+        </tr>
+        <tr>
+          <td>予算安定性</td>
+          <td><span class="tag tag-con">市場依存</span></td>
+          <td><span class="tag tag-con">政治依存</span></td>
+          <td>どちらも不安定要因を内包</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="insight">
+    <p><strong>重要な洞察：</strong> 「民間 vs 政府」の二項対立で評価すると、両者は互いに「得意な領域」と「不得意な領域」を持つ。持続可能性・全人口到達・行政連携では政府主導が優位だが、開発スピード・UX・イノベーションでは民間主導が優位である。どちらが「絶対的に優れている」かではなく、「どの領域を重視するか」による相対的な選択である。</p>
+  </div>
+</section>
+
+<!-- Section 5: Japan context -->
+<section class="section reveal">
+  <div class="section-header">
+    <span class="section-num">04</span>
+    <h2 class="section-title">日本の文脈：デジタル庁と既存インフラ</h2>
+    <p class="section-desc">日本の現状において、政府主導の災害対応インフラがどのような位置づけにあるかを確認する。</p>
+  </div>
+
+  <div class="prose">
+    <h3 class="subsection-title">4-1. 既存の政府系災害対応インフラ</h3>
+    <p>日本にはすでに、以下の政府系・準政府系の災害対応インフラが存在する。これらと「官製統合ハブ」の関係を考える必要がある。</p>
+  </div>
+
+  <div class="detail-card">
+    <h4>災害用伝言ダイヤル（171）/ 災害用伝言板（web171）</h4>
+    <p>NTT東日本・NTT西日本が提供。音声・Webで安否を伝える仕組み。東日本大震災時に大きな役割を果たしたが、スマートフォン時代にはUXが古い。統合ハブとの統合可能性はあるが、インフラの老朽化が課題。</p>
+  </div>
+
+  <div class="detail-card">
+    <h4>緊急速報メール / エリアメール</h4>
+    <p>気象庁・国・自治体からの緊急情報を、携帯電話事業者のネットワークを通じて配信。災害時の「プッシュ型」情報提供には有効だが、双方向通信（安否確認・支援要請）には非対応。</p>
+  </div>
+
+  <div class="detail-card">
+    <h4>マイナンバーカードとデジタル庁の役割</h4>
+    <p>マイナンバーカードは、全人口をカバーするID基盤として、理論上は災害時の安否確認・支援申請の基盤になりうる。デジタル庁は「デジタル社会の実現」を使命とするが、現状の重点領域は行政手続きのデジタル化であり、災害対応インフラの統合的な取り組みは限定的である。</p>
+  </div>
+
+  <div class="prose">
+    <h3 class="subsection-title">4-2. 日本における「官製統合ハブ」の現実的課題</h3>
+    <p>仮にデジタル庁がMeta型の統合ハブを開発したとしても、以下の現実的課題が存在する。</p>
+    <p><strong>第一に、LINEとの関係。</strong> 日本ではLINEの「安否確認」が1200万人超の利用実績を持つ「事実上の国民的インフラ」となっている。政府が別の統合ハブを立ち上げる場合、LINEとの重複・競合関係が生じる。LINEヤフーとの協調的な関係構築が不可欠だが、民間企業との連携には法的・商業的な複雑性が伴う。</p>
+    <p><strong>第二に、自治体システムの多様性。</strong> 日本の自治体は1741（市町村）あり、それぞれが異なる災害対応システムを持つ。統合ハブと全自治体のシステムを連携させるのは、技術的・組織的に極めて困難である。</p>
+    <p><strong>第三に、高齢者・デジタル弱者への対応。</strong> 政府インフラは「全人口カバー」を前提とするが、スマートフォン非保有者・高齢者・障害者への対応には、デジタルハブだけでは不十分である。アナログ手段（電話・紙）とのハイブリッド設計が必要。</p>
+  </div>
+</section>
+
+<!-- Section 6: Hybrid models -->
+<section class="section reveal">
+  <div class="section-header">
+    <span class="section-num">05</span>
+    <h2 class="section-title">第三の道：ハイブリッドモデルの可能性</h2>
+    <p class="section-desc">民間主導と政府主導の単純な二項対立を超えた、両者の強みを組み合わせたモデルを考察する。</p>
+  </div>
+
+  <div class="comparison-grid">
+    <div class="comparison-box neutral">
+      <h4>モデルA：政府基盤・民間フロント</h4>
+      <ul>
+        <li>政府がデータ基盤・標準API・法的枠組みを提供</li>
+        <li>民間企業（LINE・Meta等）がUX・イノベーションを担当</li>
+        <li>例：政府が安否情報の標準データフォーマットを定め、各SNSがそれ実装</li>
+        <li>メリット：持続性とUXの両立 / デメリット：調整コストが大きい</li>
+      </ul>
+    </div>
+    <div class="comparison-box neutral">
+      <h4>モデルB：PPP（官民連携）</h4>
+      <ul>
+        <li>政府と民間企業が共同でインフラを運営</li>
+        <li>政府が予算・法的責任を、民間が技術・運営を担当</li>
+        <li>例：災害対応クラウドファンディングの政府マッチング</li>
+        <li>メリット：リスク分担 / デメリット：責任の所在が不明確になりやすい</li>
+      </ul>
+    </div>
+    <div class="comparison-box neutral">
+      <h4>モデルC：オープンスタンダード型</h4>
+      <ul>
+        <li>Google Person FinderのPFIFのように、オープン標準を政府が後押し</li>
+        <li>民間・公共NPOがすべて同じプロトコルで情報を交換</li>
+        <li>プラットフォーム間の壁を越えた相互運用性を実現</li>
+        <li>メリット：競争と連携の両立 / デメリット：標準化の推進に時間がかかる</li>
+      </ul>
+    </div>
+    <div class="comparison-box neutral">
+      <h4>モデルD：有事のみ官製化</h4>
+      <ul>
+        <li>平時は民間プラットフォームが運営</li>
+        <li>大規模災害発生時のみ、政府が一時的に統合管理権を取得</li>
+        <li>災害対策基本法に基づく「権限の移譲」を法的に整備</li>
+        <li>メリット：平時の効率性と有事の統制を両立 / デメリット：移行時の混乱リスク</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="insight">
+    <p><strong>考察：</strong> 最も現実的か効果的なアプローチは、モデルA（政府基盤・民間フロント）とモデルC（オープンスタンダード型）の組み合わせである。政府が「データの持続可能性・法的根拠・全人口到達」を担保し、民間が「UX・イノベーション・スピード」を担保する。両者を接続するのが「オープン標準」である。</p>
+  </div>
+</section>
+
+<!-- Section 7: Conclusion -->
+<section class="section reveal">
+  <div class="section-header">
+    <span class="section-num">06</span>
+    <h2 class="section-title">結論：トレードオフの中で何を選ぶか</h2>
+    <p class="section-desc">本考察を通じて得られた結論を、中立的な立場から提示する。</p>
+  </div>
+
+  <div class="prose">
+    <p>Metaの災害支援ハブが「官製」だった場合、<strong>持続可能性・全人口到達性・行政連携・法的根拠において明確なメリット</strong>が生じる。一方で、<strong>開発スピード・UX品質・イノベーション力・プライバシーと監視のジレンマ</strong>において、新たなデメリットが生じる。</p>
+    <p>このトレードオフは、「政府の方が優れている」あるいは「民間の方が優れている」という単純な結論では解決しない。重要なのは、以下の3点である。</p>
+    <p><strong>第一に、機能の性質に応じた分担。</strong> 安否情報の「基盤・標準・法的枠組み」は政府が担い、UX・イノベーション・リアルタイム情報流通は民間が担う。両者を接続するオープン標準が不可欠。</p>
+    <p><strong>第二に、持続可能性の担保。</strong> 民間主導のインフラが事業戦略の変更で廃止されるリスク（Metaの寄付ボタン廃止、Google Person Finderのアーカイブ化）は、災害対応いう公共性の高い領域において致命的である。政府は少なくとも「基盤部分」の恒久性を担保すべき。</p>
+    <p><strong>第三に、デジタルデバイドへの配慮。</strong> どちらのモデルも、スマートフォン非保有者・高齢者・障害者を見落としやすい。統合ハブは「デジタル対応者」のためのインフラであり、アナログ手段とのハイブリッドが不可欠。</p>
+  </div>
+
+  <div class="insight">
+    <p><strong>最終的な結論：</strong> Metaの災害支援ハブの「統合型」という設計思想は優れているが、その実現手段として「民間単独」も「政府単独」も理想的ではない。政府が基盤・標準・持続性を担保し、民間がUX・イノベーション・スピードを担保する「ハイブリッドモデル」こそが、次世代の災害対応インフラの最も現実的かつ効果的な形態である。</p>
+  </div>
+</section>
+
+</main>
+
+<footer class="sources">
+  <div class="container">
+    <h2>出典・参考資料</h2>
+    <ul class="source-list">
+      <li>[1] Metaについて「Facebookに新しく「災害支援ハブ」が登場」(2017-09-21) — https://about.fb.com/ja/news/2017/09/a-new-center-for-crisis-response-on-facebook/</li>
+      <li>[2] Metaについて「「災害時情報センター」に食料や避難場所を探せる新機能「コミュニティヘルプ」を追加」(2017-02-09) — https://about.fb.com/ja/news/2017/02/communityhelp/</li>
+      <li>[3] GlobalGiving「GlobalGiving & Meta Crisis Response」— https://www.globalgiving.org/meta-crisis-response/</li>
+      <li>[4] LINEみんなの使い方ガイド「LINE安否確認を利用する」— https://guide.line.me/ja/services/safety-check.html</li>
+      <li>[5] 毎日新聞「「LINE安否確認」1200万人超が利用 能登地震で初の長期運用」(2024-02-01) — https://mainichi.jp/articles/20240201/k00/00m/040/249000c</li>
+      <li>[6] Google Support「What is Google Person Finder?」— https://support.google.com/personfinder/answer/1628135?hl=en</li>
+      <li>[7] Wikipedia「Google Person Finder」— https://en.wikipedia.org/wiki/Google_Person_Finder</li>
+      <li>[8] WIRED「Elon Musk's Twitter Isn't Ready for the Next Natural Disaster」(2022-12-05) — https://www.wired.com/story/elon-musks-twitter-isnt-ready-for-the-next-natural-disaster/</li>
+      <li>[9] The Verge「Social media platforms are not built for this」(2025-01-15) — https://www.theverge.com/2025/1/15/24340185/los-angeles-california-wildfires-tiktok-instagram-twitter-content</li>
+      <li>[10] デジタル庁「デジタル社会の実現に向けた改革の基本方針」— https://www.digital.go.jp/</li>
+      <li>[11] 総務省「災害用伝言ダイヤル（171）・災害用伝言板（web171）」— https://www.soumu.go.jp/</li>
+      <li>[12] NIST Technical Note 2086「A Review of Social Media Use During Disaster Response and Recovery Phases」— https://nvlpubs.nist.gov/nistpubs/TechnicalNotes/NIST.TN.2086.pdf</li>
+    </ul>
+  </div>
+</footer>
+
+<script>
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('is-visible'); });
+}, { threshold: 0.1 });
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
+
+</body>
+</html>

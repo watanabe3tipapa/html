@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PFIF・Google Person Finder 最近の動向</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f4f6f8;
+  --surface: #ffffff;
+  --ink: #1a1d23;
+  --muted: #5a6270;
+  --accent: #1e5aa8;
+  --accent-weak: color-mix(in oklab, var(--accent) 10%, var(--surface));
+  --accent-strong: #143d75;
+  --warning: #c27a1e;
+  --warning-weak: #fdf3e3;
+  --danger: #b23a2e;
+  --danger-weak: #fdeeed;
+  --success: #2d7a3e;
+  --success-weak: #e8f5e9;
+  --line: color-mix(in oklab, var(--ink) 10%, transparent);
+  --code-bg: #f0f3f7;
+  --step-0: clamp(1rem, 0.95rem + 0.3vw, 1.125rem);
+  --step-1: clamp(1.15rem, 1.05rem + 0.5vw, 1.4rem);
+  --step-2: clamp(1.5rem, 1.3rem + 1vw, 2rem);
+  --step-3: clamp(2rem, 1.6rem + 2vw, 3rem);
+  --space: clamp(1.5rem, 1.2rem + 1.5vw, 2.5rem);
+  --radius: 12px;
+  --shadow: 0 1px 2px rgba(0,0,0,0.04), 0 8px 24px -10px rgba(0,0,0,0.12);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: "Noto Sans JP", "Hiragino Sans", "Yu Gothic", "Noto Sans JP", sans-serif;
+  font-size: var(--step-0);
+  line-height: 1.85;
+  color: var(--ink);
+  background: var(--bg);
+  overflow-wrap: anywhere;
+}
+
+/* Header */
+header {
+  background: linear-gradient(135deg, var(--accent-strong) 0%, var(--accent) 100%);
+  color: #fff;
+  padding: calc(var(--space) * 2.5) var(--space);
+  text-align: center;
+}
+header h1 {
+  font-size: var(--step-3);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  margin-bottom: 0.6rem;
+}
+header .subtitle {
+  font-size: var(--step-0);
+  font-weight: 300;
+  opacity: 0.9;
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+/* Layout */
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: var(--space);
+}
+
+/* Cards */
+.card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: calc(var(--space) * 1.2);
+  margin-bottom: var(--space);
+}
+
+/* Typography */
+h2 {
+  font-size: var(--step-2);
+  font-weight: 700;
+  color: var(--accent-strong);
+  margin-bottom: 0.8rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 2px solid var(--accent-weak);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+h2 .sec-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2em;
+  height: 2em;
+  background: var(--accent);
+  color: #fff;
+  font-size: 0.55em;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+h3 {
+  font-size: var(--step-1);
+  font-weight: 700;
+  color: var(--ink);
+  margin-top: 1.4rem;
+  margin-bottom: 0.5rem;
+}
+p {
+  margin-bottom: 1rem;
+}
+
+/* Lists */
+ul, ol {
+  margin-left: 1.5rem;
+  margin-bottom: 1rem;
+}
+li {
+  margin-bottom: 0.4rem;
+}
+
+/* Table */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0 1.5rem;
+  font-size: 0.95em;
+}
+th, td {
+  border: 1px solid var(--line);
+  padding: 0.6rem 0.8rem;
+  text-align: left;
+  vertical-align: top;
+}
+th {
+  background: var(--accent-weak);
+  font-weight: 600;
+  color: var(--accent-strong);
+}
+tr:nth-child(even) td {
+  background: #fafbfc;
+}
+
+/* Alert boxes */
+.alert {
+  border-radius: var(--radius);
+  padding: 1rem 1.2rem;
+  margin: 1rem 0 1.5rem;
+}
+.alert-warning {
+  background: var(--warning-weak);
+  border-left: 4px solid var(--warning);
+}
+.alert-danger {
+  background: var(--danger-weak);
+  border-left: 4px solid var(--danger);
+}
+.alert-success {
+  background: var(--success-weak);
+  border-left: 4px solid var(--success);
+}
+.alert p:last-child {
+  margin-bottom: 0;
+}
+
+/* Info box */
+.info-box {
+  background: var(--accent-weak);
+  border-left: 4px solid var(--accent);
+  padding: 1rem 1.2rem;
+  border-radius: 0 var(--radius) var(--radius) 0;
+  margin: 1rem 0 1.5rem;
+}
+.info-box p:last-child {
+  margin-bottom: 0;
+}
+
+/* Links */
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
+
+/* Source chips */
+.source-chip {
+  display: inline-block;
+  background: var(--code-bg);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 0.15rem 0.7rem;
+  font-size: 0.78em;
+  color: var(--muted);
+  margin-left: 0.3rem;
+  vertical-align: middle;
+}
+
+/* Print */
+@media print {
+  body { background: #fff; }
+  .card { box-shadow: none; border: 1px solid var(--line); }
+  header { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
+@page { size: A4; margin: 18mm; }
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>PFIF・Google Person Finder 最近の動向</h1>
+  <p class="subtitle">2025年〜2026年の最新情報と、災害時行方不明者検索技術の新潮流</p>
+</header>
+
+<div class="container">
+
+  <div class="card">
+    <h2><span class="sec-num">1</span> 全体サマリー</h2>
+    <div class="alert alert-warning">
+      <p><strong>重要な変化：</strong>Google Person Finderのオープンソースリポジトリが<strong>2025年9月17日にアーカイブ（読み取り専用化）</strong>されました。これは事実上の開発停止を意味します。</p>
+    </div>
+    <p>一方で、PFIFフォーマット自体は依然として有効な標準として残っており、災害時の行方不明者検索・安否確認の分野では、<strong>ドローン・AI・生成AI</strong>を活用した次世代技術が急速に発展しています。</p>
+  </div>
+
+  <div class="card">
+    <h2><span class="sec-num">2</span> Google Person Finder の現状</h2>
+
+    <h3>2.1 GitHubリポジトリがアーカイブ化（2025年9月）</h3>
+    <p>Google Person Finderの公式GitHubリポジトリ（<code>google/personfinder</code>）は、<strong>2025年9月17日</strong>にオーナーによってアーカイブされ、現在は読み取り専用（read-only）状態です。</p>
+    <div class="alert alert-danger">
+      <p><strong>影響：</strong></p>
+      <ul>
+        <li>新機能の開発・バグ修正は事実上止。</li>
+        <li>コミュニティからのプルリクエストやIssueの対応も停止。</li>
+        <li>ただし、既存のソースコードはApache License 2.0のまま利用可能。</li>
+      </ul>
+    </div>
+
+    <h3>2.2 サービス自体は一部稼働中</h3>
+    <p>GitHubリポジトリがアーカイブされたとはいえ、<strong>Google Person Finder: Japan</strong> など既存リポジトリは現在も稼働しており、約5,200件のレコードを追跡しています。</p>
+    <div class="alert alert-success">
+      <p>サービス自体の即時終了が発表されたわけではなく、まずは<strong>オープンソースとしての開発コミュニティの活動が停止</strong>した段階と考えられます。</p>
+    </div>
+
+    <h3>2.3 PFIFフォーマットの最新状況</h3>
+    <p>PFIFの最新バージョンは引き続き<strong>PFIF 1.4（2012年5月29日リリース）</strong>のままです。2012年以降、新バージョンの策定は行われていません。</p>
+    <table>
+      <tr><th>項目</th><th>状況</th></tr>
+      <tr><td>PFIF最新バージョン</td><td>1.4（2012年）→ <strong>更新なし</strong></td></tr>
+      <tr><td>Google Person Finder サービス</td><td>一部稼働中（Japanリポジトリ等）</td></tr>
+      <tr><td>GitHubリポジトリ</td><td><strong>2025年9月17日 アーカイブ化</strong></td></tr>
+      <tr><td>今後の見通し</td><td>Googleによる新規開発は見込み薄</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2><span class="sec-num">3</span> 災害時行方不明者検索の新潮流（2024〜2026年）</h2>
+    <p>PFIF/Google Person Finderの開発が停滞する一方で、災害時の行方不明者・被災者検索の分野では、以下のような新技術が急速に発展しています。</p>
+
+    <h3>3.1 ドローンを活用した位置特定・生存者確認</h3>
+    <p>通信インフラが破壊された災害現場で、ドローンを活用した検索技術が複数開発されています。</p>
+    <ul>
+      <li><strong>東京科学大学 × ソフトバンク共同研究（2025年）</strong>：ドローンとWi-Fiを活用し、<strong>通信キャリアに依存しない</strong>遭難者位置特定システムを開発。遭難者のスマートフォンのWi-Fi信号を捕捉し、位置を特定します。</li>
+      <li><strong>株式会社Liberaware（2025年）</strong>：NEDOのSBIR推進プログラムの一環として、<strong>倒壊建屋内での小型ドローンによる生存者確認</strong>技術を開発。警察施設での実証実験を実施。</li>
+      <li><strong>株式会社イーエムアイ・ラボ（2024年）</strong>：ドローン搭載型「EMI-01s」ユニットを開発。<strong>携帯電話の電波を受信</strong>し、地図上に位置情報をヒートマップ化するシステムを構築。</li>
+    </ul>
+
+    <h3>3.2 AI・生成AIによる被災者支援</h3>
+    <p>日本政府と研究機関が主導し、AIを活用した次世代被災者支援システムの開発が進んでいます。</p>
+    <ul>
+      <li><strong>政府主導の被災者支援AI（2025年）</strong>：文部科学省所管の防災科学技術研究所が開発を担当。事業費は<strong>約42億円</strong>。気象観測情報・衛星画像・被災者情報（年齢・性別・要配慮事項）などをAIが統合し、効果的な支援を提案するシステムです。誤情報（幻覚）混入防止機能も備えます。</li>
+      <li><strong>SIP4D-GAI（防災科学技術研究所）</strong>：生成AIを活用した<strong>被災者支援サービス開発基盤</strong>。被災者支援業務プロセスを生成AIで転換し、抜本的な改善を目指す。</li>
+      <li><strong>AI映像解析による被災把握（日立製作所等）</strong>：ドローンやヘリコプターで空撮した映像をAIで解析し、被害状況を瞬時に把握する技術。</li>
+    </ul>
+
+    <h3>3.3 政府のAI災害対応計画（2027年度運用目標）</h3>
+    <p>日本政府は、2027年度からの本格運用を目指し、以下のAI災害対応システムを構築中です。</p>
+    <div class="info-box">
+      <ul>
+        <li>全国の現場画像・映像をAIがリアルタイム解析。</li>
+        <li>AIが<strong>人</strong>を検知すれば、被災者の可能性があるとして自治体職員に自動通報。</li>
+        <li>河川・道路の状況も監視し、氾濫や倒壊の危険を事前に通知。</li>
+        <li>現在は職員が肉眼で確認している作業をAIが自動化し、自治体の人手不足を補う。</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2><span class="sec-num">4</span> 技術比較：PFIF時代と次世代技術</h2>
+    <table>
+      <tr><th>側面</th><th>PFIF / Google Person Finder（2010年代）</th><th>次世代技術（2024〜2026年）</th></tr>
+      <tr>
+        <td><strong>情報入力</strong></td>
+        <td>手動でWebフォームに入力</td>
+        <td>AI映像解析・ドローンセンシングによる自動検知</td>
+      </tr>
+      <tr>
+        <td><strong>データ形式</strong></td>
+        <td>PFIF 1.4（XML）</td>
+        <td>JSON・GeoJSON・独自API等多様化</td>
+      </tr>
+      <tr>
+        <td><strong>位置特定</strong></td>
+        <td>テキストによる避難所名等の記述</td>
+        <td>Wi-Fi信号・携帯電波・GPSのリアルタイム捕捉</td>
+      </tr>
+      <tr>
+        <td><strong>情報統合</strong></td>
+        <td>PFIF準拠のリポジトリ間で交換</td>
+        <td>生成AIによる多源データの統合・分析</td>
+      </tr>
+      <tr>
+        <td><strong>検索手法</strong></td>
+        <td>名前・場所によるテキスト検索</td>
+        <td>画像認識・センサーデータ・AI推論</td>
+      </tr>
+      <tr>
+        <td><strong>オープン性</strong></td>
+        <td>オープンソース・オープン標準</td>
+        <td>政府・企業主導のクローズド開発が多い</td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2><span class="sec-num">5</span> 今の展望と課題</h2>
+
+    <h3>5.1 PFIFの将来</h3>
+    <p>PFIF 1.4は2012年以来更新されておらず、Google Person Finderの開発も停止したことで、<strong>PFIFを更新・推進する中心的な主体が失われた</strong>状況です。ただし、PFIFが持つ「オープン標準・分散型・プライバシー保護」という設計思想は、今後の災害情報共有システムにとって依然として重要な参考となります。</p>
+
+    <h3>5.2 次世代技術への期待と懸念</h3>
+    <div class="alert alert-warning">
+      <p><strong>期待される点：</strong></p>
+      <ul>
+        <li>リアルタイム性・自動化による救助速度の向上。</li>
+        <li>生成AIによる被災者一人ひとりに最適化された支援提案。</li>
+        <li>ドローン・センサーネットワークによる広範囲・高速検索。</li>
+      </ul>
+    </div>
+    <div class="alert alert-danger">
+      <p><strong>懸念される点：</strong></p>
+      <ul>
+        <li>AIの誤認識（人影と物体を混同する等）による救助遅延や混乱。</li>
+        <li>プライバシー・個人情報保護（顔認識・位置情報の取り扱い）。</li>
+        <li>システム間のデータ互換性・標準化の欠如（PFIFの後継となるオープン標準が存在しない）。</li>
+        <li>災害時の通信インフラ障害に対する耐性。</li>
+      </ul>
+    </div>
+
+    <h3>5.3 日本の防災政策との連携</h3>
+    <p>2024年に「防災庁」が発足する方向で議論が進む中、デジタル技術を活用した防災・減災が国家戦略として位置づけられています。PFIFのようなオープン標準が失われる一方で、政府主導のAI・センサーネットワークが整備されることで、<strong>オープン性」と「国家主導」のバランス</strong>が今後の重要な論点となるでしょう。</p>
+  </div>
+
+  <div class="card">
+    <h2><span class="sec-num">6</span> まとめ</h2>
+    <table>
+      <tr><th>項目</th><th>最新状況</th></tr>
+      <tr><td>PFIF最新バージョン</td><td>1.4（2012年）→ <strong>更新停止中</strong></td></tr>
+      <tr><td>Google Person Finder OSS</td><td><strong>2025年9月 GitHubアーカイブ化</strong></td></tr>
+      <tr><td>Google Person Finder サービス</td><td>一部（Japan等）稼働中</td></tr>
+      <tr><td>ドローン検索技術</td><td>東京科学大学×ソフトバンク、Liberaware、EMIラボ等が実用化へ</td></tr>
+      <tr><td>AI被災者支援</td><td>政府42億円投資、SIP4D-GAI等開発中</td></tr>
+      <tr><td>今後の課題</td><td>オープン標準の後継、プライバシー保護、データ互換性</td></tr>
+    </table>
+  </div>
+
+  <div class="card" style="margin-top: 2rem;">
+    <h2>参考文献・ソース</h2>
+    <ul>
+      <li><a href="https://github.com/google/personfinder" target="_blank">google/personfinder GitHub Repository</a> — 2025年9月17日アーカイブ化</li>
+      <li><a href="https://google.org/personfinder/japan" target="_blank">Google Person Finder: Japan</a> — 現在稼働中</li>
+      <li><a href="https://www.softbank.jp/sbnews/entry/20251211_03" target="_blank">ソフトバンクニュース</a> — ドローン・Wi-Fi遭難者位置特定システム（2025年12月）</li>
+      <li><a href="https://prtimes.jp/main/html/rd/p/000000107.000031759.html" target="_blank">Liberaware プレスリリース</a> — ドローン生存者確認実証実験（2025年4月）</li>
+      <li><a href="https://www.yomiuri.co.jp/politics/20250426-OYT1T50053/" target="_blank">読売新聞</a> — 政府の被災者支援AI 42億円投資（2025年4月）</li>
+      <li><a href="https://www.bosai.go.jp/information/kenkyudogaposter/pdf/2025_76.pdf" target="_blank">防災科学技術研究所</a> — SIP4D-GAI開発（2025年）</li>
+      <li><a href="https://www.nikkei.com/article/DGKKZO90923040W5A820C2PD0000/" target="_blank">日本経済新聞</a> — AI被災把握 2027年度運用目標（2025年8月）</li>
+    </ul>
+  </div>
+
+</div>
+
+</body>
+</html>

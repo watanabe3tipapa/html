@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NEXT-PFIF時代の技術スタック考察</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f4f6f8;
+  --surface: #ffffff;
+  --ink: #1a1d23;
+  --muted: #5a6270;
+  --accent: #1e5aa8;
+  --accent-weak: color-mix(in oklab, var(--accent) 10%, var(--surface));
+  --accent-strong: #143d75;
+  --warning: #c27a1e;
+  --warning-weak: #fdf3e3;
+  --danger: #b23a2e;
+  --danger-weak: #fdeeed;
+  --success: #2d7a3e;
+  --success-weak: #e8f5e9;
+  --line: color-mix(in oklab, var(--ink) 10%, transparent);
+  --code-bg: #f0f3f7;
+  --step-0: clamp(1rem, 0.95rem + 0.3vw, 1.125rem);
+  --step-1: clamp(1.15rem, 1.05rem + 0.5vw, 1.4rem);
+  --step-2: clamp(1.5rem, 1.3rem + 1vw, 2rem);
+  --step-3: clamp(2rem, 1.6rem + 2vw, 3rem);
+  --space: clamp(1.5rem, 1.2rem + 1.5vw, 2.5rem);
+  --radius: 12px;
+  --shadow: 0 1px 2px rgba(0,0,0,0.04), 0 8px 24px -10px rgba(0,0,0,0.12);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: "Noto Sans JP", "Hiragino Sans", "Yu Gothic", "Noto Sans JP", sans-serif;
+  font-size: var(--step-0);
+  line-height: 1.85;
+  color: var(--ink);
+  background: var(--bg);
+  overflow-wrap: anywhere;
+}
+
+/* Header */
+header {
+  background: linear-gradient(135deg, var(--accent-strong) 0%, var(--accent) 100%);
+  color: #fff;
+  padding: calc(var(--space) * 2.5) var(--space);
+  text-align: center;
+}
+header h1 {
+  font-size: var(--step-3);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  margin-bottom: 0.6rem;
+}
+header .subtitle {
+  font-size: var(--step-0);
+  font-weight: 300;
+  opacity: 0.9;
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+/* Layout */
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: var(--space);
+}
+
+/* Cards */
+.card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: calc(var(--space) * 1.2);
+  margin-bottom: var(--space);
+}
+
+/* Typography */
+h2 {
+  font-size: var(--step-2);
+  font-weight: 700;
+  color: var(--accent-strong);
+  margin-bottom: 0.8rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 2px solid var(--accent-weak);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+h2 .sec-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2em;
+  height: 2em;
+  background: var(--accent);
+  color: #fff;
+  font-size: 0.55em;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+h3 {
+  font-size: var(--step-1);
+  font-weight: 700;
+  color: var(--ink);
+  margin-top: 1.4rem;
+  margin-bottom: 0.5rem;
+}
+p {
+  margin-bottom: 1rem;
+}
+
+/* Lists */
+ul, ol {
+  margin-left: 1.5rem;
+  margin-bottom: 1rem;
+}
+li {
+  margin-bottom: 0.4rem;
+}
+
+/* Table */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0 1.5rem;
+  font-size: 0.95em;
+}
+th, td {
+  border: 1px solid var(--line);
+  padding: 0.6rem 0.8rem;
+  text-align: left;
+  vertical-align: top;
+}
+th {
+  background: var(--accent-weak);
+  font-weight: 600;
+  color: var(--accent-strong);
+}
+tr:nth-child(even) td {
+  background: #fafbfc;
+}
+
+/* Alert boxes */
+.alert {
+  border-radius: var(--radius);
+  padding: 1rem 1.2rem;
+  margin: 1rem 0 1.5rem;
+}
+.alert-warning {
+  background: var(--warning-weak);
+  border-left: 4px solid var(--warning);
+}
+.alert-danger {
+  background: var(--danger-weak);
+  border-left: 4px solid var(--danger);
+}
+.alert-success {
+  background: var(--success-weak);
+  border-left: 4px solid var(--success);
+}
+.alert p:last-child {
+  margin-bottom: 0;
+}
+
+/* Info box */
+.info-box {
+  background: var(--accent-weak);
+  border-left: 4px solid var(--accent);
+  padding: 1rem 1.2rem;
+  border-radius: 0 var(--radius) var(--radius) 0;
+  margin: 1rem 0 1.5rem;
+}
+.info-box p:last-child {
+  margin-bottom: 0;
+}
+
+/* Concept box for AI-heavy section */
+.concept-box {
+  background: linear-gradient(135deg, #f8f9fb 0%, #eef1f6 100%);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 1.2rem;
+  margin: 1rem 0 1.5rem;
+}
+.concept-box h4 {
+  font-size: 1.05em;
+  color: var(--accent-strong);
+  margin-bottom: 0.5rem;
+}
+
+/* Links */
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
+
+/* Print */
+@media print {
+  body { background: #fff; }
+  .card { box-shadow: none; border: 1px solid var(--line); }
+  header { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
+@page { size: A4; margin: 18mm; }
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>NEXT-PFIF時代の技術スタック考察</h1>
+  <p class="subtitle">PFIF 1.4の終焉後、AI偏重の災害時行方不明者検索インフラはどう進化するか</p>
+</header>
+
+<div class="container">
+
+  <div class="card">
+    <h2><span class="sec-num">1</span> はじめに：なぜ「NEXT-PFIF」なのか</h2>
+    <p>PFIF 1.4は2012年以来更新され、Google Person FinderのGitHubリポジトリも2025年9月にアーカイブ化されました。しかし、災害時の行方不明者・被災者検索のニーズは消えていません。むしろ、AI・ドローン・センサーネットワークの進化により、<strong>「人が手動で入力する」時代から「AIが自動検知・統合する」時代</strong>へと大きく転換しつつあります。</p>
+    <p>本稿では、PFIFの設計思想を継承しつつ、2026年以降の技術的・社会的要件に対応する「NEXT-PFIF」時代の技術スタックを、AI偏重の観点も含めて考察します。</p>
+    <div class="alert alert-warning">
+      <p><strong>本稿の性質：</strong>これは既存の公式標準や製品仕様ではなく、PFIFの現状と次世代技術動向を踏まえた<strong>技術的予測・考察</strong>です。</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2><span class="sec-num">2</span> PFIF 1.4の技術的限界と負債</h2>
+    <p>NEXT-PFIFを考える前に、現行PFIF 1.4の構造的限界を整理します。</p>
+    <table>
+      <tr><th>側面</th><th>PFIF 1.4の現状</th><th>2026年の要求</th></tr>
+      <tr>
+        <td><strong>データ形式</strong></td>
+        <td>XMLのみ</td>
+        <td>JSON, Protocol Buffers, バイナリストリーミング</td>
+      </tr>
+      <tr>
+        <td><strong>スキーマ</strong></td>
+        <td>固定25フィールドのperson + note</td>
+        <td>拡張可能なスキーマ（医療情報、センサーデータ等）</td>
+      </tr>
+      <tr>
+        <td><strong>位置情報</strong></td>
+        <td>住所テキストのみ</td>
+        <td>GeoJSON, WGS84座標, リアルタイムGPS軌跡</td>
+      </tr>
+      <tr>
+        <td><strong>更新モデル</strong></td>
+        <td>source_date/entry_dateによる静的同期</td>
+        <td>イベントソーシング, CQRS, リアルタイム差分配信</td>
+      </tr>
+      <tr>
+        <td><strong>メディア</strong></td>
+        <td>photo_url（外部リンクのみ）</td>
+        <td>埋め込み画像・動画・音声・LiDAR点群</td>
+      </tr>
+      <tr>
+        <td><strong>AI対応</strong></td>
+        <td>なし（人間入力前提）</td>
+        <td>AI生成メタデータ, 信頼度スコア, 出典追跡</td>
+      </tr>
+      <tr>
+        <td><strong>プライバシー</strong></td>
+        <td>expiry_dateによる削</td>
+        <td>差分プライバシー, 暗号化, ゼロ知識証明</td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2><span class="sec-num">3</span> NEXT-PFIFの技術スタック予測</h2>
+    <p>以下、レイヤーごとに「NEXT-PFIF」にふさわしい技術スタックを予測します。</p>
+
+    <h3>3.1 データフォーマット：JSON-LD + GeoJSON + FHIR風拡張</h3>
+    <div class="concept-box">
+      <h4>予測スタック</h4>
+      <p><strong>JSON-LD</strong>（セマンティックWeb対応）＋ <strong>GeoJSON</strong>（位置情報）＋ <strong>スキーマ拡張機構</strong></p>
+    </div>
+    <p>XMLからJSON-LDへの移行は、現代のWeb APIの主流に沿うものです。JSON-LDは「リンクトデータ」をネイティブに表現でき、複数の被災者レコードの関連（家族関係、同一人物の複数情報源）を機械可読にします。</p>
+    <p>さらに、医療分野で実績のある<strong>FHIR（Fast Healthcare Interoperability Resources）</strong>の拡張機構を参考に、災害特有のフィールド（避難所ID、要支援度、センサーデータUUID等）を柔軟に追加できるスキーマ設計が求められます。</p>
+
+    <h3>3.2 通信・ストリーミング層：Kafka / Redis / gRPC</h3>
+    <div class="concept-box">
+      <h4>予測スタック</h4>
+      <p><strong>Apache Kafka</strong> or <strong>Redis Streams</strong>（イベント配信）＋ <strong>gRPC</strong>（内部通信）＋ <strong>GraphQL</strong>（クライアントクエリ）</p>
+    </div>
+    <p>PFIFの「増分エクスポート（min_entry_date）」は、実質的にイベントソーシングの原型でした。NEXT-PFIFでは、ドローン・センサーAIが秒単位でデータを生成するため、<strong>イベントストリームとしてのリアルタイム配信</strong>が必須です。Kafkaのパーティショニングで「地域×災害種別」に水平分散し、自治体・救助隊・NGOが必要なストリームだけをサブスクライブするモデルが考えられます。</p>
+
+    <h3>3.3 セマンティック・知識層：Knowledge Graph + オントロジー</h3>
+    <div class="concept-box">
+      <h4>予測スタック</h4>
+      <p><strong>RDF/OWLオントロジー</strong>（災害救援ドメイン）＋ <strong>Property Graph DB</strong>（Neo4j等）</p>
+    </div>
+    <p>「この人は避難所Aにいた」「避難所Aは浸水した」「家族Bも同じ避難所にいた」という関係性を、単なるテキストではなく<strong>知識グラフ</strong>として管理することで、AIが論理的推論を行えるようになります。例えば、「避難所A閉鎖されたら、そこにいた人々の新たな所在を推定する」といった推論が可能になります。</p>
+
+    <h3>3.4 プライバシー・セキュリティ層：差分プライバシー + 暗号化</h3>
+    <div class="concept-box">
+      <h4>予測スタック</h4>
+      <p><strong>差分プライバシー（Differential Privacy）</strong>＋ <strong>HE（準同型暗号）</strong> or <strong>TEE（Trusted Execution Environment）</strong></p>
+    </div>
+    <p>PFIFのexpiry_dateは「期限切れで削除」という原始的な仕組みでした。NEXT-PFIFでは、<strong>集計・統計処理は可能だが個人特定は不可能</strong>な差分プライバシーを標準装備すべきです。また、救助隊間で位置情報を共有しつつ、外部には秘匿するための準同型暗号やTEE（Intel SGX等）の活も検討に値します。</p>
+
+    <h3>3.5 分散ID・信頼層：DID / VC（検討段階）</h3>
+    <div class="concept-box">
+      <h4>予測スタック</h4>
+      <p><strong>W3C DID</strong>（分散識別子）＋ <strong>Verifiable Credentials</strong></p>
+    </div>
+    <p>「この人が本当にその人か？」という問題は、災害時にさらに深刻化します。政府のマイナンバーカードや、自己主権型ID（Self-Sovereign Identity）の考え方を部分的に取り入れ、本人確認の信頼性を高める仕組みが求められます。ただし、インフラ障害時の可用性を考慮すると、中央集権的なIDよりも<strong>オフライン検証可能なVC</strong>の方が現実的かもしれません。</p>
+  </div>
+
+  <div class="card">
+    <h2><span class="sec-num">4</span> AI偏重の概念：「人が入力」から「AIが検知」へ</h2>
+    <p>NEXT-PFIFの最大のパラダイムシフトは、<strong>データの主たる生成主体が「人」から「AI」に変わる</strong>点です。以下、AI偏重の各概念を整理します。</p>
+
+    <h3>4.1 自動レコード生成（Auto-Persona Creation）</h3>
+    <p>従来は「人がWebフォームに入力」することでレコードが生まれました。NEXT-PFIFでは、以下のソースからAIが自動的に被災者レコードを生成します。</p>
+    <ul>
+      <li><strong>ドローン映像解析</strong>：AIが被災地の空撮映像から「人影」を検知し、位置・時刻・推定人数をレコード化。</li>
+      <li><strong>携帯電波・Wi-Fiスキャン</strong>：ドローンや車載センサーが捕捉したMACアドレス・電波強度から、匿名化された存在確認レコードを生成。</li>
+      <li><strong>SNS・音声テキスト解析</strong>：X（Twitter）、防災無線119通報のテキスト・音声をNLPで解析し、「〇〇市〇〇町に高齢者が取り残されている」といった非構造化情報を構造化レコードへ変換。</li>
+      <li><strong>衛星画像変化検知</strong>：災害前後の衛星画像を比較し、建物倒壊・土砂崩れ箇所を検出。そこに「要救助者の可能性あり」レコードを自動生成。</li>
+    </ul>
+    <div class="alert alert-danger">
+      <p><strong>重要：</strong>AI生成レコードには必ず<strong>「AI出典メタデータ」</strong>（モデル名、信頼度スコア、入力ソース、推論根拠）を付与する必要があります。PFIFのsource_name/source_urlを拡張した、機械可読な「provenance（来歴）」記述が不可欠です。</p>
+    </div>
+
+    <h3>4.2 AIによる重複検出・レコード統合（Smart Deduplication）</h3>
+    <p>PFIFは「同じ人の複数レコードをマージしない」ことを推奨していましたが、AI時代には<strong>大規模・高速な重複検出</strong>が可能になります。</p>
+    <ul>
+      <li><strong>フェイス recognition + 類似度スコア</strong>：ドローン映像の人物と、登録済みの写真を比較。</li>
+      <li><strong>名前・住所のファジーマッチング</strong>：表記揺れ（「山田太郎」「山田　太郎」「ヤマダタロウ」をBERT系モデルで正規化。</li>
+      <li><strong>時空間クラスタリング</strong>：同時刻・近接位置で検出された複数のレコードを、同一集団（家族・避難グループ）として推定。</li>
+    </ul>
+    <p>ただし、PFIFの設計原則「オリジナルリポジトリの権威」を維持するため、AIは「統合ビュー」を生成しても、<strong>元レコードは保持したまま</strong>にすべきです。これは「読み取り時の仮想統合（read-time materialized view）」のアーキテクチャで実現できます。</p>
+
+    <h3>4.3 自然言語処理による状況把握（Situation Intelligence）</h3>
+    <p>noteレコードの「text」フィールドは、PFIF時代は人間が読むための自由記述でした。NEXT-PFIFでは、AIがこれをリアルタイムに解析します。</p>
+    <div class="concept-box">
+      <h4>具体例</h4>
+      <p>入力テキスト：「母（80歳・糖尿病）が2階に取り残されています。階段が崩れています。」</p>
+      <p>AI抽出：</p>
+      <ul>
+        <li>対象：80歳女性、糖尿病患者</li>
+        <li>場所：建物2階（座標推定：XX.XXXX, YY.YYYY）</li>
+        <li>緊急度：高（要救助、健康リスクあり）</li>
+        <li>障害：物理的アクセス不可（階段崩壊）</li>
+        <li>推奨対応：高所作業車 or ドローン投下</li>
+      </ul>
+    </div>
+
+    <h3>4.4 予測モデル：生存確率・所在推定</h3>
+    <p>AIの最も先端的な応用は、<strong>「まだ発見されていない人がどこにいるか」の予測</strong>です。</p>
+    <ul>
+      <li><strong>行動予測モデル</strong>：年齢・性別・障害の有無・災害種別（地震・水害・火災）から、典型的な避難行動パターン学習。例えば「高齢・要介護者は自宅2階に留まる確率が高い」等。</li>
+      <li><strong>ベイズ推定による所在更新</strong>：ドローンが探索したエリアの「不在確認」も情報として活用し、探索すべきエリアを逐次絞り込む。</li>
+      <li><strong>生存確率モデル</strong>：気温・経過時間・建物倒壊状況から、生存確率をリアルタイム推定し、救助優先順位を動的に調整。</li>
+    </ul>
+    <div class="alert alert-warning">
+      <p><strong>倫理的警告：</strong>「生存確率が低いから救助を諦める」という判断をAIが自動化してはなりません。AIは「情報支援ツール」であり、最終判断は常に人間が行うべきです。</p>
+    </div>
+
+    <h3>4.5 生成AIによる支援コーディネーション（SIP4D-GAIの先を行く）</h3>
+    <p>政府が開発中のSIP4D-GAIは「被災者支援策提案」に留まりますが、NEXT-PFIFでは生成AIが以下まで担う可能性があります。</p>
+    <ul>
+      <li><strong>多言語・多モーダル支援</strong>：外国人被災者の母国語への自動翻訳、手話動画の自動生成。</li>
+      <li><strong>個別化された安否通知</strong>：家族に対し、「現在〇〇避難所におり、医療スタッフが対応しています。次の連絡は2時後を予定しています」といった、状況に応じた自動メッセージ生成。</li>
+      <li><strong>救助計画の自動立案</strong>：道路状況・救助隊の位置・被災者の緊急度を総合し、「隊Aは北側から、隊Bは南側から接近」といった最適ルートを生成。</li>
+    </ul>
+
+    <h3>4.6 幻覚対策：検証可能なAI（Verifiable AI）</h3>
+    <p>AI偏重の最大のリスクは<strong>幻覚（Hallucination）</strong>です。「存在しない被災者」を生成したり、「生存している人を死亡扱い」にしたりする可能性があります。</p>
+    <div class="info-box">
+      <p><strong>対策技術スタック：</strong></p>
+      <ul>
+        <li><strong>RAG（Retrieval-Augmented Generation）</strong>：生成AIの回答を、必ず実データベースの事実に接地させる。</li>
+        <li><strong>Chain-of-Thought ロギング</strong>：AIが「なぜその判断をしたか」の推論過程を記録し、人間が検証可能にする。</li>
+        <li><strong>マルチエージェント検証</strong>：複数の独立したAIモデルが同一データを処理し、合意形成した結果のみを採用する。</li>
+        <li><strong>人間インザループ（HITL）</strong>：高リスク判断（死亡推定・救助中止等）は必ず人間の承認を要するワークフロー。</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2><span class="sec-num">5</span> ハイブリッドアーキテクチャの提案</h2>
+    <p>「AI偏重」とは言っても、通信インフラが破壊された災害現場では、クラウド中心のAIだけでは機能しません。以下のような<strong>階層的ハイブリッドアーキテクチャ</strong>が現実的です。</p>
+
+    <h3>5.1 エッジ層（現場）</h3>
+    <ul>
+      <li><strong>ドローン・車載センサー</strong>：Wi-Fiスキャン、熱画像、可視光カメラ。</li>
+      <li><strong>救助隊のスマートフォン</strong>：オフライン優先のP2Pメッシュアプリ（Serval, Briar等の技術を応用）。</li>
+      <li><strong>エッジAI</strong>：軽量モデル（TensorFlow Lite, ONNX Runtime）による現場での即時検知。通信不可時でも動作。</li>
+    </ul>
+
+    <h3>5.2 ローカル層（避難所・自治体）</h3>
+    <ul>
+      <li><strong>避難所サーバー（ラズベリーパイクラスタ等）</strong>：エッジからのデータを一時集約し、自治体内で共有。</li>
+      <li><strong>Starlink / 災害用通信車</strong>：外部との帯域制限付き接続。</li>
+    </ul>
+
+    <h3>5.3 クラウド層（中央）</h3>
+    <ul>
+      <li><strong>大規模AIモデル</strong>：重い推論（顔認識・予測モデル・多言語翻訳）はクラウドで実行。</li>
+      <li><strong>全国統合ダッシュボード</strong>：内閣官房・消防庁・防災科学技術研究所が共有する統合ビュー。</li>
+      <li><strong>公開API</strong>：PFIF同様、外部NGO・メディアにもデータを開放（ただし差分プライバシー適用）。</li>
+    </ul>
+
+    <div class="concept-box">
+      <h4>同期モデル</h4>
+      <p>エッジ → ローカル：メッシュWi-Fi / LoRa / BLE（非同期・遅延許容）</p>
+      <p>ローカル → クラウド：Kafka Connect over Starlink（帯域適応的圧縮）</p>
+      <p>クラウド → ローカル：GraphQL Subscription（プッシュ型更新）</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2><span class="sec-num">6</span> 課題とリスク：AI偏重の落とし穴</h2>
+
+    <h3>6.1 標準化の欠如</h3>
+    <p>PFIFの最大の功績は「誰でも読めるオープン標準」でした。NEXT-PFIF時代、各企業・政府機関が独自のJSONスキーマ・APIを作ると、<strong>情報のサイロ化</strong>が進みます。W3CやOASISのような標準化団体よる早急な取り組みが必要です。</p>
+
+    <h3>6.2 プライバシーと監視社会</h3>
+    <p>「AIが常にすべての人を監視し、位置を把握する」システムは、平時に転用されれば<strong>監視国家のインフラ</strong>となり得ます。「災害時限定」「目的外使用禁止」の技術的保証（スマートコントラクトやポリシー自動実行）が必要です。</p>
+
+    <h3>6.3 デジタルデバイド</h3>
+    <p>スマートフォンを持たない高齢者・子供・外国人労働者は、AI検知の「死角」になります。従来の「人が入力する」仕組み（紙の安否確認ボード、避難所での口頭確認）を<strong>AIと並行して維持</strong>する必要があります。</p>
+
+    <h3>6.4 AIの倫理と説明責任</h3>
+    <p>「AIが生存確率10%と判断したから救助を諦めた」という事態を、誰が説明責任を負うのか。AIの判断根拠の開示、訴訟に耐える監査ログの設計が、技術スタックの一部として求められます。</p>
+
+    <h3>6.5 単一障害点（Single Point of Failure）</h3>
+    <p>クラウド集中型AIは、通信障害時に完全に機能不全に陥ります。前述のエッジ重視アーキテクチャと、<strong>オフラインで動作する軽量AIモデル</strong>の配備が不可欠です。</p>
+  </div>
+
+  <div class="card">
+    <h2><span class="sec-num">7</span> まとめ：NEXT-PFIFの姿</h2>
+    <table>
+      <tr><th>レイヤー</th><th>PFIF 1.4時代</th><th>NEXT-PFIF予測</th></tr>
+      <tr>
+        <td><strong>データモデル</strong></td>
+        <td>XML, 固定スキーマ</td>
+        <td>JSON-LD, GeoJSON, 拡張スキーマ（FHIR風）</td>
+      </tr>
+      <tr>
+        <td><strong>同期方式</strong></td>
+        <td>min_entry_dateによる静的ポーリング</td>
+        <td>Kafka/Redis Streamsによるリアルタイムイベント配信</td>
+      </tr>
+      <tr>
+        <td><strong>知識表現</strong></td>
+        <td>person + noteの単純関連</td>
+        <td>Knowledge Graph, オントロジーによる推論</td>
+      </tr>
+      <tr>
+        <td><strong>データ生成</strong></td>
+        <td>人間の手動入力のみ</td>
+        <td>AI自動検知（ドローン・センサー・SNS解析）+ 人間入力</td>
+      </tr>
+      <tr>
+        <td><strong>重複処理</strong></td>
+        <td>手動判断、マージ禁止</td>
+        <td>AIフェイス認識・NLPによる自動重複検出、読み取り時仮想統合</td>
+      </tr>
+      <tr>
+        <td><strong>プライバシー</strong></td>
+        <td>expiry_dateによる削除</td>
+        <td>差分プライバシー, 準同型暗号, TEE, ゼロ知識証明</td>
+      </tr>
+      <tr>
+        <td><strong>AIの役割</strong></td>
+        <td>なし</td>
+        <td>動レコード生成, 予測, 支援コーディネーション, 幻覚対策（RAG, HITL）</td>
+      </tr>
+      <tr>
+        <td><strong>アーキテクチャ</strong></td>
+        <td>中央集権型Webアプリ</td>
+        <td>エッジ・ローカル・クラウドの階層的ハイブリッド</td>
+      </tr>
+      <tr>
+        <td><strong>標準化</strong></td>
+        <td>Google主導のオープン標準</td>
+        <td>W3C/OASIS等による多国間標準化が急務</td>
+      </tr>
+    </table>
+
+    <div class="alert alert-success">
+      <p><strong>結論：</strong>NEXT-PFIFは「PFIFの設計思想（追跡可能性・分散型・プライバシー）を継承しつつ、AI・センサー・リアルタイムストリーミングを統合した、オープンで検証可能な次世代災害情報インフラ」となるべきです。AI偏重リスクを「RAG・HITL・監査ログ」で抑制しつつ、人間とAIの協調による「拡張防災（Augmented Disaster Response）」を実現することが、2026年以降の技術的・社会的課題です。</p>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top: 2rem;">
+    <h2>参考文献・ソース</h2>
+    <ul>
+      <li><a href="http://zesty.ca/pfif/1.4/" target="_blank">PFIF 1.4 Specification</a> — 現行標準の基礎</li>
+      <li><a href="https://github.com/google/personfinder" target="_blank">google/personfinder GitHub</a> — 2025年9月アーカイブ化</li>
+      <li><a href="https://www.yomiuri.co.jp/politics/20250426-OYT1T50053/" target="_blank">読売新聞</a> — 政府の被災者支援AI 42億円投資</li>
+      <li><a href="https://www.bosai.go.jp/information/kenkyudogaposter/pdf/2025_76.pdf" target="_blank">防災科学技術研所</a> — SIP4D-GAI開発</li>
+      <li><a href="https://www.softbank.jp/sbnews/entry/20251211_03" target="_blank">ソフトバンクニュース</a> — ドローン・Wi-Fi遭難者位置特定</li>
+      <li><a href="https://www.nikkei.com/article/DGKKZO90923040W5A820C2PD0000/" target="_blank">日本経済新聞</a> — AI被災把握 2027年度運用目標</li>
+      <li><a href="https://www.hitachi.com/ja-jp/insights/articles/dsdi/" target="_blank">日立製作所</a> — AI映像解析システム</li>
+      <li><a href="https://prtimes.jp/main/html/rd/p/000000107.000031759.html" target="_blank">Liberaware</a> — ドローン生存者確認実証</li>
+      <li><a href="https://prtimes.jp/main/html/rd/p/000000014.000041567.html" target="_blank">EMIラボ</a> — ドローン搭載型捜索ユニット</li>
+    </ul>
+  </div>
+
+</div>
+
+</body>
+</html>

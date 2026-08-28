@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Metaの災害支援ハブ：SNS災害対応の新しい基準</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Noto+Serif+JP:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f4f6f8;
+  --surface: #ffffff;
+  --ink: #1c1e21;
+  --muted: #65676b;
+  --primary: #1a3a5c;
+  --primary-weak: color-mix(in oklab, var(--primary) 10%, var(--surface));
+  --accent: #e66a1f;
+  --accent-weak: color-mix(in oklab, var(--accent) 12%, var(--surface));
+  --line: color-mix(in oklab, var(--ink) 10%, transparent);
+  --step--1: clamp(0.875rem, 0.84rem + 0.2vw, 1rem);
+  --step-0: clamp(1rem, 0.95rem + 0.3vw, 1.125rem);
+  --step-1: clamp(1.2rem, 1.1rem + 0.6vw, 1.5rem);
+  --step-2: clamp(1.5rem, 1.3rem + 1.2vw, 2.25rem);
+  --step-3: clamp(2rem, 1.6rem + 2.4vw, 3.5rem);
+  --space: clamp(1.5rem, 1.2rem + 1.5vw, 3rem);
+  --radius: 16px;
+  --shadow: 0 1px 2px rgba(0,0,0,0.04), 0 8px 24px -12px rgba(0,0,0,0.18);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: "Noto Sans JP", "Hiragino Sans", "Yu Gothic", "Noto Sans JP", sans-serif;
+  font-size: var(--step-0);
+  line-height: 1.85;
+  color: var(--ink);
+  background: var(--bg);
+}
+
+/* Hero */
+.hero {
+  background: var(--primary);
+  color: #fff;
+  padding: calc(var(--space) * 2.5) var(--space);
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 20% 120%, rgba(230,106,31,0.25), transparent 60%);
+  pointer-events: none;
+}
+
+.hero-inner {
+  position: relative;
+  z-index: 1;
+  max-width: 780px;
+  margin: 0 auto;
+}
+
+.hero-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: var(--step--1);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.85);
+  margin-bottom: 1rem;
+}
+
+.hero-eyebrow svg { width: 20px; height: 20px; }
+
+.hero h1 {
+  font-family: "Noto Serif JP", "Hiragino Mincho ProN", "Yu Mincho", "Noto Serif JP", serif;
+  font-size: var(--step-3);
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+  margin-bottom: 1rem;
+}
+
+.hero-lead {
+  font-size: var(--step-1);
+  color: rgba(255,255,255,0.9);
+  max-width: 640px;
+  margin: 0 auto;
+  line-height: 1.7;
+}
+
+/* Layout */
+.container {
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 0 var(--space);
+}
+
+.section {
+  padding: calc(var(--space) * 1.8) 0;
+}
+
+.section + .section {
+  border-top: 1px solid var(--line);
+}
+
+.section-title {
+  font-family: "Noto Serif JP", "Hiragino Mincho ProN", "Yu Mincho", "Noto Serif JP", serif;
+  font-size: var(--step-2);
+  font-weight: 700;
+  color: var(--primary);
+  margin-bottom: 0.75rem;
+  line-height: 1.3;
+}
+
+.section-sub {
+  color: var(--muted);
+  font-size: var(--step--1);
+  margin-bottom: calc(var(--space) * 0.8);
+}
+
+/* Cards */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: calc(var(--space) * 0.75);
+  margin-top: calc(var(--space) * 0.8);
+}
+
+.card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  border: 1px solid var(--line);
+  padding: calc(var(--space) * 0.9);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 32px -12px rgba(0,0,0,0.22);
+}
+
+.card-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: var(--accent-weak);
+  color: var(--accent);
+  display: grid;
+  place-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.card-icon svg { width: 22px; height: 22px; }
+
+.card h3 {
+  font-size: var(--step-1);
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 0.5rem;
+}
+
+.card p {
+  font-size: var(--step--1);
+  color: var(--muted);
+  line-height: 1.75;
+}
+
+/* Feature image */
+.feature-img {
+  width: 100%;
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  margin: calc(var(--space) * 0.6) 0;
+  box-shadow: var(--shadow);
+}
+
+/* Quote / insight box */
+.insight {
+  background: var(--primary-weak);
+  border-left: 4px solid var(--primary);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  padding: calc(var(--space) * 0.7) calc(var(--space) * 0.9);
+  margin: calc(var(--space) * 0.8) 0;
+}
+
+.insight p {
+  font-size: var(--step-0);
+  color: var(--ink);
+  font-weight: 500;
+}
+
+.insight strong {
+  color: var(--primary);
+}
+
+/* Table */
+.comparison-table-wrap {
+  overflow-x: auto;
+  margin-top: calc(var(--space) * 0.8);
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow);
+}
+
+.comparison-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--surface);
+  font-size: var(--step--1);
+  min-width: 640px;
+}
+
+.comparison-table th,
+.comparison-table td {
+  padding: 0.85rem 1rem;
+  text-align: left;
+  border-bottom: 1px solid var(--line);
+}
+
+.comparison-table thead th {
+  background: var(--primary);
+  color: #fff;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.comparison-table tbody tr:last-child td { border-bottom: none; }
+
+.comparison-table td:first-child {
+  font-weight: 700;
+  color: var(--primary);
+  white-space: nowrap;
+}
+
+.comparison-table .check { color: var(--accent); font-weight: 700; }
+.comparison-table .cross { color: var(--muted); }
+.comparison-table .half { color: #c29b40; font-weight: 700; }
+
+/* Numbered section list */
+.point-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--space) * 0.7);
+  margin-top: calc(var(--space) * 0.8);
+}
+
+.point-item {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: calc(var(--space) * 0.7);
+  box-shadow: var(--shadow);
+}
+
+.point-num {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 700;
+  font-size: var(--step--1);
+  display: grid;
+  place-items: center;
+  line-height: 1;
+}
+
+.point-body h4 {
+  font-size: var(--step-1);
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 0.25rem;
+}
+
+.point-body p {
+  font-size: var(--step--1);
+  color: var(--muted);
+}
+
+/* Footer / sources */
+.sources {
+  background: var(--surface);
+  border-top: 1px solid var(--line);
+  padding: calc(var(--space) * 1.2) 0;
+  margin-top: calc(var(--space) * 1.5);
+}
+
+.sources h2 {
+  font-size: var(--step-1);
+  color: var(--primary);
+  margin-bottom: 0.75rem;
+}
+
+.source-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.source-list li {
+  font-size: var(--step--1);
+  color: var(--muted);
+}
+
+.source-list a {
+  color: var(--primary);
+  text-decoration: none;
+  word-break: break-all;
+}
+
+.source-list a:hover { text-decoration: underline; }
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .card, .point-item { transition: none; }
+}
+
+/* Print */
+@media print {
+  body { background: #fff; }
+  .hero { background: var(--primary); -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .card, .point-item, .comparison-table-wrap, .insight { box-shadow: none; border: 1px solid #ddd; }
+}
+@page { size: A4; margin: 16mm; }
+
+/* Reveal animation */
+.reveal {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .reveal { opacity: 0; transform: translateY(24px); }
+  .reveal.is-visible { opacity: 1; transform: translateY(0); }
+}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="hero-inner">
+    <div class="hero-eyebrow">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/>
+        <path d="M8 12l2.5 2.5L16 9"/>
+      </svg>
+      Crisis Response
+    </div>
+    <h1>Metaの災害支援ハブ<br><span style="font-size:0.75em; opacity:.9;">SNS災害対応の新しい基準</span></h1>
+    <p class="hero-lead">Facebook上に統合された「災害支援ハブ」は、安否確認、支援マッチング、情報集約、募金を一本化した、世界で最も包括的なSNS型災害対応インフラです。</p>
+  </div>
+</header>
+
+<main class="container">
+
+<section class="section reveal">
+  <h2 class="section-title">統合型アプローチの優位性</h2>
+  <p class="section-sub">2017年9月に発表された「災害支援ハブ」は、従来バラバラに存在していた災害対応機能を単一ページに集約しました。</p>
+  <img src="https://about.fb.com/ja/wp-content/uploads/sites/15/2017/09/crisis-response-on-facebook-newsroom-image-1.png" alt="Facebookの害支援ハブのイメージ図" class="feature-img" loading="lazy">
+  <div class="insight">
+    <p><strong>他のSNSが「情報流通」や「安否確認」の単一機能に留まる中、Metaは「安否確認・支援マッチング・情報収集・募金」を同一UIで提供し、被災者と支援者の意思決定を一本化しました。</strong></p>
+  </div>
+</section>
+
+<section class="section reveal">
+  <h2 class="section-title">4つの柱</h2>
+  <p class="section-sub">災害支援ハブを構成する中核機能です。</p>
+  <div class="card-grid">
+    <article class="card">
+      <div class="card-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+      </div>
+      <h3>セーフティチェック</h3>
+      <p>被災地域にいるユーザーに通知が届き、ワンタップで無事を報告。家族や友人がリアルタイムで安否を確認できます。</p>
+    </article>
+    <article class="card">
+      <div class="card-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      </div>
+      <h3>コミュニティヘルプ</h3>
+      <p>食料、避難場所、移動手段などの支援を探したり提供したり。支援者と被災者が直接メッセージで連絡を取れます。</p>
+    </article>
+    <article class="card">
+      <div class="card-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+      </div>
+      <h3>災害関連コンテンツの集約</h3>
+      <p>記事、画像、動画などのリンクを同一ページに集約。ユーザーは複数の情報源を行き来することなく最新情報にアクセスできます。</p>
+    </article>
+    <article class="card">
+      <div class="card-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+      </div>
+      <h3>募金キャンペーン</h3>
+      <p>基金の設立や寄付を通じて、被災者や災害支援NPOを直接支援。ソーシャルグラフ上で支援のを広げます。</p>
+    </article>
+  </div>
+  <img src="https://about.fb.com/ja/wp-content/uploads/sites/15/2017/09/crisis-response-screenshot-1.png" alt="災害支援ハブのスクリーンショット" class="feature-img" loading="lazy">
+</section>
+
+<section class="section reveal">
+  <h2 class="section-title">他プラットフォームとの比較</h2>
+  <p class="section-sub">各SNS・プラットフォームの災害対応機能を比較すると、Metaの「統合型ハブ」の優位性が明確になります。</p>
+  <div class="comparison-table-wrap">
+    <table class="comparison-table">
+      <thead>
+        <tr>
+          <th>プラットフォーム</th>
+          <th>統合型ハブ</th>
+          <th>安否確認</th>
+          <th>支援マッチング</th>
+          <th>リアルタイム情報</th>
+          <th>信頼性担保</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Meta（Facebook）</td>
+          <td class="check">◎</td>
+          <td class="check">◎</td>
+          <td class="check">◎</td>
+          <td>○</td>
+          <td>△</td>
+        </tr>
+        <tr>
+          <td>LINE</td>
+          <td class="half">△</td>
+          <td class="check">◎</td>
+          <td class="half">△</td>
+          <td>○</td>
+          <td class="check">○</td>
+        </tr>
+        <tr>
+          <td>X（Twitter）</td>
+          <td class="cross">×</td>
+          <td class="half">△</td>
+          <td class="cross">×</td>
+          <td class="check">◎</td>
+          <td>△</td>
+        </tr>
+        <tr>
+          <td>Google Person Finder</td>
+          <td class="half">△</td>
+          <td class="check">◎</td>
+          <td class="half">△</td>
+          <td class="half">△</td>
+          <td class="check">○</td>
+        </tr>
+        <tr>
+          <td>Instagram・TikTok</td>
+          <td class="cross">×</td>
+          <td class="cross">×</td>
+          <td class="cross">×</td>
+          <td class="check">◎</td>
+          <td class="cross">×</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="insight">
+    <p><strong>LINEは安否確認に特化し、Xはリアルタイム情報に強い一方、Metaだけが「安否確認・支援マッチング・情報集約・募金」を統合した包括的なハブを提供しています。</strong></p>
+  </div>
+</section>
+
+<section class="section reveal">
+  <h2 class="section-title">なぜMetaの仕組みが優れているか</h2>
+  <p class="section-sub">災害対応の専門的視点から、Metaの災害支援ハブを評価する4つの根拠です。</p>
+  <ol class="point-list">
+    <li class="point-item">
+      <span class="point-num">1</span>
+      <div class="point-body">
+        <h4>統合性：被災者の「行動の一本化」</h4>
+        <p>災害時にユーザーが複数のアプリやページを行き来する負担は大きく、意思決定の遅延を招きます。Metaは安否確認、支援要請・提供、情報収集、募金を同一ページに集約し、被災者と支援者双方の行動を一本化しました。</p>
+      </div>
+    </li>
+    <li class="point-item">
+      <span class="point-num">2</span>
+      <div class="point-body">
+        <h4>グローバル展開と自動化</h4>
+        <p>第三者機関（NC4、iJET International）による災害認定と、ユーザーの投稿パターン分析による自動起動メカニズムを持ち、世界中の災害に迅速に対応します。LINEの「震度6以上」などの手動的な閾値とは異なり、柔軟なスケーラビリティを確保しています。</p>
+      </div>
+    </li>
+    <li class="point-item">
+      <span class="point-num">3</span>
+      <div class="point-body">
+        <h4>ソーシャルグラフの活用</h4>
+        <p>Facebookの「友だち関係」という現存する信頼ネットワークを活用することで、安否情報の到達率と信頼性を高めています。匿名掲示板型安否確認とは異なり、「誰からの情報か」が可視化されるため、誤情報のリスクを低減します。</p>
+      </div>
+    </li>
+    <li class="point-item">
+      <span class="point-num">4</span>
+      <div class="point-body">
+        <h4>継続的な改善と実績</h4>
+        <p>2014年の「災害時情報センター」（日本発）から始まり、2017年の「災害支援ハブ」、コミュニティヘルプの追加、WhatsApp連携など、10年以上にわたる改善の蓄積があります。2019年には「もしもに備えるFacebook」ガイドブックも公開し、啓蒙活動も並行して実施しています。</p>
+      </div>
+    </li>
+  </ol>
+</section>
+
+<section class="section reveal">
+  <h2 class="section-title">結論</h2>
+  <p>災害対応のデジタル化が進む中、単一機能の提供ではなく、被災者のニーズを包括的に捉えた「統合型ハブ」こそが、次世代の防災インフラの基準となります。Metaの災害支援ハブは、その点でSNS業界の中で最も完成度の高いモデルを提示しています。</p>
+  <div class="insight">
+    <p><strong>「速さ」と「正確さ」、「個人の安否」と「コミュニティの復興」、これらを同時に実現できるのが、Metaの災害支援ハブの真の価値です。</strong></p>
+  </div>
+</section>
+
+</main>
+
+<footer class="sources">
+  <div class="container">
+    <h2>出典・参考資料</h2>
+    <ul class="source-list">
+      <li>Metaについて「Facebookに新しく「災害支援ハブ」が登場」(2017-09-21) — <a href="https://about.fb.com/ja/news/2017/09/a-new-center-for-crisis-response-on-facebook/">https://about.fb.com/ja/news/2017/09/a-new-center-for-crisis-response-on-facebook/</a></li>
+      <li>Metaについて「「災害時情報センター」に食料や避難場所を探せる新機能「コミュニティヘルプ」を追加」(2017-02-09) — <a href="https://about.fb.com/ja/news/2017/02/communityhelp/">https://about.fb.com/ja/news/2017/02/communityhelp/</a></li>
+      <li>Metaについて「有事の際に役立つFacebook災害対応ガイドブック「もしもに備えるFacebook」を公開」(2019-09-06) — <a href="https://about.fb.com/ja/news/2019/09/facebook_disaster_guidebook/">https://about.fb.com/ja/news/2019/09/facebook_disaster_guidebook/</a></li>
+      <li>GlobalGiving「GlobalGiving & Meta Crisis Response」— <a href="https://www.globalgiving.org/meta-crisis-response/">https://www.globalgiving.org/meta-crisis-response/</a></li>
+      <li>LINEみんなの使い方ガイド「LINE安否確認を利用する」— <a href="https://guide.line.me/ja/services/safety-check.html">https://guide.line.me/ja/services/safety-check.html</a></li>
+      <li>毎日新聞「「LINE安否確認」1200万人超が利用 能登地震で初の長期運用」(2024-02-01) — <a href="https://mainichi.jp/articles/20240201/k00/00m/040/249000c">https://mainichi.jp/articles/20240201/k00/00m/040/249000c</a></li>
+      <li>WIRED「Elon Musk's Twitter Isn't Ready for the Next Natural Disaster」(2022-12-05) — <a href="https://www.wired.com/story/elon-musks-twitter-isnt-ready-for-the-next-natural-disaster/">https://www.wired.com/story/elon-musks-twitter-isnt-ready-for-the-next-natural-disaster/</a></li>
+      <li>Google Support「What is Google Person Finder?」— <a href="https://support.google.com/personfinder/answer/1628135?hl=en">https://support.google.com/personfinder/answer/1628135?hl=en</a></li>
+      <li>The Verge「Social media platforms are not built for this」(2025-01-15) — <a href="https://www.theverge.com/2025/1/15/24340185/los-angeles-california-wildfires-tiktok-instagram-twitter-content">https://www.theverge.com/2025/1/15/24340185/los-angeles-california-wildfires-tiktok-instagram-twitter-content</a></li>
+    </ul>
+  </div>
+</footer>
+
+<script>
+// Reveal on scroll
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) entry.target.classList.add('is-visible');
+  });
+}, { threshold: 0.1 });
+
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
+
+</body>
+</html>

@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meta災害支援ハブの包括的分析：SNS災害対応インフラの進化と課題</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Noto+Serif+JP:wght@600;700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f0f2f5;
+  --surface: #ffffff;
+  --surface-2: #f8f9fa;
+  --ink: #1c1e21;
+  --ink-secondary: #3c4043;
+  --muted: #65676b;
+  --primary: #1a3a5c;
+  --primary-weak: color-mix(in oklab, var(--primary) 8%, var(--bg));
+  --accent: #e66a1f;
+  --accent-weak: color-mix(in oklab, var(--accent) 10%, var(--surface));
+  --success: #2d8a4e;
+  --warning: #c29b40;
+  --danger: #c23a2e;
+  --line: color-mix(in oklab, var(--ink) 8%, transparent);
+  --step--2: clamp(0.75rem, 0.72rem + 0.15vw, 0.875rem);
+  --step--1: clamp(0.875rem, 0.84rem + 0.2vw, 1rem);
+  --step-0: clamp(1rem, 0.95rem + 0.3vw, 1.125rem);
+  --step-1: clamp(1.2rem, 1.08rem + 0.7vw, 1.6rem);
+  --step-2: clamp(1.6rem, 1.3rem + 1.6vw, 2.6rem);
+  --step-3: clamp(2.2rem, 1.6rem + 3.2vw, 4rem);
+  --space: clamp(1.5rem, 1.2rem + 1.5vw, 3rem);
+  --radius: 14px;
+  --shadow: 0 1px 3px rgba(0,0,0,0.05), 0 8px 24px -10px rgba(0,0,0,0.18);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: "Noto Sans JP", "Hiragino Sans", "Yu Gothic", "Noto Sans JP", sans-serif;
+  font-size: var(--step-0);
+  line-height: 1.9;
+  color: var(--ink);
+  background: var(--bg);
+}
+
+/* Hero */
+.hero {
+  background: var(--primary);
+  color: #fff;
+  padding: calc(var(--space) * 3) var(--space);
+  position: relative;
+  overflow: hidden;
+}
+
+.hero::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  right: -20%;
+  width: 70%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(230,106,31,0.18), transparent 60%);
+  pointer-events: none;
+}
+
+.hero-inner {
+  position: relative;
+  z-index: 1;
+  max-width: 860px;
+  margin: 0 auto;
+}
+
+.hero-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: var(--step--2);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.75);
+  margin-bottom: 1.25rem;
+}
+
+.hero h1 {
+  font-family: "Noto Serif JP", "Hiragino Mincho ProN", "Yu Mincho", "Noto Serif JP", serif;
+  font-size: var(--step-3);
+  font-weight: 900;
+  line-height: 1.2;
+  letter-spacing: -0.03em;
+  margin-bottom: 1.25rem;
+}
+
+.hero-lead {
+  font-size: var(--step-1);
+  color: rgba(255,255,255,0.88);
+  max-width: 700px;
+  line-height: 1.7;
+  margin-bottom: 2rem;
+}
+
+.hero-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  font-size: var(--step--2);
+  color: rgba(255,255,255,0.65);
+  letter-spacing: 0.05em;
+}
+
+.hero-meta span { display: flex; align-items: center; gap: 0.4rem; }
+
+/* Container */
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0 var(--space);
+}
+
+/* Section */
+.section {
+  padding: calc(var(--space) * 2) 0;
+}
+
+.section + .section {
+  border-top: 1px solid var(--line);
+}
+
+.section-header {
+  margin-bottom: calc(var(--space) * 0.9);
+}
+
+.section-num {
+  display: inline-block;
+  font-family: "Noto Serif JP", serif;
+  font-size: var(--step--1);
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 0.1em;
+  margin-bottom: 0.5rem;
+}
+
+.section-title {
+  font-family: "Noto Serif JP", "Hiragino Mincho ProN", "Yu Mincho", "Noto Serif JP", serif;
+  font-size: var(--step-2);
+  font-weight: 700;
+  color: var(--primary);
+  line-height: 1.25;
+  margin-bottom: 0.6rem;
+}
+
+.section-desc {
+  color: var(--muted);
+  font-size: var(--step--1);
+  max-width: 680px;
+}
+
+/* Body text */
+.prose {
+  max-width: 720px;
+}
+
+.prose p {
+  margin-bottom: 1.25rem;
+  text-align: justify;
+  word-break: normal;
+  overflow-wrap: anywhere;
+}
+
+.prose p:last-child { margin-bottom: 0; }
+
+.prose strong { color: var(--ink-secondary); font-weight: 700; }
+
+/* Timeline */
+.timeline {
+  position: relative;
+  margin: calc(var(--space) * 0.8) 0;
+  padding-left: 1.5rem;
+}
+
+.timeline::before {
+  content: "";
+  position: absolute;
+  left: 5px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--line);
+}
+
+.timeline-item {
+  position: relative;
+  padding-bottom: calc(var(--space) * 0.9);
+}
+
+.timeline-item::before {
+  content: "";
+  position: absolute;
+  left: -1.5rem;
+  top: 0.4rem;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 2px solid var(--surface);
+  box-shadow: 0 0 0 2px var(--accent-weak);
+}
+
+.timeline-year {
+  font-family: "Noto Serif JP", serif;
+  font-weight: 700;
+  font-size: var(--step-1);
+  color: var(--primary);
+  margin-bottom: 0.25rem;
+}
+
+.timeline-body {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: calc(var(--space) * 0.6);
+  box-shadow: var(--shadow);
+}
+
+.timeline-body h4 {
+  font-size: var(--step-0);
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 0.35rem;
+}
+
+.timeline-body p {
+  font-size: var(--step--1);
+  color: var(--muted);
+  line-height: 1.75;
+}
+
+/* Cards */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: calc(var(--space) * 0.6);
+  margin-top: calc(var(--space) * 0.7);
+}
+
+.card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  border: 1px solid var(--line);
+  padding: calc(var(--space) * 0.75);
+}
+
+.card h3 {
+  font-size: var(--step-0);
+  font-weight: 700;
+  color: var(--primary);
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.card p, .card li {
+  font-size: var(--step--1);
+  color: var(--muted);
+  line-height: 1.8;
+}
+
+.card ul { padding-left: 1.2rem; }
+
+/* Insight / highlight box */
+.insight {
+  background: var(--primary-weak);
+  border-left: 4px solid var(--primary);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  padding: calc(var(--space) * 0.7) calc(var(--space) * 0.9);
+  margin: calc(var(--space) * 0.8) 0;
+}
+
+.insight p {
+  font-size: var(--step-0);
+  color: var(--ink);
+  font-weight: 500;
+  line-height: 1.75;
+}
+
+.insight strong { color: var(--primary); }
+
+/* Warning / limitation box */
+.limitation {
+  background: color-mix(in oklab, var(--danger) 6%, var(--surface));
+  border-left: 4px solid var(--danger);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  padding: calc(var(--space) * 0.7) calc(var(--space) * 0.9);
+  margin: calc(var(--space) * 0.8) 0;
+}
+
+.limitation p {
+  font-size: var(--step--1);
+  color: var(--ink-secondary);
+  line-height: 1.75;
+}
+
+.limitation strong { color: var(--danger); }
+
+/* Table */
+.table-wrap {
+  overflow-x: auto;
+  margin-top: calc(var(--space) * 0.8);
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow);
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--surface);
+  font-size: var(--step--1);
+  min-width: 700px;
+}
+
+.data-table th,
+.data-table td {
+  padding: 0.85rem 1rem;
+  text-align: left;
+  border-bottom: 1px solid var(--line);
+  vertical-align: top;
+}
+
+.data-table thead th {
+  background: var(--primary);
+  color: #fff;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.data-table tbody tr:last-child td { border-bottom: none; }
+
+.data-table td:first-child {
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.check { color: var(--success); font-weight: 700; }
+.cross { color: var(--muted); }
+.half { color: var(--warning); font-weight: 700; }
+
+/* Two column */
+.two-col {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: calc(var(--space) * 0.8);
+  margin-top: calc(var(--space) * 0.8);
+}
+
+.col-box {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: calc(var(--space) * 0.75);
+  box-shadow: var(--shadow);
+}
+
+.col-box h4 {
+  font-size: var(--step-0);
+  font-weight: 700;
+  color: var(--primary);
+  margin-bottom: 0.6rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 2px solid var(--accent-weak);
+}
+
+.col-box p, .col-box li {
+  font-size: var(--step--1);
+  color: var(--muted);
+  line-height: 1.8;
+}
+
+.col-box ul { padding-left: 1.2rem; margin-top: 0.4rem; }
+
+/* Feature image */
+.feature-img {
+  width: 100%;
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  margin: calc(var(--space) * 0.6) 0;
+  box-shadow: var(--shadow);
+}
+
+/* Subsection */
+.subsection-title {
+  font-size: var(--step-1);
+  font-weight: 700;
+  color: var(--ink-secondary);
+  margin: calc(var(--space) * 0.9) 0 0.6rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid var(--line);
+}
+
+/* Stats row */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 1rem;
+  margin: calc(var(--space) * 0.8) 0;
+}
+
+.stat-box {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 1.25rem 1rem;
+  text-align: center;
+  box-shadow: var(--shadow);
+}
+
+.stat-num {
+  font-family: "Noto Serif JP", serif;
+  font-size: var(--step-2);
+  font-weight: 700;
+  color: var(--accent);
+  line-height: 1.2;
+}
+
+.stat-label {
+  font-size: var(--step--2);
+  color: var(--muted);
+  margin-top: 0.35rem;
+}
+
+/* Sources */
+.sources {
+  background: var(--surface);
+  border-top: 1px solid var(--line);
+  padding: calc(var(--space) * 1.5) 0;
+  margin-top: calc(var(--space) * 1.5);
+}
+
+.sources h2 {
+  font-size: var(--step-1);
+  color: var(--primary);
+  margin-bottom: 1rem;
+}
+
+.source-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.source-list li {
+  font-size: var(--step--2);
+  color: var(--muted);
+  padding-left: 1rem;
+  text-indent: -1rem;
+}
+
+.source-list a {
+  color: var(--primary);
+  text-decoration: none;
+  word-break: break-all;
+}
+
+.source-list a:hover { text-decoration: underline; }
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+/* Print */
+@media print {
+  body { background: #fff; }
+  .hero { background: var(--primary); -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .card, .col-box, .timeline-body, .table-wrap, .insight, .limitation, .stat-box { box-shadow: none; border: 1px solid #ddd; }
+}
+@page { size: A4; margin: 14mm; }
+
+/* Reveal */
+.reveal { opacity: 1; transform: translateY(0); transition: opacity 0.6s ease, transform 0.6s ease; }
+@media (prefers-reduced-motion: no-preference) {
+  .reveal { opacity: 0; transform: translateY(20px); }
+  .reveal.is-visible { opacity: 1; transform: translateY(0); }
+}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="hero-inner">
+    <div class="hero-eyebrow">Comprehensive Analysis / Meta Crisis Response</div>
+    <h1>Meta災害支援ハブの包括的分析<br><span style="font-size:0.72em; opacity:.85;">SNS災害対応インフラの進化、優位性、および構造的課題</span></h1>
+    <p class="hero-lead">Facebook上に構築された「災害支援ハブ」は、単なる安否確認機能ではなく、安否確認・支援マッチング・情報集約・募金を統合した包括的災害対応UIとして、SNS業界における新たな基準を提示している。</p>
+    <div class="hero-meta">
+      <span>調査日：2026年8月28日</span>
+      <span>対象：Meta（Facebook）災害支援ハブおよび競合プラットフォーム</span>
+    </div>
+  </div>
+</header>
+
+<main class="container">
+
+<!-- Section 1: History -->
+<section class="section reveal">
+  <div class="section-header">
+    <span class="section-num">01</span>
+    <h2 class="section-title">進化の系譜：日本発の機能から統合ハブへ</h2>
+    <p class="section-desc">Metaの災害対応機能は、2011年東日本大震災の経験から生まれた「日本発」の機能を起点に、10年以上かけて進化を続けてきた。</p>
+  </div>
+
+  <div class="timeline">
+    <div class="timeline-item">
+      <div class="timeline-year">2011</div>
+      <div class="timeline-body">
+        <h4>東日本大震災：原点</h4>
+        <p>ユーザーがFacebookを家族や友人との安否確認に自発的に使用していたことに着目。これが後の公式機能開発の直接的な動機となった。</p>
+      </div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-year">2014</div>
+      <div class="timeline-body">
+        <h4>「災害時情報センター」発表（日本発）</h4>
+        <p>世界に先駆けて日本で発表された安否確認機能。ユーザーの自発的な行動を製品化した最初の試み。</p>
+      </div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-year">2017.02</div>
+      <div class="timeline-body">
+        <h4>「コミュニティヘルプ」追加</h4>
+        <p>食料・避難場所・移動手段などの支援を探したり提供したりできる機能を追加。安否確認から「支援マッチング」へ機能を拡張。</p>
+      </div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-year">2017.09</div>
+      <div class="timeline-body">
+        <h4>「災害支援ハブ」新設</h4>
+        <p>セーフティチェック、コミュニティヘルプ、募金、関連コンテンツを同一ページに統合。統合型ハブとしての完成形に近づく。</p>
+      </div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-year">2019.12</div>
+      <div class="timeline-body">
+        <h4>WhatsApp連携強化</h4>
+        <p>支援の要請・提供時にWhatsAppでメッセージを送れ機能を追加。クロスプラットフォーム連携の試み。</p>
+      </div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-year">2023.07</div>
+      <div class="timeline-body">
+        <h4>災害寄付ボタン廃止</h4>
+        <p>GlobalGivingとの連携による寄付ボタンを廃止。2017〜2023年の間に115カ国以上600以上の地域組織へ支援が行われた。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Section 2: Architecture -->
+<section class="section reveal">
+  <div class="section-header">
+    <span class="section-num">02</span>
+    <h2 class="section-title">システムアーキテクチャ：統合ハブの設計思想</h2>
+    <p class="section-desc">Metaの災害支援ハブは、単なる機能の寄せ集めではなく、災害時のユーザージャーニーを設計した統合的ーキテクチャである。</p>
+  </div>
+
+  <img src="https://about.fb.com/ja/wp-content/uploads/sites/15/2017/09/crisis-response-screenshot-1.png" alt="災害支援ハブのスクリーンショット" class="feature-img" loading="lazy">
+
+  <div class="prose">
+    <h3 class="subsection-title">2-1. 4つの機能モジュール</h3>
+    <p>災害支援ハブは以下の4つのモジュールを同一UIに統合している。各モジュールは独立して動作しつつ、相互に連携する設計となっている。</p>
+  </div>
+
+  <div class="card-grid">
+    <article class="card">
+      <h3><span style="color:var(--accent);">&#9679;</span> セーフティチェック</h3>
+      <p>被災地域にいるユーザーにプッシュ通知で安否確認を促す。ワンタップで「無事」を報告し、Facebook上の友人に自動共有される。代理報告も可能。災害支援ハブのトップに表示される最優先機能。</p>
+    </article>
+    <article class="card">
+      <h3><span style="color:var(--accent);">&#9679;</span> コミュニティヘルプ</h3>
+      <p>支援を「必要とする人」と「提供できる人」をマッチング。物資の種類（食料・避難場所・移動手段など）や場所で投稿を絞り込み可能。直接メッセージ機能により、支援者と被災者が1対1で連絡を取れる。</p>
+    </article>
+    <article class="card">
+      <h3><span style="color:var(--accent);">&#9679;</span> 災害関連コンテンツ</h3>
+      <p>Facebookコミュニティから投稿された災害に関する記事・動画・画像のリンクをアルゴリズムで収集・集約。同一ページから最新情報へのアクセスが可能。</p>
+    </article>
+    <article class="card">
+      <h3><span style="color:var(--accent);">&#9679;</span> 募金キャンペーン</h3>
+      <p>基金の設立や寄付を通じて、被じて、被災者や災害支援NPOを直接支援。ソーシャルグラフ上で支援の輪を広げる。（2017年時点では米国のみ、2023年7月に廃止）</p>
+    </article>
+  </div>
+
+  <div class="prose" style="margin-top:calc(var(--space)*0.8);">
+    <h3 class="subsection-title">2-2. 自動起動メカニズム</h3>
+    <p>災害支援ハブの起動は、以下の2段階プロセスで自動化されている。これにより、人的判断に依存せず、世界中の災害に迅速に対応できるスケーラビリティを確保している。</p>
+  </div>
+
+  <div class="two-col">
+    <div class="col-box">
+      <h4>段階1：災害認定</h4>
+      <p>第三者機関である米National Center for Crisis and Continuity Coordination（NC4）およびiJET Internationalが、事故・災害の発生をFacebookに報告し、災害の名称を決定する。</p>
+    </div>
+    <div class="col-box">
+      <h4>段階2：ユーザートリガー</h4>
+      <p>利用者の災害関連投稿が多数確認された場合、Facebookが利用者に対し安否状況の発信を促す。利用者の知り合いや友達にも同様に推奨される。</p>
+    </div>
+  </div>
+
+  <div class="insight">
+    <p><strong>この2段階メカニズムの重要点は、「外部機関の客観的認定」と「ユーザーの自発的トリガー」を組み合わせることで、誤検出を防ぎつつ迅速な起動を両立していることである。</strong> LINEの「震度6以上」などの固定的な閾値とは異なり、津波・台風・火災など震度では測れない災害にも柔軟に対応できる。</p>
+  </div>
+</section>
+
+<!-- Section 3: Competitive Analysis -->
+<section class="section reveal">
+  <div class="section-header">
+    <span class="section-num">03</span>
+    <h2 class="section-title">競合分析：他プラットフォームとの構造的比較</h2>
+    <p class="section-desc">Metaの災害支援ハブを、主要な競合・類似プラットフォームと多角的に比較する。</p>
+  </div>
+
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>プラットフォーム</th>
+          <th>統合型ハブ</th>
+          <th>安否確認</th>
+          <th>支援マッチング</th>
+          <th>リアルタイム情報</th>
+          <th>信頼性担保</th>
+          <th>グローバル展開</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Meta（Facebook）</td>
+          <td class="check">◎</td>
+          <td class="check">◎</td>
+          <td class="check">◎</td>
+          <td>○</td>
+          <td>△</td>
+          <td class="check">◎</td>
+        </tr>
+        <tr>
+          <td>LINE</td>
+          <td class="half">△</td>
+          <td class="check">◎</td>
+          <td class="half">△</td>
+          <td>○</td>
+          <td class="check">○</td>
+          <td class="half">△</td>
+        </tr>
+        <tr>
+          <td>X（Twitter）</td>
+          <td class="cross">×</td>
+          <td class="half">△</td>
+          <td class="cross">×</td>
+          <td class="check">◎</td>
+          <td>△</td>
+          <td class="check">◎</td>
+        </tr>
+        <tr>
+          <td>Google Person Finder</td>
+          <td class="half">△</td>
+          <td class="check">◎</td>
+          <td class="half">△</td>
+          <td class="half">△</td>
+          <td class="check">○</td>
+          <td class="check">◎</td>
+        </tr>
+        <tr>
+          <td>Instagram・TikTok</td>
+          <td class="cross">×</td>
+          <td class="cross">×</td>
+          <td class="cross">×</td>
+          <td class="check">◎</td>
+          <td class="cross">×</td>
+          <td class="check">◎</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="prose" style="margin-top:calc(var(--space)*0.8);">
+    <h3 class="subsection-title">3-1. LINE：日本市場の支配的プレイヤー</h3>
+    <p>LINEの「安否確認」は、2024年1月の能登半島地震で<strong>1200万人超</strong>が利用し、日本における事実上の「国民的安否確認インフラ」となっている。東日本大震災の経験から生まれた「電話回線が繋がらなくてもインターネット経由で安否確認ができる」という設計思想は、日本の通信インフラの脆弱性を反映したものである。</p>
+    <p>しかし、LINEはあくまで「安否確認」に特化した単機能型であり、支援マッチングや募金機能は持たない。Metaの「統合ハブ」とは異なる設計思想の産物である。</p>
+
+    <h3 class="subsection-title">3-2. X（Twitter）：リアルタイム情報の強者、機能の弱者</h3>
+    <p>Xは災害時のリアルタイム情報流通において依然として強い存在感を持つ。2011年東日本大震災以降、「現地の生の声」を得る最速メディアとして定着した。しかし、統合型の災害対応機能は存在せず、Twitter Alerts（2013年開始）や#ThereIsHelpはあくまで通知・ハッシュタグレベルの機能に留まる。</p>
+    <p>さらに、イーロン・マスク体制下での認証制度の混乱やモデレーション体制の弱体化は、災害時の誤情拡散リスクを増大させている。WIRED（2022年）は「イーロン・マスクのTwitterは次の自然災害に備えていない」と報じている。</p>
+
+    <h3 class="subsection-title">3-3. Google Person Finder：オープンアーキテクチャの終焉</h3>
+    <p>2010年ハイチ地震をきっかけに開発されたGoogle Person Finderは、PFIF（People Finder Interchange Format）というオープン標準に基づき、報道機関・NGOとデータを連携できる中立的な安否確認基盤であった。しかし、2025年9月にGitHubリポジトリがアーカイブ化され、新規開発が停止した。</p>
+    <p>これは「公共性の高いインフラを民間企業の善意に委ねる限界」を示唆している。持続可能な災害対応デジタルインフラには、単なるCSRではなく、行政や国際機関による標準化・恒久化が必要である。</p>
+
+    <h3 class="subsection-title">3-4. Instagram・TikTok：災害対応には「設計されていない」</h3>
+    <p>The Verge（2025年）は「ソーシャルメディアプラットフォームはこれのために構築されていない」と指摘。InstagramやTikTokは災害映像の流通には利用されるが、アルゴリズムはエンゲージメントを優先するため、緊急性や正確性が担保されない。安否確認機能も支援マッチング機能も存在しない。</p>
+  </div>
+</section>
+
+<!-- Section 4: Deep Dive -->
+<section class="section reveal">
+  <div class="section-header">
+    <span class="section-num">04</span>
+    <h2 class="section-title">深掘り：Metaの優位性を支える4つの構造的要因</h2>
+    <p class="section-desc">機能の網羅性だけでは説明できない、Metaの災害支援ハブの本質的な優位性を構造的に分析する。</p>
+  </div>
+
+  <div class="two-col">
+    <div class="col-box">
+      <h4>1. 統合性：ユーザージャーニーの一本化</h4>
+      <p>災害時にユーザーが複数のアプリやページを行き来する負担は、意思決定の遅延を招く。Metaは以下を同一UIで提供する：</p>
+      <ul>
+        <li>自分の安否を伝える</li>
+        <li>家族・友人の安否を確認する</li>
+        <li>必要な支援を探す／提供する</li>
+        <li>最新情報を収集する</li>
+        <li>寄付行う</li>
+      </ul>
+      <p style="margin-top:0.5rem;">この「行動の一本化」は、被災者の認知的負荷を大幅に軽減する。</p>
+    </div>
+    <div class="col-box">
+      <h4>2. ソーシャルグラフの活用</h4>
+      <p>Facebookの「友だち関係」という既存の信頼ネットワークを活用することで、以下の効果がある：</p>
+      <ul>
+        <li>安否情報の到達率が高い（通知が届く）</li>
+        <li>情報の信頼性が可視化される（誰からの情報か分かる）</li>
+        <li>代理報告が可能（家族が代わりに報告）</li>
+        <li>支援者と被災者の信頼関係が事前に構築されている</li>
+      </ul>
+      <p style="margin-top:0.5rem;">匿名掲示板型とは異なり、誤情報リスクが低減される。</p>
+    </div>
+    <div class="col-box">
+      <h4>3. グローバルスケーラビリティ</h4>
+      <p>第三者機関（NC4、iJET International）による災害認定と、ユーザーの投稿パターン分析による自動起動メカニズムにより：</p>
+      <ul>
+        <li>世界中の災害に人的判断なしで対応可能</li>
+        <li>震度以外の災害（津波・台風・火災・テロなど）にも対応</li>
+        <li>多言語・多地域への同時展開が可能</li>
+      </ul>
+      <p style="margin-top:0.5rem;">LINEの「震度6以上」などの固定的閾値とは異なる柔軟性。</p>
+    </div>
+    <div class="col-box">
+      <h4>4. 継続的改善の蓄積</h4>
+      <p>10年以上の改善サイクルを経て：</p>
+      <ul>
+        <li>2014年：災害時情報センター（日本発）</li>
+        <li>2017年：コミュニティヘルプ・災害支援ハブ</li>
+        <li>2019年：WhatsApp連携・ガイドブック公開</li>
+        <li>2023年：寄付ボタン廃止（事業戦略の見直し）</li>
+      </ul>
+      <p style="margin-top:0.5rem;">「もしもに備えるFacebook」ガイドブックによる啓蒙活動も並行。</p>
+    </div>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-box">
+      <div class="stat-num">10年+</div>
+      <div class="stat-label">機能開発・改善の蓄積</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-num">115+</div>
+      <div class="stat-label">寄付ボタン対象国（2017-2023）</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-num">600+</div>
+      <div class="stat-label">支援された地域組織</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-num">1,000+</div>
+      <div class="stat-label">対応した災害イベント</div>
+    </div>
+  </div>
+</section>
+
+<!-- Section 5: Structural Challenges -->
+<section class="section reveal">
+  <div class="section-header">
+    <span class="section-num">05</span>
+    <h2 class="section-title">構造的課と限界：評価の裏側</h2>
+    <p class="section-desc">Metaの災害支援ハブの優位性を正しく理解するためには、その構造的課題も同時に認識する必要がある。</p>
+  </div>
+
+  <div class="card-grid">
+    <article class="card">
+      <h3><span style="color:var(--danger);">&#9679;</span> プラットフォーム依存の脆弱性</h3>
+      <p>災害対応機能が民間企業の事業戦略に依存していること自体がリスクである。2023年の寄付ボタン廃止は、CSRではなく事業戦略として機能が維持されている限界を示している。</p>
+    </article>
+    <article class="card">
+      <h3><span style="color:var(--danger);">&#9679;</span> 日本市場での普及率の限界</h3>
+      <p>日本ではFacebookの利用実態（特に若年層の離れ）が災害支援ハブの普及を妨げている。LINEが「国民的インラ」として定着している中で、Metaの到達率は限定的である。</p>
+    </article>
+    <article class="card">
+      <h3><span style="color:var(--danger);">&#9679;</span> 相互運用性の欠如</h3>
+      <p>Facebookで安否を報告してもLINEの友だちには届かない。各プラットフォームの災害対応データはサイロ化しており、プラットフォーム間の壁が災害時の情報連携を阻害している。</p>
+    </article>
+    <article class="card">
+      <h3><span style="color:var(--danger);">&#9679;</span> 情報の信頼性担保</h3>
+      <p>コミュニティ投稿ベースの情報集約は、誤情報・デマのリスクを内包する。第三者機関による災害認定はあるが、個別の支援投稿の真偽検証メカニズムは限定的である。</p>
+    </article>
+  </div>
+
+  <div class="limitation">
+    <p><strong>重要な考察：</strong> Google Person Finderのアーカイブ化（2025年）とMetaの寄付ボタン廃止（2023年）は、民間企業主導の災害対応インフラが経営体制の変化や事業戦略の変更で容易に縮小・廃止されるリスクを示している。<strong>持続可能な防災インフラには、行政や国際機関による標準化・恒久化が不可欠である。</strong></p>
+  </div>
+</section>
+
+<!-- Section 6: Future -->
+<section class="section reveal">
+  <div class="section-header">
+    <span class="section-num">06</span>
+    <h2 class="section-title">今後の展望：次世代災害対応インフラの方向性</h2>
+    <p class="section-desc">Metaの災害支援ハブを起点に、今後の災害対応デジタルインフラが向かうべき方向を考察する。</p>
+  </div>
+
+  <div class="prose">
+    <h3 class="subsection-title">6-1. 相互運用の確立</h3>
+    <p>単一プラットフォームへの依存ではなく、複数プラットフォーム間のデータ連携（相互運用性）が、よりレジリエントな防災インフラを構築する鍵となる。Google Person Finderが採用したPFIF（People Finder Interchange Format）のようなオープン標準の復権が求められる。</p>
+
+    <h3 class="subsection-title">6-2. AI・生成AIの活用</h3>
+    <p>大規模言語モデル（LLM）を活用した災害情報の要約・翻訳・真偽検証、あるいは被災者のニーズと支援のマッチング精度向上など、AI技術の統合が次の段階の改善領域となる可能性がある。</p>
+
+    <h3 class="subsection-title">6-3. 行政・国際機関との連携強化</h3>
+    <p>Metaの災害支援ハブがNC4やiJET Internationalといった第三者機関と連携しているように、今後は各国の防災行政機関（日本の内阁府、米国のFEMA等）とのAPIレベルでの連携が進むべきである。こにより、公式情報とソーシャル情報のハイブリッド化が実現する。</p>
+
+    <h3 class="subsection-title">6-4. メタバース・VRの可能性</h3>
+    <p>株式会社Meta Heroesが主催する「防災万博」（2025年）や、メタバース居場所提供型プラットフォーム「Minna」のような取り組みが示すように、VR・メタバース技術を活用した被災者の心理的支援や避難訓練のデジタル化も、今後の展開領域となる。</p>
+  </div>
+
+  <div class="insight">
+    <p><strong>結論：</strong> Metaの災害支援ハブは、「安否確認・支援マッチング・情報集約・募金」を統合した包括的な災害対応UIとして、SNS業界において最も完成度の高いモデルを提示している。しかし、その優位性は民間企業の事業戦略に依存しており、持続可能性には限界がある。次世代の防災インフラは、Metaの統合ハブの設計思想を継承しつつ、プラットフォーム間の相互運性と行政・国際機関による標準化・恒久化を実現することで、初めて真のレジリエンスを獲得するだろう。</p>
+  </div>
+</section>
+
+</main>
+
+<footer class="sources">
+  <div class="container">
+    <h2>出典・参考資料</h2>
+    <ul class="source-list">
+      <li>[1] Metaについて「Facebookに新しく「災害支援ハブ」が登場」(2017-09-21) — https://about.fb.com/ja/news/2017/09/a-new-center-for-crisis-response-on-facebook/</li>
+      <li>[2] Metaについて「「災害時情報センター」に食料や避難場所を探せる新機能「コミュニティヘルプ」を追加」(2017-02-09) — https://about.fb.com/ja/news/2017/02/communityhelp/</li>
+      <li>[3] Metaについて「有事の際に役立つFacebook災害対応ガイドブック「もしもに備えるFacebook」を公開」(2019-09-06) — https://about.fb.com/ja/news/2019/09/facebook_disaster_guidebook/</li>
+      <li>[4] GlobalGiving「GlobalGiving & Meta Crisis Response」— https://www.globalgiving.org/meta-crisis-response/</li>
+      <li>[5] CNET Japan「Facebookの「災害支援ハブ」、リアルタイム情報のやり取りを強化」(2019-12-03) — https://japan.cnet.com/article/35146251/</li>
+      <li>[6] LINEみんなの使い方ガイド「LINE安否確認を利用する」— https://guide.line.me/ja/services/safety-check.html</li>
+      <li>[7] 毎日新聞「「LINE安否確認」1200万人超が利用 能登地震で初の長期運用」(2024-02-01) — https://mainichi.jp/articles/20240201/k00/00m/040/249000c</li>
+      <li>[8] WIRED「Elon Musk's Twitter Isn't Ready for the Next Natural Disaster」(2022-12-05) — https://www.wired.com/story/elon-musks-twitter-isnt-ready-for-the-next-natural-disaster/</li>
+      <li>[9] TechTRP「Twitter Teams Up With Mercy Malaysia And NADMA」(2022-10-27) — https://techtrp.com/news/2022/10/27/twitter-teams-up-with-mercy-malaysia-and-nadma-to-help-people-prepare-for-natural-disasters/</li>
+      <li>[10] Google Support「What is Google Person Finder?」— https://support.google.com/personfinder/answer/1628135?hl=en</li>
+      <li>[11] Wikipedia「Google Person Finder」— https://en.wikipedia.org/wiki/Google_Person_Finder</li>
+      <li>[12] The Verge「Social media platforms are not built for this」(2025-01-15) — https://www.theverge.com/2025/1/15/24340185/los-angeles-california-wildfires-tiktok-instagram-twitter-content</li>
+      <li>[13] ITmedia NEWS「津波警報で「LINE安否確認」起動」(2025-07-30) — https://www.itmedia.co.jp/news/articles/2507/30/news093.html</li>
+      <li>[14] ITmedia NEWS「「どこかで災害あった？」LINEの「安否確認」に困惑するユーザー続出」(2026-03-10) — https://www.itmedia.co.jp/news/article/2603/10/1260310091/</li>
+      <li>[15] ソフトバンクニュース「もしもに備えて知っておきたい、災害時にLINEでできる安否確認」(2024-06-06) — https://www.softbank.jp/sbnews/entry/20240606_02</li>
+      <li>[16] リスク対策.com「フェイスブックを災害時に生かせ！」— https://www.risktaisaku.com/articles/-/4251</li>
+      <li>[17] NFT-TIMES「株式会社Meta Heroes主催の「防災万博」」(2025-05-27) — https://nft-times.jp/ai/114035/</li>
+      <li>[18] JWCO日本福祉協議機構「メタバースで被災地支援！災害時の居場所提供型プラットフォーム【Minna】α版リリース」— https://n-fukushi.jp/info/metaverse_release</li>
+    </ul>
+  </div>
+</footer>
+
+<script>
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('is-visible'); });
+}, { threshold: 0.1 });
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
+
+</body>
+</html>
